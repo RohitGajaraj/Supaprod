@@ -91,6 +91,17 @@ describe("a transcript is one hop", () => {
       readTrackToolCalls(wire as unknown as SupabaseClient<Database>, "track-1"),
     );
     expect(rounds).toBe(1);
-    expect(result).toEqual({ calls: [], runs: 3, tracedRuns: 0 });
+    /* `capped`/`oldestShownAt` joined the answer (Lane 2, 2026-09-09): the
+       window is per TRACK while `SeatCalls` groups per TURN, so an earlier
+       turn whose calls fell outside it drew no fold and read as a turn that
+       called nothing. A full window is the signal, so it costs no extra hop
+       and this test's own count is unchanged. */
+    expect(result).toEqual({
+      calls: [],
+      runs: 3,
+      tracedRuns: 0,
+      capped: false,
+      oldestShownAt: null,
+    });
   });
 });

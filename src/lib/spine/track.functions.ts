@@ -5654,9 +5654,25 @@ export const getTrackToolCalls = createServerFn({ method: "GET" })
     async ({
       context,
       data,
-    }): Promise<{ calls: TrackToolCall[]; runs: number; tracedRuns: number }> =>
+    }): Promise<{
+      calls: TrackToolCall[];
+      runs: number;
+      tracedRuns: number;
+      /** The window was full, so calls older than `oldestShownAt` are not here. */
+      capped: boolean;
+      oldestShownAt: string | null;
+    }> =>
       readTrackToolCalls(context.supabase, data.trackId),
   );
+
+/**
+ * How many tool calls the transcript reads, newest first across the track.
+ *
+ * Named beside `TURN_WINDOW` because it is the same trade and the same duty:
+ * the cap keeps the payload small, and a cap that is not disclosed reads as
+ * completeness.
+ */
+export const TOOL_CALL_WINDOW = 200;
 
 /** What the database answers for one track's transcript (`track_tool_calls`). */
 type TrackToolCallsAnswer = {
@@ -5698,10 +5714,16 @@ type TrackToolCallsAnswer = {
 export async function readTrackToolCalls(
   supabase: SupabaseClient<Database>,
   trackId: string,
-): Promise<{ calls: TrackToolCall[]; runs: number; tracedRuns: number }> {
+): Promise<{
+  calls: TrackToolCall[];
+  runs: number;
+  tracedRuns: number;
+  capped: boolean;
+  oldestShownAt: string | null;
+}> {
   const { data, error } = await supabase.rpc("track_tool_calls", {
     p_track_id: trackId,
-    p_limit: 200,
+    p_limit: TOOL_CALL_WINDOW,
     p_search_tools: [...SEARCH_TOOLS],
   });
   // Thrown, not swallowed: an empty list means the agents called nothing,
@@ -5739,7 +5761,28 @@ export async function readTrackToolCalls(
       };
     })
     .reverse();
-  return { calls, runs: Number(answer.runs ?? 0), tracedRuns: Number(answer.traced_runs ?? 0) };
+  /*
+   * ── THE CALL WINDOW IS PER TRACK AND THE DISPLAY IS PER TURN ─────────────
+   *
+   * `track_tool_calls` takes the NEWEST `p_limit` calls across the whole track,
+   * which is right for the payload and wrong for what the transcript does with
+   * them: `SeatCalls` groups by `runId` and returns null on an empty list, so a
+   * turn whose calls fell outside the window draws no fold at all and reads as
+   * a turn that called nothing. Measured on `2fdf93b6`: Discovery Scout made
+   * eight calls and showed none, Researcher five and showed none.
+   *
+   * A full window is the signal, so this costs no migration and no second
+   * query. `oldestShownAt` is the boundary a person can act on -- everything
+   * before it is outside the record this screen holds -- and it comes from
+   * `calls[0]` because the list has just been reversed into arrival order.
+   */
+  return {
+    calls,
+    runs: Number(answer.runs ?? 0),
+    tracedRuns: Number(answer.traced_runs ?? 0),
+    capped: (answer.calls ?? []).length >= TOOL_CALL_WINDOW,
+    oldestShownAt: calls[0]?.at ?? null,
+  };
 }
 
 export const pointASourceFirst = createServerFn({ method: "POST" })

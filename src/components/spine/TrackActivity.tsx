@@ -727,6 +727,26 @@ export function TrackActivity({
       return "This run is older than the record of what agents call, so what its turns did was not written down. Newer turns show every call under the seat that made it.";
     }
     const unseen = d.runs - d.tracedRuns;
+    /*
+     * ── THE OTHER WAY A CALL GOES MISSING, AND IT IS NOT AGE OF THE RECORD ──
+     *
+     * The read takes the newest calls ACROSS THE TRACK, while `SeatCalls`
+     * groups them per turn and draws nothing for an empty group. So on a busy
+     * run the earlier turns lose their calls to the window and render as turns
+     * that called nothing -- which is what this sentence exists to refuse,
+     * arriving by a second route nobody had counted. Measured on `2fdf93b6`:
+     * Discovery Scout made eight calls and showed none.
+     *
+     * Said before the age clause, because it is the one a reader can act on: a
+     * call outside the window still exists and has a time attached to it,
+     * whereas a turn older than the record was never written down at all.
+     */
+    if (d.capped) {
+      const from = d.oldestShownAt ? clockOf(Date.parse(d.oldestShownAt)) : null;
+      return from
+        ? `What the agents called is here from ${from} onwards. This run made more calls than that before it, and the turns that made them show none.`
+        : "What the agents called is capped on this run, so its earliest turns show no calls.";
+    }
     if (unseen <= 0) return null;
     return (
       `${d.tracedRuns} of ${d.runs} turns on this run wrote down what they called. ` +

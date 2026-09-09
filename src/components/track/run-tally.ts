@@ -139,6 +139,15 @@ function fieldOf(items: StationArtifactView["items"], kind: string, field: strin
 export function runTally(input: {
   stops: readonly StationArtifactView[] | null;
   turns: ReadonlyArray<Pick<Turn, "tookMs" | "tokens" | "usd" | "credits">> | null;
+  /**
+   * Were those turns a WINDOW rather than all of them?
+   *
+   * The elapsed time and the bill are sums over `turns`, so on a run past
+   * `TURN_WINDOW` they describe a subset and were being printed as the run's
+   * totals. True marks both figures "at least". Optional and false by default,
+   * for the callers (and the tests) that hand in a whole run.
+   */
+  turnsCapped?: boolean;
   /** What each drive's own check compared. Absent on a caller that cannot read it. */
   selfChecks?: SelfCheckTally | null;
   now: number;
@@ -233,8 +242,27 @@ export function runTally(input: {
    * pane's own audit, so the three cannot disagree.
    */
   const s = costSummary([...(input.turns ?? [])]);
-  const elapsed = s.timedTurns > 0 ? formatElapsed(s.msTotal / 1000) : null;
-  const cost = spendClause(s);
+  /*
+   * ── "AT LEAST", WHEN THE TURNS WERE A WINDOW RATHER THAN ALL OF THEM ─────
+   *
+   * These two figures are summed over `input.turns`, which is
+   * `getTrackActivity`'s capped window. On a run past the cap they were printed
+   * in the footer as the run's own elapsed time and its own bill, and both were
+   * short by however many turns did not fit. The strip's whole argument is that
+   * a figure is honest or absent; a total that silently describes a subset is
+   * neither.
+   *
+   * MARKED RATHER THAN DROPPED. Dropping both is the other honest answer and it
+   * is worse here: the founder's ask of this strip is that finished work shows
+   * what it was worth, and "we cannot say" over a run that cost real money
+   * answers nothing. A trailing `+` says "at least this much", which is exactly
+   * what the window supports, and the transcript above carries the sentence
+   * that explains why.
+   */
+  const atLeast = (v: string | null): string | null =>
+    v === null ? null : input.turnsCapped ? `${v}+` : v;
+  const elapsed = atLeast(s.timedTurns > 0 ? formatElapsed(s.msTotal / 1000) : null);
+  const cost = atLeast(spendClause(s));
 
   return { made, pr, verdict, horizon, selfCheck: selfCheckLine(input.selfChecks), elapsed, cost };
 }
@@ -267,6 +295,9 @@ export function useRunTally(trackId: string): { tally: Tally; ready: boolean } {
       runTally({
         stops: artifacts.data?.stops ?? null,
         turns: activity.data?.turns ?? null,
+        /* The read's own answer about whether its window was full, so the two
+           figures below cannot claim to be totals when they are not. */
+        turnsCapped: activity.data?.turnsCapped != null,
         selfChecks: activity.data?.selfChecks ?? null,
         now: Date.now(),
       }),
