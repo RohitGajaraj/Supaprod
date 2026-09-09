@@ -296,10 +296,13 @@ describe("the driver's own work item is not the station's output", () => {
  * "FILED" IS THE WEAKEST VERB AVAILABLE FOR A DECISION.
  *
  * On `6cc7a010` the story read `Decide filed "Reschedule installer visit from
- * order page"` and the decision was to WAIT. The title names the subject and
- * says nothing about the direction, so a person reading that run's story could
- * not know the loop had decided against it -- while Plan, Design and Build then
- * filed a spec, a prototype and a code change underneath.
+ * order page"` and the title names the SUBJECT and nothing else. A reader cannot
+ * tell from it whether the loop decided to build the thing or not to.
+ *
+ * The first version of this note said "the decision was to WAIT", read off the
+ * rationale prose. `decisions.call` on that row says **build**. The note
+ * explaining why prose cannot be trusted for a direction had taken its own
+ * direction from prose.
  *
  * `decisions.call` records the direction as of 2026-09-10 and reaches this line
  * through `ARTIFACT_SOURCE.decision.also`.

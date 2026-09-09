@@ -179,10 +179,23 @@ function didClause(items: LineItem[]): string | null {
      *
      *   Decide filed "Reschedule installer visit from order page"
      *
-     * and the decision was to WAIT. The title names the subject and says
-     * nothing about the direction, so a person reading the story of that run
-     * had no way to know the loop had decided against it -- while Plan, Design
-     * and Build then filed a spec, a prototype and a code change underneath.
+     * and the title names the SUBJECT and nothing else. A reader cannot tell
+     * from it whether the loop decided to build the thing or not to, which is
+     * the whole of what a person opens a run's story to learn.
+     *
+     * ── AND THE FIRST VERSION OF THIS NOTE READ THE DIRECTION OFF PROSE ────
+     * It said "and the decision was to WAIT", which I took from that row's
+     * rationale ("Decision recorded: 'Wait' for rescheduling...") and from the
+     * critic's turn arguing against the work. `decisions.call` on that row says
+     * **build**.
+     *
+     * So the sentence written to explain why prose cannot be trusted for a
+     * direction had taken its own direction from prose, in the commit that
+     * wired the structured field. Corrected rather than deleted, because the
+     * mistake is the argument: a rationale can spend four hundred words making
+     * the case against a thing the call went in favour of, and a reader -- or a
+     * docstring author -- who takes the direction from the argument gets it
+     * backwards.
      *
      * `decisions.call` records the direction as of 2026-09-10 (Lane 3), and it
      * reaches this line through `ARTIFACT_SOURCE.decision.also`. So the verb
