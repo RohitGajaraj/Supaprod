@@ -4618,7 +4618,17 @@ export async function repairStaleGates(
       .from("spine_tracks" as never)
       .select("id,last_hold,pending_gates")
       .eq("status", "open")
+      /*
+       * NON-EMPTY, NOT NON-NULL (measured 2026-09-09, an hour after the first
+       * version served). `pending_gates` defaults to `[]`, so "is not null"
+       * matched all 74 open tracks and the window filled with tracks that had
+       * nothing to prune: five of the six were repaired on the first pass and
+       * the sixth sat at row 54 of a 50-row read, out of reach for ever. The
+       * empty array is the thing to exclude, so the window holds only tracks
+       * this pass can actually help.
+       */
       .not("pending_gates", "is", null)
+      .neq("pending_gates", "[]")
       .order("updated_at", { ascending: true })
       .limit(limit * 5);
     if (error) {

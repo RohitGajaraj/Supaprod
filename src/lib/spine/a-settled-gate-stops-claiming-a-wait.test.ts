@@ -29,6 +29,11 @@ describe("a settled gate stops claiming a wait", () => {
     expect(at).toBeGreaterThan(-1);
     expect(REPAIR).toContain('.eq("status", "open")');
     expect(REPAIR).toContain('.not("pending_gates", "is", null)');
+    /* The empty array is the thing to exclude: `pending_gates` defaults to
+       `[]`, so filtering on null alone filled the window with tracks that had
+       nothing to prune and left a real one out of reach (measured on
+       production, five repaired and the sixth at row 54 of a 50-row read). */
+    expect(REPAIR).toContain('.neq("pending_gates", "[]")');
     expect(REPAIR).toContain(".limit(limit * 5)");
   });
 
