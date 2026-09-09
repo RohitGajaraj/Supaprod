@@ -1862,6 +1862,49 @@ export function TrackActivity({
                                   <Reveal lines={3}>{saidLine(t.said)}</Reveal>
                                 </RunNote>
                               ) : null}
+                              {/*
+                               * ── THE FOLD KEPT THE COUNT AND DROPPED THE
+                               *    EVIDENCE, ON THE ROWS WHERE THE EVIDENCE IS
+                               *    THE WHOLE QUESTION ──────────────────────────
+                               *
+                               * This row is a run of identical stopped turns,
+                               * which is to say it is the loop -- the turns a
+                               * person opens a stuck run to understand. It
+                               * carried the lead, the span and the prose, and
+                               * unlike the ordinary turn branch below it mounted
+                               * no `SeatCalls` and no trace door. The eleven
+                               * other turns are not behind a disclosure; they
+                               * are not on the screen at all. So the fold
+                               * answered "it did this twelve times" and removed
+                               * every way to ask what "this" was: the searches
+                               * and reads that show what the seat was actually
+                               * doing while it filed nothing.
+                               *
+                               * The REPRESENTATIVE turn's own evidence, not all
+                               * twelve. That is the honest half of the fold's
+                               * argument -- the turns are identical, so one
+                               * stands for them -- and it is the half that was
+                               * missing. The calls are this turn's; the trace
+                               * door is this turn's; the count above says how
+                               * many times it happened.
+                               */}
+                              <SeatCalls
+                                calls={callsBySeat.get(t.runId) ?? []}
+                                working={false}
+                                seat={t.agentName}
+                                spend={
+                                  t.tokens != null ? `${t.tokens.toLocaleString()} tokens` : null
+                                }
+                              />
+                              {t.traceId ? (
+                                <Link
+                                  to="/traces/$traceId"
+                                  params={{ traceId: t.traceId }}
+                                  className="mrd-focus self-start rounded-mrd-ctl text-mrd-small text-mrd-mute underline decoration-mrd-line underline-offset-4 transition-colors hover:text-mrd-ink hover:decoration-mrd-edge"
+                                >
+                                  Open the full trace
+                                </Link>
+                              ) : null}
                             </span>
                           </li>
                         );
