@@ -381,3 +381,30 @@ Comparing two implementations proves they AGREE, never that either is RIGHT. `wh
 **AND THEN I WITHDREW A WORKING FEATURE ON EVIDENCE I HAD ALREADY DISQUALIFIED.** A second failure in a function I had just broken read as the same cause. My instruments: a throttled tab whose elapsed counter had frozen, and hand-built calls returning 500 for *every* endpoint including unrelated ones — a control failing as badly as the case. I wrote that down and acted on the conclusion anyway. **Withdrawing is a change and carries the same burden of evidence as shipping.**
 **`git merge-base --is-ancestor <fix> <built-sha>`** is the command that says whether a deploy can possibly contain your work. I lost twenty minutes blaming Lovable's sync for holding my own bug.
 Two guards re-pointed from spelling to claim, both found by accident: the Ask default line ("Waiting on you since 5 days" — the guard asserted the source line and its NAME is a claim about the sentence), and `the-bar-counts-gates-on-open-tracks`, which sliced its subject by a terminator that function does not use and was reading a later function's comments.
+
+## Lane 2, 2026-09-10 late: five defects that lived between two correct elements
+
+All found by reading a rendered page, not a diff. All law 14 — each element individually right and
+individually tested, the defect only in the gap.
+
+- Two "Stopped" chips 200px apart (two deciders, seven and twelve branches, agreeing by construction
+  not contract). Cut by rule: header says the same word AND the card still has a sentence.
+- "One more wall is behind this one" about a credit halt on an account topped up five days later.
+  Now reads standing through `wallsByTrack`, subtracting only a provable `gone`, matched on the slug.
+- "3 times" (filings) against "12 times" (turns) — four sentences, three files, no shared import.
+  `a-turn-is-not-a-filing.ts` + a census over all four.
+- "Said **this** 12 times" after the quote it pointed at moved to the story: bound to another
+  station's wall.
+- "could not start Build **in** 6 turns" reads as a deadline and inverts the fact. Now "across".
+
+**Instruments, twice in one evening.** My diagnostic reused the guard's own wrong bound, so it
+confirmed itself; Lane 1's hand-built control failed as badly as the case under test. Neither of us
+asked what the instrument would say if we were wrong.
+
+**`read_network_requests` (Claude-in-Chrome) is the missing instrument** — per-request status codes
+off the served build, immune to the page's throttled clock. Reload after the first call: tracking
+starts when the tool does, so an empty first capture means "started late", not "nothing fired".
+
+**Do not add a second reader of `halted_reason`.** `wallsByTrack` in
+`src/lib/spine/the-wall-the-platform-put-up.ts` is the one reader; `isSlug` is exported because the
+column holds two live vocabularies (halt-path slugs, sweeper prose).

@@ -2940,6 +2940,47 @@ understood anything from the summary above it. The problem is not that the pane 
 is that the top of the pane says the SHAPE and the bottom says the CAUSE, and a stranger reads
 top-down."*
 
+### Five defects that lived BETWEEN two correct elements (2026-09-10, late)
+
+Everything below was found by reading a rendered page, not a diff, and every one of them is law 14:
+each element was individually right and individually tested, and the defect existed only in the gap.
+Recorded together because the pattern is more useful than any one of them.
+
+1. **Two "Stopped" chips, 200px apart.** Header and Now card, two deciders (`run-status.ts` with
+   seven branches, `run-now.ts` with twelve) agreeing by construction rather than by contract. Cut by
+   RULE, not deletion — the header must be saying the same word *and* the card must still have a
+   sentence, because three registers are deliberately the chip alone.
+   `the-header-already-said-it.ts`.
+
+2. **A count of walls that were no longer there.** "One more wall is behind this one" — present
+   tense, from a record that only supports a past one. The counted wall was a credit halt on an
+   account topped up five days later. Now reads the standing of each wall through Lane 1's
+   `wallsByTrack` and subtracts only what is provably `gone`, matched **on the slug** so a lifted
+   credit halt cannot answer for a repository refusal that did not lift.
+
+3. **One word, two units.** The road said Design filed "1 prototype, 3 times"; the card said Design
+   "said this 12 times". Filings and turns. Both true, and the card also said Design *filed nothing*
+   while the road said it *filed a prototype* — a flat contradiction separated only by an unnamed
+   unit. Four sentences in three files that do not import each other. `a-turn-is-not-a-filing.ts`,
+   with a census over all four.
+
+4. **A pronoun that outlived its quote.** "Design said **this** 12 times" was written when the quote
+   sat above it. The quote correctly moved to the story; the pronoun stayed and bound to the nearest
+   remaining quote, which belonged to a different station and a different wall.
+
+5. **A preposition that inverted the fact.** After the unit split, "could not start Build **in** 6
+   turns" reads as a deadline — failed to start *within* six turns — when the fact is that it tried
+   six times and never started. Now "across". The unit was right and the preposition was not, which
+   no test of the count could see.
+
+**And two instrument lessons, both paid for twice in one evening.** A guard's own bound was wrong, so
+my diagnostic — which reused that bound — confirmed itself; Lane 1's hand-built control failed as
+badly as the case under test. Neither of us asked what the instrument would say if we were *wrong*.
+**`read_network_requests` in Claude-in-Chrome is the instrument that was missing**: per-request status
+codes off the served build, immune to the page's own throttled clock. It needs a reload after the
+first call, because tracking starts when the tool does — a first capture returning nothing means
+"tracking started late", not "nothing is firing".
+
 ### What is open now
 
 1. **The `no-two-states-look-the-same` shape belongs on this lane's surfaces
