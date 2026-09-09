@@ -76,6 +76,61 @@ describe("a track started from a sentence reaches a workspace", () => {
   it("writes the opportunity a press started from", () => {
     expect(INSERT).toContain("opportunity_id: data.opportunityId ?? null");
   });
+
+  /**
+   * THE LOOP'S CLOSING SEAM (2026-09-10). `from_learning_id` has been readable
+   * all along -- `came-back-on-its-own.ts` draws a line for it -- and nothing
+   * on the start path could write it. Measured: 135 learnings on the record and
+   * ONE track of 121 that ever started from one.
+   */
+  it("writes the learning a press came out of", () => {
+    expect(INSERT).toContain("from_learning_id: data.fromLearningId ?? null");
+  });
+});
+
+describe("a learning a press names must belong to the workspace it lands in", () => {
+  /*
+   * ── THE CHECK `opportunityId` DOES NOT HAVE ──────────────────────────────
+   * S3 asked me to read that field's gating before copying its shape rather
+   * than assume it had any. It has none: a client uuid goes through the
+   * validator into `startTrackCore` and onto the row with nothing verifying it
+   * belongs to the caller. Reported separately and NOT fixed here -- different
+   * column, somebody else's press path -- and measured before being described:
+   * the only reader of `spine_tracks.opportunity_id` uses the user-scoped
+   * client and matches the caller's own ids, so a forged value is a false
+   * provenance stamp on your own row rather than a read of anyone else's.
+   *
+   * This one is checked anyway, because a uuid accepted from a client and
+   * written to a workspace-scoped table without an ownership test is the SHAPE
+   * of a hole even where this instance is not one.
+   *
+   * Asserted on the source, like the insert above, because driving the handler
+   * needs an auth context and a Supabase double, and the property here is that
+   * the check EXISTS and is scoped -- which the source states exactly.
+   */
+  const SRC = readFileSync(fileURLToPath(new URL("./track.functions.ts", import.meta.url)), "utf8");
+
+  it("reads the learning back before writing its id", () => {
+    expect(SRC).toContain('.from("learnings")');
+    expect(SRC).toContain('.eq("id", data.fromLearningId)');
+  });
+
+  it("and scopes that read to the workspace the track lands in", () => {
+    // `resolved.workspaceId`, not the raw input: the caller's requested
+    // workspace has already been gated by `resolveStartWorkspace` above, so
+    // this cannot be pointed at a third one.
+    expect(SRC).toContain('.eq("workspace_id", resolved.workspaceId)');
+  });
+
+  it("drops an unverifiable learning rather than refusing the run", () => {
+    /*
+     * The run is still worth starting. What is lost is the line saying where it
+     * came from, which is the honest outcome for a provenance claim that could
+     * not be verified -- the same rule the rest of this screen follows for a
+     * fact nobody could read.
+     */
+    expect(SRC).toContain("fromLearningId = learning ? data.fromLearningId : null;");
+  });
 });
 
 describe("a caller cannot name a workspace it does not belong to, unless they own it", () => {

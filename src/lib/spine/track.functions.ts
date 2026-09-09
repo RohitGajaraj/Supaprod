@@ -426,6 +426,10 @@ export async function startTrackCore(
      * can know this; `startTrackCore` just carries it onto the row.
      */
     opportunityId?: string | null;
+    /** The learning this run came out of, ALREADY ownership-checked by the
+     *  caller. `startTrackCore` carries it onto the row and verifies nothing,
+     *  the same contract `opportunityId` has above it. */
+    fromLearningId?: string | null;
   },
 ): Promise<{ track: Track | null; problems: string[] }> {
   const origin = data.origin?.trim() || null;
@@ -474,6 +478,7 @@ export async function startTrackCore(
         ...(data.workspaceId ? { workspace_id: data.workspaceId } : {}),
         theme_id: data.themeId ?? null,
         opportunity_id: data.opportunityId ?? null,
+        from_learning_id: data.fromLearningId ?? null,
       } as never)
       .select(SELECT)
       .single();
@@ -590,6 +595,39 @@ export const startTrack = createServerFn({ method: "POST" })
         /** The ranked bet this press started, when the press came from one
          *  (P-134, A-QUEUE.md). See `startTrackCore`'s own doc. */
         opportunityId: z.string().uuid().optional(),
+        /**
+         * The learning this run came out of, when a person pressed from one.
+         *
+         * ── THE LOOP'S CLOSING SEAM, AND IT HAD NO WRITER ─────────────────
+         * `spine_tracks.from_learning_id` has existed and been readable all
+         * along -- `came-back-on-its-own.ts` renders a line for it, and its own
+         * comment says "Zero tracks carry from_learning_id today", written when
+         * that was true. Measured 2026-09-10: **135 learnings on the record and
+         * ONE track that ever started from one**, out of 121. Learn is the
+         * seventh station and the only one whose output is meant to change what
+         * happens next, and 134 of 135 have fed nothing, because nothing on the
+         * start path could write the column.
+         *
+         * ── AND IT IS OWNERSHIP-CHECKED, WHICH `opportunityId` IS NOT ─────
+         * S3 asked me to read the gating on `opportunityId` before copying its
+         * shape rather than assume it had any. It has none: a client uuid goes
+         * through this validator into `startTrackCore` and onto the row with
+         * nothing verifying it belongs to the caller.
+         *
+         * That one is smaller than it sounds and I checked before saying so:
+         * the only reader of `spine_tracks.opportunity_id`
+         * (`discovery.functions.ts`) uses the USER-scoped client and matches
+         * against the caller's own top-three ids, so a forged value stamps a
+         * false provenance on your own row and reads nothing of anyone else's.
+         * Reported separately; not fixed here, because it is a different column
+         * on somebody else's press path.
+         *
+         * This one is checked anyway. A uuid accepted from a client and written
+         * to a workspace-scoped table without an ownership test is the shape of
+         * a hole even when this instance is not one, and the check costs one
+         * round trip on a press that is already doing several.
+         */
+        fromLearningId: z.string().uuid().optional(),
       })
       .parse(d),
   )
@@ -600,6 +638,26 @@ export const startTrack = createServerFn({ method: "POST" })
       data.workspaceId ?? null,
     );
     if (!resolved.ok) return { track: null, problems: [resolved.problem] };
+
+    /*
+     * THE LEARNING MUST BE THIS WORKSPACE'S. Read through `context.supabase`,
+     * so RLS answers first and this check is the second gate rather than the
+     * only one. A learning that does not resolve is dropped rather than
+     * refused: the run is still worth starting, and the only thing lost is the
+     * line saying where it came from -- which is the honest outcome for a
+     * provenance claim we could not verify.
+     */
+    let fromLearningId: string | null = null;
+    if (data.fromLearningId) {
+      const { data: learning } = await context.supabase
+        .from("learnings")
+        .select("id")
+        .eq("id", data.fromLearningId)
+        .eq("workspace_id", resolved.workspaceId)
+        .maybeSingle();
+      fromLearningId = learning ? data.fromLearningId : null;
+    }
+
     return startTrackCore(context.supabase, context.userId, {
       title: data.title,
       shape: data.shape as WorkShape,
@@ -608,6 +666,7 @@ export const startTrack = createServerFn({ method: "POST" })
       projectId: data.projectId ?? null,
       workspaceId: resolved.workspaceId,
       opportunityId: data.opportunityId ?? null,
+      fromLearningId,
     });
   });
 
