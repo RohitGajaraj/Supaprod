@@ -3,6 +3,7 @@ import { STALL_MINUTES } from "@/lib/loop-health.functions";
 import { formatElapsed } from "@/components/meridian/run-rows";
 import { TERMINAL_HOLDS } from "@/lib/spine/correction";
 import { waitingOnTime } from "@/components/track/a-calendar-wait-is-not-a-stoppage";
+import { isOverdue, stoppedFor } from "@/components/meridian/stopped-for";
 import { AGENT_STATIONS, type AgentStation } from "@/lib/agent-vocabulary";
 import { holdLine } from "@/lib/spine/driver";
 import { FORECAST_SAYS } from "@/components/learn/forecast-words";
@@ -590,7 +591,43 @@ function startRowRest(
     return holdLine(r.holdReason, { station: r.station }) ?? `Stopped at ${r.stationName}`;
   }
 
-  return r.drivenAt ? `Waiting at ${r.stationName}` : "Not started yet";
+  /*
+   * ── "WAITING" IS A PROMISE, AND IT EXPIRES ────────────────────────────────
+   *
+   * A run with no hold is one the loop intends to pick up, so "Waiting at
+   * Build" is the right sentence for the ten minutes after it was last driven.
+   * It is not the right sentence a fortnight later.
+   *
+   * MEASURED ON THE LIVE DATABASE, 2026-09-09 16:17 UTC. Four open tracks
+   * carry no hold at all and were last driven 14 days ago, and they are not
+   * fixtures: one has 174 agent runs behind it, another 63, another 23. Every
+   * one of them draws "Waiting at ..." on the home today. Nothing is coming,
+   * and the row says the opposite of that in the one sentence it gets.
+   *
+   * This is `nothing-is-coming.ts` and `a-calendar-wait-is-not-a-stoppage.ts`
+   * generalised: both exist because a surface called a state a WAIT when no
+   * agent and no person was going to resolve it. The hold reasons taught this
+   * lesson one at a time; the no-hold case never learned it, because there is
+   * no reason string on the row to hang it from. The clock is the only witness
+   * it has.
+   *
+   * THE BOUNDARY IS `isOverdue` AND IT IS NOT A NEW NUMBER. A day, because it
+   * "has survived a night nobody looked" -- StalledWork's own threshold, and
+   * the one the queue's rows and its gate already agree on. The sweep re-reads
+   * every ten minutes, so a day is about 144 passes that did not take it: far
+   * past any argument about cadence, and one boundary rather than a second
+   * opinion about when a wait stops being one.
+   *
+   * IT STILL NAMES THE STATION. Where the work stands has not changed and is
+   * still the first thing a reader wants; what is added is the fact that
+   * changes what the station means.
+   */
+  if (!r.drivenAt) return "Not started yet";
+  const drivenAt = Date.parse(r.drivenAt);
+  if (!Number.isNaN(drivenAt) && isOverdue(drivenAt, now)) {
+    return `Waiting at ${r.stationName}, and nothing has picked it up for ${stoppedFor(drivenAt, now)}.`;
+  }
+  return `Waiting at ${r.stationName}`;
 }
 
 /**

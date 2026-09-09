@@ -432,3 +432,64 @@ describe("the verdict outranks the inventory", () => {
     expect(m).not.toContain("you called it");
   });
 });
+
+/*
+ * ── "WAITING" IS A PROMISE AND IT EXPIRES ─────────────────────────────────
+ *
+ * MEASURED on the live database 2026-09-09 16:17 UTC: four open tracks carry
+ * NO hold at all and were last driven fourteen days ago. They are not
+ * fixtures -- one has 174 agent runs behind it, another 63, another 23 -- and
+ * every one of them drew "Waiting at ..." on the home. The sweep re-reads
+ * every ten minutes, so that is about two thousand passes that did not take
+ * it, under a word that says one is coming.
+ *
+ * The hold reasons each learned this lesson separately (`nothing-is-coming`,
+ * `a-calendar-wait-is-not-a-stoppage`). The no-hold row never could, because
+ * it has no reason string to hang the lesson from. Its clock is the only
+ * witness it has, so the clock is what this reads.
+ */
+describe("a wait nothing is coming for", () => {
+  it("says the plain thing while the loop is still plausibly on it", () => {
+    // An hour: six sweeps. Nothing is wrong and nothing needs saying.
+    const m = startRowMiddle(run({ drivenAt: "2026-09-02T11:00:00Z" }), NOW, WORDS, phrase);
+    expect(m).toBe("Waiting at Build");
+  });
+
+  it("says nothing picked it up once it has survived a night nobody looked", () => {
+    const m = startRowMiddle(run({ drivenAt: "2026-08-18T12:00:00Z" }), NOW, WORDS, phrase);
+    expect(m).toBe("Waiting at Build, and nothing has picked it up for 15 days.");
+  });
+
+  it("still names the station, because where it stands has not changed", () => {
+    // The added fact changes what the station MEANS; it does not replace it.
+    const m = startRowMiddle(run({ drivenAt: "2026-08-18T12:00:00Z" }), NOW, WORDS, phrase);
+    expect(m).toContain("Build");
+  });
+
+  it("uses the queue's own overdue boundary, not a second opinion about it", () => {
+    // `isOverdue` is a day. Just under stays plain, just over does not, and the
+    // number lives in `stopped-for.ts` where the Inbox's rows and its gate
+    // already agree on it.
+    const under = startRowMiddle(run({ drivenAt: "2026-09-01T12:00:01Z" }), NOW, WORDS, phrase);
+    const over = startRowMiddle(run({ drivenAt: "2026-09-01T11:59:59Z" }), NOW, WORDS, phrase);
+    expect(under).toBe("Waiting at Build");
+    expect(over).toContain("nothing has picked it up");
+  });
+
+  /*
+   * THE MIRROR. Everything above is about a row that WAS driven. A run nobody
+   * ever started has no broken promise to report, and saying "nothing has
+   * picked it up for 15 days" about work that was never handed over would be
+   * the invention this column exists to refuse.
+   */
+  it("never says it of work that was never started", () => {
+    const m = startRowMiddle(run({ drivenAt: null }), NOW, WORDS, phrase);
+    expect(m).toBe("Not started yet");
+    expect(m).not.toContain("picked it up");
+  });
+
+  it("degrades to the plain wait on a timestamp it cannot read", () => {
+    const m = startRowMiddle(run({ drivenAt: "not a date" }), NOW, WORDS, phrase);
+    expect(m).toBe("Waiting at Build");
+  });
+});
