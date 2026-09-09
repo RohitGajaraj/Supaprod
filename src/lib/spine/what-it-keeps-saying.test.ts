@@ -83,6 +83,41 @@ function turn(over: Partial<SayingTurn> = {}): SayingTurn {
   };
 }
 
+/**
+ * ── THE PRONOUN MUST NOT REACH OUTSIDE ITS OWN SENTENCE ─────────────────────
+ *
+ * Read live on `6cc7a010`, 2026-09-10. The hold card drew Build's repository
+ * quote, then a door, then this lead about DESIGN -- whose twelve turns said
+ * "AI credits exhausted", a sentence that lives in the story eight hundred
+ * pixels below and is nowhere on the card.
+ *
+ * "Design said THIS 12 times" therefore bound to the only quote in reach, which
+ * was the wrong wall. Both elements were correct; the false attribution was
+ * assembled out of adjacency, which no test of either could see.
+ */
+describe("the lead is self-contained, because the card has no quote on it", () => {
+  it("never points at something it does not render", () => {
+    const lead = refrainLead({
+      saying: "AI credits exhausted: account credit balance (1) is below the projected cost (20).",
+      turns: 12,
+      seats: ["Design"],
+      from: "2026-09-04T09:10:00Z",
+      to: "2026-09-04T11:00:00Z",
+    });
+    /* A deictic pronoun is the defect: it reaches for the nearest quote, and on
+       this card the nearest quote belongs to another station. */
+    expect(lead).not.toContain("said this");
+    expect(lead).not.toContain(" this ");
+    /* And it does not re-quote, which would restore the duplication that moving
+       the sentence to the story was meant to remove. */
+    expect(lead).not.toContain("credits");
+    /* What it keeps: who, how many, and that nothing came of it. */
+    expect(lead).toContain("Design");
+    expect(lead).toContain("12 turns");
+    expect(lead).toContain("filed nothing");
+  });
+});
+
 describe("what a run keeps saying", () => {
   it("finds the one claim behind six identical-looking rows, in the run's own words", () => {
     const turns = [
@@ -99,7 +134,7 @@ describe("what a run keeps saying", () => {
     expect(r!.saying).toBe(WRONG_REPO);
     expect(r!.seats).toEqual(["Review", "Engineer"]);
     expect(refrainLead(r!)).toBe(
-      "Review and Engineer said this in 6 turns, and filed nothing in any of them.",
+      "Review and Engineer said the same thing for 6 turns, and filed nothing in any of them.",
     );
   });
 
@@ -184,7 +219,9 @@ describe("what a run keeps saying", () => {
       turn({ agentName: "Draft", said: WRONG_REPO }),
       turn({ agentName: "Critique", said: WRONG_REPO }),
     ]);
-    expect(refrainLead(r!)).toBe("4 seats said this in 4 turns, and filed nothing in any of them.");
+    expect(refrainLead(r!)).toBe(
+      "4 seats said the same thing for 4 turns, and filed nothing in any of them.",
+    );
   });
 });
 

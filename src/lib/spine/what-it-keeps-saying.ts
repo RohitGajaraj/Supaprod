@@ -375,6 +375,41 @@ export function whatItKeepsSaying(turns: readonly SayingTurn[]): Refrain | null 
  * site appends it from the clock format that every other time on the transcript
  * already uses — building a second time format in this file is how a surface
  * ends up printing 05:20 in one place and 5:20 AM in another.
+ *
+ * ── AND THE PRONOUN OUTLIVED THE QUOTE IT POINTED AT ─────────────────────────
+ * This read "said THIS 12 times", which was right when it was written: the
+ * quote sat directly above it and the colon led into it. The quote later moved
+ * to the story, correctly -- a sentence belongs beside the station that said it,
+ * and it was on screen twice. What moved with it was nothing. The pronoun
+ * stayed.
+ *
+ * Read live on `6cc7a010`, 2026-09-10, this is what the hold card drew:
+ *
+ *   "No repository is connected for this workspace... bind a repository on
+ *    Connectors and retry."   It hit one more wall after this one.
+ *   Connect a repository
+ *   Design said this 12 times, and filed nothing on any of them.
+ *
+ * The only quote on that card is Build's, about a repository. What Design said
+ * twelve times was "AI credits exhausted", which is eight hundred pixels below
+ * in the story. So "this" had no antecedent on the card and bound to the
+ * nearest one available, which was the WRONG WALL -- a false attribution
+ * assembled entirely out of adjacency, by two elements that are each correct.
+ *
+ * "The same thing" is reflexive inside its own sentence and points at nothing
+ * outside it. It cannot be captured by whatever a neighbour renders above.
+ *
+ * NOT SOLVED BY RE-QUOTING. Putting the sentence back would restore the
+ * duplication the move was made to remove, and this card's job is the count and
+ * the diagnosis. And not by NAMING the subject either: deciding that a halt is
+ * "about credit" from its words is a classifier over prose, which is the trap
+ * `nowhere-to-look-yet.ts` records in full. The lead says what it can support --
+ * that a station repeated itself and filed nothing -- and the story below says
+ * what the words were.
+ *
+ * `stationRefrainLead` in `what-this-station-kept-saying.ts` keeps "said this",
+ * and is right to: it renders with the quote immediately underneath it, which
+ * is the arrangement this one lost.
  */
 export function refrainLead(r: Refrain): string {
   const who =
@@ -383,5 +418,5 @@ export function refrainLead(r: Refrain): string {
       : r.seats.length === 2
         ? `${r.seats[0]} and ${r.seats[1]}`
         : `${r.seats.length} seats`;
-  return `${who} said this in ${inTurns(r.turns)}, and filed nothing in any of them.`;
+  return `${who} said the same thing for ${inTurns(r.turns)}, and filed nothing in any of them.`;
 }

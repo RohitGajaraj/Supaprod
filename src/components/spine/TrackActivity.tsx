@@ -60,7 +60,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 import { getTrackActivity, getTrackChain, getTrackToolCalls } from "@/lib/spine/track.functions";
 import { countKinds, type Turn } from "@/lib/spine/activity";
-import { whatItKeepsSaying, refrainLead } from "@/lib/spine/what-it-keeps-saying";
+import { whatItKeepsSaying } from "@/lib/spine/what-it-keeps-saying";
 import { joinPlainly } from "@/lib/spine/attach";
 import {
   whatThisStationKeptSaying,
