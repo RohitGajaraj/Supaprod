@@ -271,6 +271,40 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
  * `a-queue-is-two-hops-deep.test.ts`, which drives this function with a
  * fake client that counts rounds.
  */
+/**
+ * "From <where it came from>", or nothing when that names the title again.
+ *
+ * READ ON THE SERVED INBOX, 2026-09-09. The focused card asked "Make this
+ * call: Show homeowner installer arrival window on order page?" and its body
+ * ended "From Show homeowner installer arrival window on order page" -- the
+ * same string, as a dangling clause under six lines of agent prose.
+ *
+ * AND IT WAS A CONSEQUENCE OF A CHANGE MADE THE SAME DAY. A mission-sourced
+ * decision used to be titled "Mission completed: <the mission>" while
+ * `source_label` was "<the mission>", so the two read as different strings and
+ * the collision was invisible. Taking that prefix out at its writer
+ * (`handoff.server.ts`) made them identical. The removal was right; not
+ * sweeping for what depended on the two being different was not, and a defect
+ * is a shape rather than a location.
+ *
+ * COMPARED, NOT SPECIAL-CASED TO MISSIONS. A spec or a meeting whose label
+ * happens to match its decision's title is the same uninformative line for the
+ * same reason, and a rule that reads the two values it is about cannot go
+ * stale the way a list of source kinds would.
+ *
+ * PROVENANCE IS NOT LOST WHEN THIS RETURNS NULL. `impact` carries "raised
+ * during a pass" off `source_kind`, which is the field designed for it.
+ */
+export function provenanceLine(
+  title: string | null | undefined,
+  sourceLabel: string | null | undefined,
+): string | null {
+  const label = sourceLabel?.trim();
+  if (!label) return null;
+  const t = title?.trim().toLowerCase() ?? "";
+  return label.toLowerCase() === t ? null : `From ${label}`;
+}
+
 export async function readApprovalsQueue(
   supabase: SupabaseClient<Database>,
   userId: string,
@@ -901,7 +935,34 @@ export async function readApprovalsQueue(
       const proj = d.prd_id ? projectByPrd.get(d.prd_id) : undefined;
       const evidence: string[] = [];
       if (d.rationale) evidence.push(d.rationale);
-      if (d.source_label) evidence.push(`From ${d.source_label}`);
+      /*
+       * ── PROVENANCE THAT NAMES THE TITLE AGAIN IS NOT PROVENANCE ──────────
+       *
+       * READ ON THE SERVED INBOX, 2026-09-09. The focused card asked "Make
+       * this call: Show homeowner installer arrival window on order page?" and
+       * its body ended "From Show homeowner installer arrival window on order
+       * page" -- the same string, as a dangling clause under six lines of
+       * agent prose.
+       *
+       * AND IT IS A CONSEQUENCE OF MY OWN CHANGE EARLIER TODAY. A
+       * mission-sourced decision used to be titled "Mission completed: <the
+       * mission>" while `source_label` was "<the mission>", so the two read as
+       * different strings and the collision was invisible. Taking the prefix
+       * out at the writer (`handoff.server.ts`) made them identical. The
+       * prefix removal was right; not sweeping for what depended on the two
+       * being different was not, and a defect is a shape rather than a
+       * location.
+       *
+       * COMPARED, NOT SPECIAL-CASED TO MISSIONS. A spec or a meeting whose
+       * label happens to match its decision's title is the same uninformative
+       * line for the same reason, and a rule that reads the two values it is
+       * about cannot go stale the way a list of source kinds would.
+       *
+       * The provenance is not lost: `impact` below already says "raised during
+       * a pass" from `source_kind`, which is the field designed to carry it.
+       */
+      const from = provenanceLine(cleanTitle(d.title), d.source_label);
+      if (from) evidence.push(from);
       items.push({
         id: `decision:${d.id}`,
         kindKey: "decision",
