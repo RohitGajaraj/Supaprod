@@ -408,3 +408,25 @@ starts when the tool does, so an empty first capture means "started late", not "
 **Do not add a second reader of `halted_reason`.** `wallsByTrack` in
 `src/lib/spine/the-wall-the-platform-put-up.ts` is the one reader; `isSlug` is exported because the
 column holds two live vocabularies (halt-path slugs, sweeper prose).
+
+## Lane 2, 2026-09-10: layer 3 (the trace) rebuilt
+
+- **The lead was the machinery.** 12 rows saying "Critique", 6 saying "called qwen/qwen-plus", on a
+  page whose header and rail both already say it. 93.8% of traces (2,886/3,076) call exactly one
+  model, so it is a constant almost always. Lead now goes to the model's thought;
+  `a-constant-is-not-news.ts` returns null on a handoff or a fallback, when the fact becomes news.
+- **710 of 3,490 tool calls (1 in 5) rendered as `JSON.stringify`** — argument is an id, result is an
+  object. `ToolCallFacts` gained `outcome`: what came back, in words, from NAMED FIELDS only.
+  `sources.status` → "no sources connected" (all 124 such calls ever returned zero scout targets).
+  Null on the run screen by design — the server passes `{count}` because a real result cannot travel.
+- **Measured and NOT built:** a fold for consecutive empty searches (91/903 traces). The agent
+  already writes the conclusion in the next thought and the loop guarantees one follows. Promoting
+  it was the whole fix; a generated summary would talk over the agent.
+- **A cleared hold ends a wall's claim** (Lane 1's rule). `theBlockerItAlreadyNamed` reads turns that
+  never go away, so a released run kept being reported as blocked. The discriminator is the hold, not
+  `now: "gone"` — the wall can stand while the run is no longer stopped by it.
+
+**The instrument lesson, three times in one night:** every failed control shared an assumption with
+the thing it checked — my slice reused the guard's own wrong bound; two successive queries were keyed
+on the same wrong shape (45.6%, then 0.0% from SQL three-valued logic). **The rendered page shares
+nothing with the query, and was the only independent instrument.** Check findings against it.

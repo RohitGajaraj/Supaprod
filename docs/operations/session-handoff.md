@@ -2981,6 +2981,48 @@ codes off the served build, immune to the page's own throttled clock. It needs a
 first call, because tracking starts when the tool does — a first capture returning nothing means
 "tracking started late", not "nothing is firing".
 
+### Layer 3 rebuilt: the trace now reads as an agent working (2026-09-10)
+
+The deepest surface in a product whose claim is that you can watch an agent work spent both of its
+strongest positions on facts that never changed, and dumped raw JSON on one row in five.
+
+**The lead was the machinery and the meaning was the grey sub.** `/traces/4df54b89` drew the word
+"Critique" twelve times and "called qwen/qwen-plus" six times, on a page whose header says
+"Critique's turn at Design", whose rail says "Who ran it · Critique", and whose detail pane names the
+model. Measured before touching it: **2,886 of 3,076 traces that call a model call exactly one
+(93.8%)**, so this was not a quirk of the trace I opened. The lead now goes to the model's own
+thought; the constant *leaves* rather than moving down, because the page still carries it twice. It
+stops the moment a handoff or a fallback makes the fact news again — `a-constant-is-not-news.ts`.
+
+**And 710 of 3,490 tool calls (one in five) rendered as `JSON.stringify`** — every call whose
+argument is an id and whose result is an object. They were the substantive rows.
+`ToolCallFacts` had three facts (what it was about, how many rows, which files) and none could speak
+for those, so there is now a fourth: **what came back, in words, from named fields only.**
+`sources.status` reads "no sources connected" — and all 124 such calls in the product's history
+returned zero scout targets, so the one fact explaining why Discover keeps finding nothing had been
+sitting on the deepest page as `{"active_scout_targets":0}`. `ci.status` reads
+"fail · 213 of 214 passed · checkout-address-10in snapshot failing". `critic.evaluate` reduces a
+board to "revise, all 2", or names the split. It never repeats the argument it already said.
+
+**What was measured and deliberately NOT built.** Three consecutive empty searches read as flailing
+and are the opposite — a deliberate three-store check — and 91 of 903 traces hold such a run. The
+agent already writes the conclusion in the very next thought, and the loop alternates thought and
+action so one always follows. The sentence was never missing; it was in the grey sub. Promoting it
+is the whole fix, and a generated summary on top would be the machinery talking over the only voice
+on the page that did the work.
+
+**A cleared hold ends a wall's claim.** Lane 1's rule, live on my card: a released run kept being
+told "Engineer and Review could not start Build" and "It hit one more wall after this one" about a
+stoppage that was over. `theBlockerItAlreadyNamed` reads failed turns and those rows never go away.
+The discriminator is the HOLD, not the wall's standing — `now: "gone"` cannot catch it, because the
+wall may still stand while the run is no longer stopped by it.
+
+**And the measurement I got wrong twice.** The raw-JSON share was first 45.6% (I counted only the
+switch cases and forgot the `default: generic(a)` fallback), then 0.0% (SQL three-valued logic — a
+missing key makes `jsonb_typeof` NULL, `NULL = 'number'` is NULL, and the filter silently drops the
+row). Neither shipped, for one reason: **the rendered page disagreed with both.** It was the only
+instrument all evening that was genuinely independent of the thing it was checking.
+
 ### What is open now
 
 1. **The `no-two-states-look-the-same` shape belongs on this lane's surfaces
