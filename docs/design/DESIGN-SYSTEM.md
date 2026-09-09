@@ -1088,6 +1088,36 @@ feel like a force-fitting one"*, and a glance must not make anyone work out what
 
 ---
 
+## Open, measured, and deliberately not done tonight
+
+### The address bar is the one surface still speaking the old vocabulary
+
+**Measured on the served build, 2026-09-10.** Five of the six destinations in the rail have a URL
+that does not match their name:
+
+| Reads | Lives at |
+| --- | --- |
+| Home | `/start` |
+| Inbox | `/approvals` |
+| Findings | `/arriving` |
+| Outcomes | `/outcomes` |
+| Team | `/crew` |
+| Sources | `/sync` |
+
+Every page `<title>` already agrees with its label — *"Inbox · Supaprod"* at `/approvals`,
+*"Findings · Supaprod"* at `/arriving`. So this is not drift between two live surfaces; it is a
+**legacy path layer left under a renamed vocabulary**, and the address bar is the only place it still
+shows. It shows there to anyone who bookmarks a page, copies a link, or reads a destination on hover
+— which is now every run row, since law 22.
+
+**Why it is written here rather than fixed.** The router is file-based, so renaming is renaming files
+plus every internal `to=`, plus redirects for links already in the wild, plus whatever deep links the
+other lanes hold. Doing that while two lanes are actively pushing to `main` trades a small, real
+legibility win for a merge collision and a day of broken links. **Worth doing; worth doing when one
+lane owns the tree.**
+
+---
+
 ## Working with the founder
 
 **He refines by seeing, not by specifying.** Ship a faithful attempt fast, then expect two or three taste passes. He reviews element by element and expects every item in a feedback batch closed or explicitly declined. He invites pushback but wants **a recommendation, not a survey**.
