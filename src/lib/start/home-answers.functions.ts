@@ -26,6 +26,20 @@ export type HomeAnswerReads = {
   lastLookedAt: string | null;
   /** Calls graded in the last seven days. */
   learnedCount: number | null;
+  /**
+   * How many of those actually MOVED THE RECORD (Lane 1, 2026-09-09).
+   *
+   * The answer's sentence asserted "and the record was re-scored" for every
+   * graded decision, unconditionally. Measured on the founder's own workspace:
+   * the one decision that came back this week carries `prior_ice` and `new_ice`
+   * both null, so nothing was re-scored and the entry said it was. The new
+   * evidence region under that line, showing the same decision with no
+   * re-score, is what made the two disagree in one glance.
+   *
+   * Null = the read did not answer, and the clause is then withheld rather
+   * than guessed at in either direction.
+   */
+  rescoredCount: number | null;
   /** Releases that reached production since the person last looked (P-126).
    *  Null = the read did not answer. */
   releases: ReleasedItem[] | null;
@@ -89,6 +103,7 @@ export const readHomeAnswers = createServerFn({ method: "GET" })
         arrivingCount: null,
         lastLookedAt: null,
         learnedCount: null,
+        rescoredCount: null,
         releases: null,
         /* `closedRead: false` and not true: without a workspace nothing was
            looked at, so this is "could not look", never "never closed". */
@@ -127,6 +142,20 @@ export const readHomeAnswers = createServerFn({ method: "GET" })
       .eq("workspace_id", wid)
       .not("forecast_resolved_at", "is", null)
       .gte("forecast_resolved_at", weekAgo);
+
+    /*
+     * The re-score lives on `learnings`, not on `decisions`, so it is its own
+     * head count rather than a field on the one above. A row counts only when
+     * BOTH scores are present: half a re-score is not a movement, which is the
+     * same rule the evidence region's own line holds to.
+     */
+    const rescored = await supabase
+      .from("learnings")
+      .select("id", head)
+      .eq("workspace_id", wid)
+      .not("prior_ice", "is", null)
+      .not("new_ice", "is", null)
+      .gte("created_at", weekAgo);
 
     /*
      * WHAT WENT LIVE SINCE YOU LAST LOOKED (P-126). `changelog_entries` HAS NO
@@ -227,6 +256,7 @@ export const readHomeAnswers = createServerFn({ method: "GET" })
       arrivingCount: arriving.error || seenFailed ? null : (arriving.count ?? 0),
       lastLookedAt,
       learnedCount: learned.error ? null : (learned.count ?? 0),
+      rescoredCount: rescored.error ? null : (rescored.count ?? 0),
       // Same rule as arrivingCount: a released list read against the wrong
       // (or unknown) baseline, or a production-address read that itself
       // failed, is worse than withheld.

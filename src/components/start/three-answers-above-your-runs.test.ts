@@ -218,16 +218,48 @@ describe("what went live since you last looked", () => {
 
 describe("what the record learned this week", () => {
   it("uses a window, and says so in its own words", () => {
-    expect(learnedAnswer(3)).toMatchObject({
+    expect(learnedAnswer(3, 3)).toMatchObject({
       read: "answered",
       // FIFTH REVIEW, 2026-09-09: same claim, the record's own noun. "Call" is
       // reserved for what waits on a person; this counts graded decision rows.
       line: "3 decisions came back this week and the record was re-scored.",
       door: { label: "Read them", to: "/outcomes" },
     });
-    expect(learnedAnswer(1)).toMatchObject({
+    expect(learnedAnswer(1, 1)).toMatchObject({
       line: "1 decision came back this week and the record was re-scored.",
     });
+  });
+
+  it("does NOT claim a re-score when nothing was re-scored", () => {
+    /*
+     * The clause used to be part of the sentence unconditionally. Measured on
+     * the founder's own workspace: the one decision that came back that week
+     * carried no prior or new score, so nothing had moved and the entry said it
+     * had. The evidence region directly under this line showed the SAME
+     * decision with no re-score, and the two disagreed in one glance.
+     */
+    expect(learnedAnswer(1, 0)).toMatchObject({
+      line: "1 decision came back this week.",
+      door: { label: "Read them", to: "/outcomes" },
+    });
+    expect(learnedAnswer(3, 0)).toMatchObject({
+      line: "3 decisions came back this week.",
+    });
+  });
+
+  it("withholds the clause when the re-score read did not answer", () => {
+    // Null is "we could not find out", and it must not be guessed in either
+    // direction: the same rule the three answers already hold to.
+    expect(learnedAnswer(2, null)).toMatchObject({
+      line: "2 decisions came back this week.",
+    });
+    expect(learnedAnswer(2)).toMatchObject({
+      line: "2 decisions came back this week.",
+    });
+  });
+
+  it("still says nothing at all when the count itself is unread", () => {
+    expect(learnedAnswer(null, 5).read).toBe("unread");
   });
 });
 

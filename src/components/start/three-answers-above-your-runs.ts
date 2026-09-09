@@ -162,12 +162,32 @@ function answeredRelease(releases: readonly ReleasedItem[], zone: string, nowIso
  * not above: this answers "what changed lately", not "what have you missed", so
  * it does not need the person's last visit and must not claim to.
  */
-export function learnedAnswer(count: number | null): Answer {
+export function learnedAnswer(count: number | null, rescored: number | null = null): Answer {
   if (count === null) return UNREAD;
   if (count === 0) return { read: "answered-empty", line: "No decision came back this week." };
+  /*
+   * ── AND THE RE-SCORE IS NOT ASSERTED ANY MORE ────────────────────────────
+   * Added 2026-09-09. The clause "and the record was re-scored" was part of the
+   * sentence for every graded decision, whether or not anything had been
+   * re-scored. Measured on the founder's own workspace: the one decision that
+   * came back this week carries no prior or new score, so nothing moved and the
+   * entry said it had.
+   *
+   * It was the new evidence region directly under this line that made it
+   * visible: it showed the SAME decision, and its own re-score line was absent
+   * because there was nothing to report. Two statements about one decision, 90
+   * pixels apart, disagreeing.
+   *
+   * A null count withholds the clause rather than guessing in either
+   * direction, which is the rule the three answers already hold to.
+   */
+  const moved = rescored != null && rescored > 0;
+  const noun = count === 1 ? "decision" : "decisions";
   return {
     read: "answered",
-    line: `${count} ${count === 1 ? "decision" : "decisions"} came back this week and the record was re-scored.`,
+    line: moved
+      ? `${count} ${noun} came back this week and the record was re-scored.`
+      : `${count} ${noun} came back this week.`,
     door: { label: "Read them", to: "/outcomes" },
   };
 }
@@ -180,6 +200,8 @@ export function homeAnswers(input: {
   arrivingCount: number | null;
   lastLookedAt: string | null;
   learnedCount: number | null;
+  /** How many of those moved the record. Null withholds the clause. */
+  rescoredCount?: number | null;
   releases: readonly ReleasedItem[] | null;
   /** The person's own zone (P-130), and the instant "today" is judged
    *  against -- both threaded in rather than read here, so this stays pure
@@ -191,6 +213,6 @@ export function homeAnswers(input: {
     waitingAnswer(input.waitingShape),
     arrivingAnswer(input.arrivingCount, input.lastLookedAt),
     releasedAnswer(input.releases, input.lastLookedAt, input.zone, input.nowIso),
-    learnedAnswer(input.learnedCount),
+    learnedAnswer(input.learnedCount, input.rescoredCount ?? null),
   ];
 }

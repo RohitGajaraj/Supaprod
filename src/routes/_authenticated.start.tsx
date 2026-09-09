@@ -503,6 +503,7 @@ function StartLanding() {
     arrivingCount: homeReads.isSuccess ? homeReads.data.arrivingCount : null,
     lastLookedAt: homeReads.isSuccess ? homeReads.data.lastLookedAt : null,
     learnedCount: homeReads.isSuccess ? homeReads.data.learnedCount : null,
+    rescoredCount: homeReads.isSuccess ? homeReads.data.rescoredCount : null,
     releases: homeReads.isSuccess ? homeReads.data.releases : null,
     zone: timezone,
     nowIso: new Date().toISOString(),
