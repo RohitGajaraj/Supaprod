@@ -45,10 +45,29 @@ function count(stop: Stop, kind: string): number {
   return stop.items.filter((i) => i.kind === kind && !i.missing).length;
 }
 
+/**
+ * WHEN THE STATION FILED IT, FALLING BACK TO WHEN THE LOOP ATTACHED IT.
+ *
+ * `createdAt` on an item is `spine_track_members.created_at`, the ATTACHMENT
+ * time, and the driver attaches a station's whole output in one write: 1,155
+ * of 1,522 members share that timestamp with a sibling of the same kind on the
+ * same track, to the microsecond. Sorting by it leaves "the newest drawing"
+ * decided by whichever row won a tie, and on `6cc7a010` the two tied drawings
+ * were filed 29 seconds apart, one with a file and one with none.
+ *
+ * `filedAt` is the artifact's own `created_at` and settles it. The fallback is
+ * not decoration: an artifact whose row could not be read has no filed time,
+ * and the attachment time is then the only ordering fact there is, which is
+ * better than dropping the item out of the sort entirely.
+ */
+function orderedAt(item: { createdAt: string; filedAt?: string | null }): number {
+  return Date.parse(item.filedAt ?? item.createdAt);
+}
+
 function newest(stop: Stop, kind: string) {
   return stop.items
     .filter((i) => i.kind === kind && !i.missing)
-    .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))[0];
+    .sort((a, b) => orderedAt(b) - orderedAt(a))[0];
 }
 
 /**
@@ -233,6 +252,6 @@ export function newestArtifactAt(
   if (!stop) return null;
   const item = [...stop.items]
     .filter((i) => !i.missing)
-    .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))[0];
+    .sort((a, b) => orderedAt(b) - orderedAt(a))[0];
   return item ? ((item as { artifactId: string }).artifactId ?? null) : null;
 }

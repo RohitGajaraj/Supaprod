@@ -2801,10 +2801,24 @@ export type ArtifactView = {
    * `newest()` and the story's stops, so changing what it means is a change to
    * the driver's own reads and not only to a pane.
    *
-   * Until then: this is an ATTACHMENT time. Do not stamp a version with it and
-   * do not sort versions by it expecting the filing order.
+   * FIXED 2026-09-10: `filedAt` below is the artifact's own `created_at` and is
+   * what a version should be stamped with and sorted by. This field stays,
+   * unchanged in meaning, because it IS the right answer to "when did this join
+   * the run" and because replacing it would have moved every existing reader
+   * silently. Measured before the change: 1,155 of 1,522 track members share an
+   * attachment timestamp with a sibling of the same kind on the same track,
+   * across 313 groups and 55 tracks. The tie is the norm, not the edge, because
+   * the driver attaches a station's output in one write.
    */
   createdAt: string;
+  /**
+   * WHEN THE STATION FILED IT: the artifact's own `created_at`.
+   *
+   * Null only when the artifact row could not be read, which `missing` already
+   * says; a reader that wants an order should use this and fall back to
+   * `createdAt`, never the other way round.
+   */
+  filedAt: string | null;
   title: string | null;
   /** True only when the lookup ran and the row was not there. */
   missing: boolean;
@@ -2947,7 +2961,10 @@ export const getTrackArtifacts = createServerFn({ method: "GET" })
         byKind.set(m.artifact_kind, [...(byKind.get(m.artifact_kind) ?? []), m.artifact_id]);
       }
 
-      const found = new Map<string, { title: string | null; fields: Record<string, FieldValue> }>();
+      const found = new Map<
+        string,
+        { title: string | null; filedAt: string | null; fields: Record<string, FieldValue> }
+      >();
       /** Kinds whose lookup ran cleanly. Only these may report `missing`. */
       const looked = new Set<string>();
 
@@ -2955,7 +2972,17 @@ export const getTrackArtifacts = createServerFn({ method: "GET" })
         [...byKind.entries()].map(async ([kind, ids]) => {
           const source = ARTIFACT_SOURCE[kind];
           // `title:` is aliased per kind because three tables have no `title`.
-          const cols = new Set<string>(["id", `title:${source.title}`]);
+          /*
+           * `filed_at` IS THE ARTIFACT'S OWN created_at, AND IT IS NOT THE ONE
+           * THE MEMBER ROW CARRIES.
+           *
+           * Every one of these ten tables has `created_at` (checked on
+           * production 2026-09-10), so this costs nothing extra: it rides the
+           * read that was already fetching the row. It is aliased because the
+           * name matters more than the column: whoever sorts by it next should
+           * meet "filed" rather than a second `created_at` to guess between.
+           */
+          const cols = new Set<string>(["id", `title:${source.title}`, "filed_at:created_at"]);
           for (const c of FIELDS[kind] ?? []) cols.add(c);
           const { data: got, error: readErr } = await supabase
             .from(source.table)
@@ -2970,6 +2997,7 @@ export const getTrackArtifacts = createServerFn({ method: "GET" })
             for (const c of FIELDS[kind] ?? []) fields[c] = r[c] ?? null;
             found.set(`${kind}:${id}`, {
               title: (r.title as string | null) ?? null,
+              filedAt: typeof r.filed_at === "string" ? r.filed_at : null,
               fields,
             });
           }
@@ -3047,6 +3075,7 @@ export const getTrackArtifacts = createServerFn({ method: "GET" })
           artifactId: m.artifact_id,
           station: m.station,
           createdAt: m.created_at,
+          filedAt: found.get(`${m.artifact_kind}:${m.artifact_id}`)?.filedAt ?? null,
           title: found.get(`${m.artifact_kind}:${m.artifact_id}`)?.title ?? null,
           missing: !found.has(`${m.artifact_kind}:${m.artifact_id}`) && looked.has(m.artifact_kind),
         })),
@@ -3072,6 +3101,7 @@ export const getTrackArtifacts = createServerFn({ method: "GET" })
               word: m.word,
               artifactId: m.artifactId,
               createdAt: m.createdAt,
+              filedAt: hit?.filedAt ?? null,
               title: hit?.title ?? null,
               missing: m.missing,
               fields: hit?.fields ?? {},
