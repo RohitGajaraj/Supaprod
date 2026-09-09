@@ -1674,3 +1674,92 @@ prints "N new findings since you last looked" on a second visit and nothing on a
 component that keeps every export, mount it where the rail lands, redirect the route, repoint
 the doors, repin the guards by file with the reason. The guards are the map of what the page
 promised; the folds cost nothing they guarded.
+
+## Lane 2 · 2026-09-09, morning · the run said why it was stuck and no screen read the words
+
+**Landed and live on 4ba81796** (verified by walking Helio Labs track `ce846e9b`), plus one batch
+pushed and awaiting a press. Branch `lane-2`, pushed to `main` as `fdb5bcefe` and `e7f673b68`.
+
+### The finding this session turns on
+
+Track `ce846e9b`: Build and QA traded **eighteen turns over three hours and forty minutes**, filed
+nothing on any of them, and the run screen drew six rows of `Filed nothing. Engineer, 25.0s.` over a
+hold card describing the machinery giving up. What every one of those seats had written into
+`agent_runs.output` was one plain, completely actionable sentence:
+
+> "This repository contains only the checkout module for Relay, not the full Relay homeowner app
+> that renders status tiles."
+
+**The run was pointed at the wrong repository, it said so on every turn, and the answer sat in the
+database in English while the product answered with a stopwatch.** That is the founder's "the agent
+does real work and the user sees almost none of it", exact and reproducible.
+
+### What landed
+
+1. **`src/lib/spine/what-it-keeps-saying.ts`** finds the claim a run keeps repeating and says it
+   ONCE, quoted and attributed, above the transcript and as the first child of the hold card.
+   - Not restored to every row: P-105 removed the paragraph because seven stacked is a dump of
+     text, and that ruling stands. n turns saying one thing is ONE fact.
+   - Quoted, never believed (F-54). The record still says those turns filed nothing; this is
+     reported speech beside it, so a disagreement is visible rather than resolved by us.
+   - **The threshold is measured, not chosen.** Seventeen real sentences off that track: nine
+     restatements score 0.250 to 0.636, eight unrelated claims score 0.000 to 0.125. The band
+     between is empty and 0.2 sits in the middle of it. The test asserts the GAP, not just the
+     cases, so a matcher change that narrows it fails.
+   - Renders in two places off ONE cache entry (`["track-activity", trackId]`); no read added.
+2. **`HOLD_LINE["given-up"]`** was a 150-character vaguer copy of the driver's own stored reason,
+   ending on the same clause. Now the effect alone. `given-up` added to `ALWAYS_HAS_A_REASON`, and
+   the restatement guard now reads `correction.ts`'s `because:` templates as a third comparison.
+   Mutation-proved against the old sentence.
+3. **`wayOut`'s diagnosis for `given-up`** was an EFFECT in the file that owns causes, the only
+   entry in that map that was. Removed; the door stays. Safe because `last_hold_because` names the
+   cause and is better than any constant could be.
+4. **A call that belongs to nothing is no longer told it belongs to the workspace.** `subjectOf`'s
+   docstring forbids inventing a container; the same file rendered `?? "This workspace"` four
+   hundred lines below it. 17 of Helio Labs' 57 pending design gates read that. `CallContext.where`
+   is nullable now; a required prop was what forced the fallback to be written away from the rule.
+5. **The version fold says what changed** (`what-changed-between-versions.ts`), pushed, not yet
+   pressed. `prototype · 4 versions, 2 the same` on the closed row; inside, per version, "Identical
+   to the version after it." or `4 lines changed, from "- Color: Yellow (#FFC107)"`.
+
+### Pending, by name
+
+1. **`correction.ts`'s give-up `because` still ends with the effect.** Lane 3 owns it, agreed to
+   make the trim (:678 and :728, trailing sentence only) and to move `correction.test.ts:345` and
+   `a-station-that-built-was-not-starved.test.ts:57` onto the cause. **Not mine to touch.** When it
+   lands the hold card reaches the end state: effect, cause, door, said once each.
+2. **The duplicate-prototype WRITE bug is Lane 3's** and accepted by them. 59 prototypes filed on
+   tracks, 36 distinct bodies, 23 byte-identical; every design filed twice about eighteen seconds
+   apart, the second on the critic's turn.
+3. **Lane 1's round-five findings [0] and [7]**: a call raised on a run reaches the Inbox with no
+   door back to the run. Measured before starting: `pending_gates` resolves 6 tracks and
+   `spine_track_members` resolves 20 of 107 pending design gates, so the join reaches roughly 26 of
+   636 pending items today. Real and structural, but **cost it against that number** before
+   changing `readApprovalsQueue`, which is hop-pinned and has a careful degradation contract.
+4. **The right pane defaults to the CURRENT station**, which on a stopped run is the one that filed
+   nothing: `ArtifactPane.tsx:4039`, `chain.stops.find((s) => s.station === current)`. A region
+   titled "What it has made" opening on "No code change from Build" fails its own title. The
+   candidate fix is to default a SETTLED run to the newest station that filed something, and leave a
+   working run on its current station. Not started; a states audit was running over the same
+   surfaces and may reach it.
+
+### Observations true nowhere else
+
+- **A structural guard that counts three-word runs finds copies, not paraphrases.** "will not be
+  tried again without you" and "Nothing more will be tried here on its own" share no significant
+  run, so `two-lines-on-one-screen-must-not-restate-each-other` passed on that pair the whole time.
+  The third repetition on that card was found by READING THE RENDERED PAGE, not by any gate.
+- **A stop list must run before a plural strip, and the first version of
+  `what-it-keeps-saying.ts` got it backwards.** "this" became "thi" and "does" became "doe",
+  neither of which is in the list, so two of the commonest words in English counted as claim words
+  and the threshold came out nearly twice as high as the truth.
+- **`fields.description` had no consumer anywhere in the app** although `getTrackArtifacts` has
+  always returned it. The version fold could count its versions and never compare them because the
+  two lists were never joined, not because the data was missing.
+- **The decision pane is already at the bar and should not be "fixed".** Walked live: it draws the
+  three rejected alternatives with the reason each was rejected, the forecast, the horizon, "Not
+  due yet.", and "This was recorded as a single number, so it can say right or wrong and not how
+  far off." That last line is the standard the rest of the product should be held to.
+- A required prop with no null in its type is how an invention gets written at a call site: the
+  caller holds a null, the type refuses it, and the fallback goes in the one place no reviewer will
+  meet the rule it breaks.
