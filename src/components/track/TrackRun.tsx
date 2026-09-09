@@ -45,7 +45,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { CLAIMED_PATH_HOLD } from "@/lib/spine/a-claimed-path-is-a-wait-not-an-unstage";
 
 import { TrackActivity } from "@/components/spine/TrackActivity";
-import { useCurrentTool, useNewestCallByRun } from "@/components/track/LiveWork";
+import { useNewestCallByRun } from "@/components/track/LiveWork";
 import { objectOf } from "@/components/track/live-station";
 import { ArtifactPane } from "@/components/track/ArtifactPane";
 import { TrackConsent } from "@/components/track/TrackConsent";
@@ -1037,7 +1037,6 @@ export function TrackRunLeft({
   /* The tool the newest call on this track named, while it is still walking.
      Shares `ToolStream`'s cache entry, so the character and the stream read one
      fact on one beat. See `LiveWork.tsx`. */
-  const currentTool = useCurrentTool(trackId, run.isPending || crewLive);
 
   const tabWord = runTabState({
     status: track?.status ?? null,
@@ -1096,7 +1095,7 @@ export function TrackRunLeft({
    * one card. See that module's header for the walk that found it.
    */
   const [liveSeats, setLiveSeats] = React.useState<
-    Array<{ slug: string | null; name: string; waiting: boolean }>
+    Array<{ slug: string | null; name: string; waiting: boolean; runId: string }>
   >([]);
   const shippedAt = React.useMemo(() => {
     for (const stop of artifactsQ.data?.stops ?? []) {
@@ -1129,7 +1128,10 @@ export function TrackRunLeft({
    * the presence says "searching the workspace for “arrival time”", and the
    * planner's step sentence stands in only when no call has returned yet.
    */
-  const newestCallByRun = useNewestCallByRun(trackId, presences.length > 0);
+  /* Widened from `presences.length > 0`: the Now card needs a verb for the
+     seat it names even when the shell has no presence row for it, which is
+     exactly the case `currentTool` used to fill from the whole track. */
+  const newestCallByRun = useNewestCallByRun(trackId, presences.length > 0 || crewLive);
   const now = runNow({
     track: track
       ? {
@@ -1158,7 +1160,25 @@ export function TrackRunLeft({
        finished, and "It is saying that nothing here speaks to this" was seen
        on the walk of 2026-09-08 over a card that should have said the next
        seat was starting. */
-    currentTool: presences.length > 0 || !crewLive ? null : currentTool,
+    /*
+     * ── THE VERB COMES FROM THE SEAT'S OWN RUN, NOT FROM THE TRACK ──────────
+     *
+     * This passed `currentTool`, which `useCurrentTool` reads as the newest
+     * call on the WHOLE track from ANY run, including one that has already
+     * finished. `runNow` then writes `${seat.name} is ${doing}.` with the seat
+     * taken from the transcript's live rows -- so the card could say "Engineer
+     * is reading the spec" about a call Critique made twenty minutes earlier.
+     * Both halves true, the sentence made up.
+     *
+     * `liveSeats` now carries its `runId`, so the verb is looked up on the run
+     * the named seat is actually on. No call for that run means no verb, and
+     * `runNow` already falls back to "is working at Build", which is the honest
+     * shape: a seat with nothing recorded yet gets no invented activity.
+     */
+    currentTool:
+      presences.length > 0 || !crewLive
+        ? null
+        : (newestCallByRun.get(liveSeats[0]?.runId ?? "")?.tool ?? null),
     seats: presences.length > 0 ? [] : liveSeats,
     legsLeft: continuing ? legsLeft : null,
     horizon: forecastHorizonDate,

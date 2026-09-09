@@ -329,9 +329,12 @@ export function hasLiveVisit(turns: Array<Pick<Turn, "outcome">>): boolean {
  * person watching two teammates must not be shown four.
  */
 export function liveSeats(
-  turns: Array<Pick<Turn, "outcome" | "agentSlug" | "agentName">>,
-): Array<{ slug: string | null; name: string; waiting: boolean }> {
-  const seen = new Map<string, { slug: string | null; name: string; waiting: boolean }>();
+  turns: Array<Pick<Turn, "outcome" | "agentSlug" | "agentName" | "runId">>,
+): Array<{ slug: string | null; name: string; waiting: boolean; runId: string }> {
+  const seen = new Map<
+    string,
+    { slug: string | null; name: string; waiting: boolean; runId: string }
+  >();
   for (const t of turns) {
     if (t.outcome !== "working" && t.outcome !== "waiting") continue;
     const key = t.agentSlug ?? t.agentName;
@@ -342,6 +345,20 @@ export function liveSeats(
       slug: t.agentSlug ?? null,
       name: t.agentName,
       waiting: (prior?.waiting ?? false) || t.outcome === "waiting",
+      /*
+       * ── THE RUN, SO A VERB CAN BE JOINED TO THE SEAT THAT EARNED IT ──────
+       *
+       * The Now card used to name a seat from this list and describe it with
+       * `useCurrentTool`, which is the newest call on the WHOLE TRACK from any
+       * run -- including one that had already finished. So the card could read
+       * "Engineer is reading the spec" while the call it was describing was
+       * made by Critique twenty minutes earlier. Two true facts joined into a
+       * sentence nobody wrote.
+       *
+       * The newest row wins, which is the row this seat is actually on: turns
+       * arrive oldest-first, so the last assignment is the current one.
+       */
+      runId: t.runId,
     });
   }
   return [...seen.values()];
@@ -575,7 +592,9 @@ export function TrackActivity({
    */
   onLiveChange?: (live: boolean) => void;
   /** WHICH teammates are in flight, for the multiplayer presence case. */
-  onLiveSeats?: (seats: Array<{ slug: string | null; name: string; waiting: boolean }>) => void;
+  onLiveSeats?: (
+    seats: Array<{ slug: string | null; name: string; waiting: boolean; runId: string }>,
+  ) => void;
   /**
    * ── THE TRANSCRIPT IS THE RIGHT PANE'S CONTROL NOW (founder, 2026-09-02) ──
    *

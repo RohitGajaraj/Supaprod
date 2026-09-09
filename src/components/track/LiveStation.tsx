@@ -37,7 +37,7 @@ import { toolActionLabel, type AgentStation } from "@/lib/agent-vocabulary";
 import { useLiveAgents } from "@/hooks/use-live-agents";
 import { AgentPresence, PresenceDot, presenceColour } from "@/components/meridian/AgentPresence";
 import { ToolStream, type ToolStreamRow } from "@/components/meridian/ToolStream";
-import { RecordSpeaks } from "@/components/meridian/surface-parts";
+import { RecordSpeaks, Reading, ReadFailedLine } from "@/components/meridian/surface-parts";
 import { usePrefersReducedMotion } from "@/components/knowledge/graph-visual";
 import { enterMotion } from "@/components/spine/enter-motion";
 import {
@@ -163,7 +163,30 @@ export function LiveStation({
       </ul>
       {line ? <span className="mrd-meta">{line}</span> : null}
       {files.length > 0 ? <FilesTouched files={files} colourOf={colourOf} /> : null}
-      <ToolStream rows={rows} working label="What it is calling" maxHeight={240} />
+      {/*
+       * ── A READ THAT REFUSED AND A SEAT THAT HAS CALLED NOTHING ARE
+       *    DIFFERENT FACTS (DESIGN-SYSTEM.md, the fifth review's rule) ───────
+       *
+       * `calls` is `callsQ.data?.calls ?? []`, so an empty list arrived here
+       * from three unrelated places -- the read is still out, the read failed,
+       * or the seat genuinely has not called anything yet -- and `ToolStream`
+       * printed the third one's sentence, "Nothing called yet.", for all three.
+       * Nothing in this file read `callsQ.isLoading` or `callsQ.isError` at all.
+       *
+       * It is the worst of the three to guess at on THIS surface, because this
+       * is the live station: a person is watching a seat work and the panel
+       * that exists to show what it is doing tells them it is doing nothing.
+       */}
+      {callsQ.isError ? (
+        <ReadFailedLine error={callsQ.error}>
+          What it is calling did not come back, so this list would not be
+          trustworthy.
+        </ReadFailedLine>
+      ) : callsQ.isLoading ? (
+        <Reading>Reading what it is calling.</Reading>
+      ) : (
+        <ToolStream rows={rows} working label="What it is calling" maxHeight={240} />
+      )}
     </div>
   );
 }
