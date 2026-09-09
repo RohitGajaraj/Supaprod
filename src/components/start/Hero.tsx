@@ -42,6 +42,20 @@ function plural(n: number, one: string, many: string): string {
   return `${n} ${n === 1 ? one : many}`;
 }
 
+/**
+ * A TITLE INSIDE A SENTENCE IS QUOTED AND BOUNDED. Queue titles are written by
+ * agents and run past a hundred characters ("Spec: Homeowners cannot
+ * distinguish between scheduled firmware reboots and unplanned production
+ * outages due to identical UI"), and one of those unquoted in the hero's line
+ * reads as the product's own prose rather than as the name of a thing.
+ */
+const HERO_TITLE_MAX = 72;
+function quoted(title: string): string {
+  const t =
+    title.length <= HERO_TITLE_MAX ? title : `${title.slice(0, HERO_TITLE_MAX).trimEnd()}...`;
+  return `"${t}"`;
+}
+
 export function heroCopy(input: {
   product: string | null;
   runs:
@@ -58,6 +72,13 @@ export function heroCopy(input: {
    *  `queueShape` returns it. The hero names the largest family rather than
    *  printing a raw total, which is the Inbox page's rule too. */
   waitingShape?: ReadonlyArray<{ n: number; label: string }> | null;
+  /**
+   * THE ONE TO START WITH, from the same read and the same order the Inbox
+   * puts it in: oldest first, which is the card the Inbox focuses when you
+   * arrive. Null when the queue is unread, when it is empty, or when the
+   * oldest item has no title to name (fifth review, 2026-09-09).
+   */
+  waitingFirst?: string | null;
   /** The Inbox page's own caveat when the queue answered short (a family
    *  failed or hit its ceiling), composed by `notTheWholeQueue`. Appended
    *  here so the hero and the Inbox say one thing about the same queue. */
@@ -155,10 +176,22 @@ export function heroCopy(input: {
         ? `${biggest.label} and ${plural(others, "other call are", "other calls are")} waiting for you.`
         : `${biggest.label} ${biggest.n === 1 ? "is" : "are"} waiting for you.`
       : `${plural(waiting, "call is", "calls are")} waiting for you.`;
+    /*
+     * A COUNT IS A DEBT; THE NEXT STEP IS A DIRECTION (fifth review,
+     * 2026-09-09). The headline stays the count, because that is the state and
+     * a person takes it in at a glance. The line under it used to say only
+     * where to answer, which left the largest type on the landing page
+     * reporting how far behind you are and nothing about what to do first.
+     * Findings settled the same question on its own surface by naming the one
+     * cluster to start with; this names the one call, and it is the same item
+     * the Inbox focuses when you get there, so the two cannot disagree.
+     */
+    const start = input.waitingFirst?.trim();
+    const lead = start ? `Start with ${quoted(start)}. ` : "";
     return {
       eyebrow,
       title,
-      line: `Answer them in Inbox, or on the runs below that carry them.${rest(null)}${short}`,
+      line: `${lead}Answer them in Inbox, or on the runs below that carry them.${rest(null)}${short}`,
       door: { label: "Open Inbox", to: "/approvals" },
     };
   }

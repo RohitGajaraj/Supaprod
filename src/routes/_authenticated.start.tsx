@@ -48,6 +48,7 @@ import { HomeAnswers } from "@/components/start/HomeAnswers";
 import { getApprovalsQueue } from "@/lib/approvals-queue.functions";
 import { APPROVALS_QUEUE_PREFIX } from "@/lib/query-keys";
 import { queueShape } from "@/components/approvals/a-queue-is-a-shape-not-a-total";
+import { waitingSince } from "@/components/meridian/stopped-for";
 
 /**
  * ── THE FRONT DOOR ────────────────────────────────────────────────────────
@@ -455,6 +456,20 @@ function StartLanding() {
      says so in one sentence; the hero carries the same one, so the two
      surfaces never disagree about the same queue (fourth review, 2026-09-09). */
   const queueShort = queueRead.isSuccess ? notTheWholeQueue(queueRead.data?.incomplete) : null;
+  /* THE ONE TO START WITH, in the Inbox's own order (oldest first, the card it
+     focuses on arrival), from the read the hero already has, so the home and
+     the Inbox name the same call (fifth review, 2026-09-09). */
+  const waitingFirst = useMemo(() => {
+    if (!queueRead.isSuccess) return null;
+    const items = queueRead.data?.items ?? [];
+    let best: { title: string; at: number } | null = null;
+    for (const i of items) {
+      const at = waitingSince(i.timestamp);
+      if (at === null || !i.title) continue;
+      if (!best || at < best.at) best = { title: i.title, at };
+    }
+    return best?.title ?? null;
+  }, [queueRead.isSuccess, queueRead.data]);
 
   /*
    * THE HERO WAITS FOR ITS FACTS, NOT ONLY ITS NAME. Seen live 13:00 IST
@@ -560,6 +575,7 @@ function StartLanding() {
                 failed: runs.isError,
                 waiting,
                 waitingShape,
+                waitingFirst,
                 queueShort,
               })}
             />
