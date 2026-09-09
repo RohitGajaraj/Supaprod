@@ -609,7 +609,7 @@ function SettingsPage() {
     // rather than hides when the work region is narrow, because a nav that
     // disappears is a door that disappears.
     <div
-      className="sp-inner"
+      className="sp-inner flex flex-wrap items-start gap-y-mrd-6"
       /*
        * `rowGap` ALONE, and the column gap is deliberately not restated. It was
        * `gap: var(--sp-space-6) var(--sp-ctx-gap)`, and `--sp-ctx-gap` (52px) has
@@ -622,12 +622,6 @@ function SettingsPage() {
        * ever this surface's own, because `.sp-inner` is a grid upstream and this
        * one wraps.
        */
-      style={{
-        display: "flex",
-        flexWrap: "wrap",
-        alignItems: "flex-start",
-        rowGap: "var(--mrd-s6)",
-      }}
     >
       <SettingsIndex active={active} onSet={setTab} />
       {/* tabIndex -1 so the skip link can actually land focus here. Without it
@@ -862,7 +856,7 @@ function Choice<T extends string>({
   label: string;
 }) {
   return (
-    <span role="group" aria-label={label} style={{ display: "flex", gap: "var(--mrd-s2)" }}>
+    <span role="group" aria-label={label} className="flex gap-mrd-2">
       {options.map((o) => (
         <Action
           key={o.id}
@@ -1093,7 +1087,7 @@ function ProfileSection() {
           label="Mark"
           sub={name ? `Stands in for ${name} wherever you acted.` : "Stands in for you."}
         >
-          <span style={{ display: "flex", alignItems: "center", gap: "var(--mrd-s4)" }}>
+          <span className="flex items-center gap-mrd-4">
             <span
               aria-hidden
               style={{
@@ -1362,25 +1356,17 @@ function PasswordRegion() {
         </Field>
 
         {tooShort ? (
-          <p role="alert" style={{ fontSize: "var(--mrd-t-small)", color: "var(--mrd-fail)" }}>
+          <p role="alert" className="text-mrd-small text-mrd-fail">
             The new password needs at least 8 characters.
           </p>
         ) : null}
         {mismatch ? (
-          <p
-            id="pw-mismatch"
-            role="alert"
-            style={{ fontSize: "var(--mrd-t-small)", color: "var(--mrd-fail)" }}
-          >
+          <p id="pw-mismatch" role="alert" className="text-mrd-small text-mrd-fail">
             The two new passwords do not match.
           </p>
         ) : null}
         {error ? (
-          <p
-            id="pw-error"
-            role="alert"
-            style={{ fontSize: "var(--mrd-t-small)", color: "var(--mrd-fail)" }}
-          >
+          <p id="pw-error" role="alert" className="text-mrd-small text-mrd-fail">
             {error}
           </p>
         ) : null}
@@ -1701,10 +1687,8 @@ function ThisWorkspaceRegion() {
         ) : null}
 
         <div className="flex flex-col gap-2 rounded-mrd-xs border border-mrd-line bg-mrd-sink p-3.5">
-          <p style={{ fontSize: "var(--mrd-t-base)", color: "var(--mrd-ink)" }}>
-            Delete this workspace
-          </p>
-          <p style={{ fontSize: "var(--mrd-t-small)", color: "var(--mrd-mute)" }}>
+          <p className="text-mrd-base text-mrd-ink">Delete this workspace</p>
+          <p className="text-mrd-small text-mrd-mute">
             Deleting {activeWorkspace.name} permanently removes it and everything in it: products,
             missions, decisions and history. Nothing is kept.
           </p>
@@ -1755,7 +1739,7 @@ function ThisWorkspaceRegion() {
           </div>
         )}
         {planBlocked && (
-          <p style={{ fontSize: "var(--mrd-t-small)", color: "var(--mrd-mute)" }}>
+          <p className="text-mrd-small text-mrd-mute">
             Your current plan does not cover another workspace. A plan change happens on the Billing
             page.{" "}
             <Door onClick={() => navigate({ search: { section: "billing" } })}>Open billing</Door>
@@ -2064,9 +2048,7 @@ function ModelsSection() {
               label="Work you start"
               sub={`Chat and any run you kick off · ${via(defaultModel, current)}`}
             >
-              <span style={{ color: "var(--mrd-mute)", fontSize: "var(--mrd-t-base)" }}>
-                {defaultName}
-              </span>
+              <span className="text-mrd-base text-mrd-mute">{defaultName}</span>
               <Action variant="quiet" aria-expanded={editing} onClick={() => setEditing((v) => !v)}>
                 Change
               </Action>
@@ -2079,7 +2061,7 @@ function ModelsSection() {
                  above the retired 12px. */
               <div className="mt-mrd-5">
                 <Field label="Work you start" htmlFor="model-default">
-                  <div style={{ display: "flex", gap: "var(--mrd-s4)" }}>
+                  <div className="flex gap-mrd-4">
                     <Picker
                       id="model-default"
                       style={{ flex: 1 }}
@@ -2107,9 +2089,7 @@ function ModelsSection() {
               label="Work the loop starts"
               sub={`Research, clustering and reflection ticks · ${via(agenticModel, currentAgentic)}`}
             >
-              <span style={{ color: "var(--mrd-mute)", fontSize: "var(--mrd-t-base)" }}>
-                {agenticName}
-              </span>
+              <span className="text-mrd-base text-mrd-mute">{agenticName}</span>
               <Action
                 variant="quiet"
                 aria-expanded={editingAgentic}
@@ -2122,7 +2102,7 @@ function ModelsSection() {
               /* Same restatement as the editor above, for the same reason. */
               <div className="mt-mrd-5">
                 <Field label="Work the loop starts" htmlFor="model-agentic">
-                  <div style={{ display: "flex", gap: "var(--mrd-s4)" }}>
+                  <div className="flex gap-mrd-4">
                     <Picker
                       id="model-agentic"
                       style={{ flex: 1 }}
@@ -2419,14 +2399,7 @@ function ByoKeysBlock() {
                  would leave a screen-reader user pressing Test and hearing
                  nothing at all. Same shape as the password errors above, which
                  is the file's existing form for a failure paragraph. */
-              <p
-                role="alert"
-                style={{
-                  marginTop: "var(--mrd-s4)",
-                  fontSize: "var(--mrd-t-small)",
-                  color: "var(--mrd-fail)",
-                }}
-              >
+              <p role="alert" className="mt-mrd-4 text-mrd-small text-mrd-fail">
                 {failureLine("The key was not confirmed, and nothing was saved.", testResult.error)}
               </p>
             ) : null}
@@ -2450,9 +2423,7 @@ function ByoKeysBlock() {
                   label={
                     <>
                       {BYO_PROVIDERS.find((p) => p.id === k.provider)?.label ?? k.provider}
-                      {k.label ? (
-                        <span style={{ color: "var(--mrd-mute)" }}> · {k.label}</span>
-                      ) : null}
+                      {k.label ? <span className="text-mrd-mute"> · {k.label}</span> : null}
                     </>
                   }
                   sub={
@@ -3058,7 +3029,7 @@ function CreditsSection() {
                     label="Used this cycle"
                     sub="Spend is measured under Spend and runway, below."
                   >
-                    <span style={{ color: "var(--mrd-mute)" }}>Not shown here</span>
+                    <span className="text-mrd-mute">Not shown here</span>
                   </Line>
                 ) : null}
               </>
@@ -3161,7 +3132,7 @@ function CreditsSection() {
               credits used this cycle.{" "}
               <a
                 href="mailto:sales@supaprod.ai?subject=Enterprise%20credits"
-                style={{ color: "var(--mrd-ink)" }}
+                className="text-mrd-ink"
               >
                 Ask about volume pricing
               </a>{" "}
