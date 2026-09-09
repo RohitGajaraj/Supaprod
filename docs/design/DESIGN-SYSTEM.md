@@ -501,10 +501,30 @@ doing two jobs, and it stays. What it must not do is describe the event again in
 hero said *"could not be read"* and the list said *"did not load"*, two verbs for one event 400px
 apart, which is the noun rule applied to a verb. One wording now.
 
-**The test that separates the two cases** came out of the same day: a full, distinctive sentence
-repeated makes a reader ask which one is real. A short repetition serving a different job does not.
-A run's refusal quote appearing in both the hold card and the story was the first; *"3 prototypes"*
-on the road and in the story is the second, and it was correctly left alone.
+**The test that separates the two cases.** First stated as *a full, distinctive sentence repeated
+makes a reader ask which one is real; a short repetition serving a different job does not.* That is
+right but "different jobs" does too much work, and someone will lean on it to justify a fourth. The
+sharper form:
+
+> **Ask what a SECOND SIGHTING makes a reader do.** A short factual count read again is confirming:
+> you glance, it agrees, you move on. A long distinctive sentence read again makes you stop and
+> compare the two, and that stop is the whole cost.
+
+A run's refusal quote appearing in both the hold card and the story was the first case and had to
+lose one home. *"3 prototypes"* is the second, and it appears in **three** places, not two: the road,
+the story, and the transcript's own Design section. It was held at three, and the third is the one to
+keep hardest, because it names what the prototypes are OF and so is the fullest form rather than a
+copy of the shortest.
+
+**Two conditions on holding, and if either breaks the answer flips.** A fourth is no longer
+confirmation, it is wallpaper. And if any copy ever derives from a DIFFERENT read they can disagree,
+and three places that can disagree about one number is worse than any of the alternatives. Today all
+three come from one source, and that is what makes it safe, not the jobs argument.
+
+**And count before ruling.** The header chip was ruled by principle (a status chip names the state,
+the remedy has a home in the footer) and the count turned out to be the stronger argument: five
+surfaces described that state, three already said *stopped*, including the road's own node. Two
+moving to three beats one moving on a principle, and it survives even if the principle is wrong.
 
 ---
 
