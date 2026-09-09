@@ -31,6 +31,7 @@ import { waitingOnTime } from "@/components/track/a-calendar-wait-is-not-a-stopp
 import { parseReview, hasVerdict } from "@/components/track/verdict-reading";
 import { formatDeadlineDate } from "@/components/track/expiry-deadline";
 import { KIND_WORD } from "@/lib/spine/attach";
+import { foldVersions } from "@/components/track/versions-of-one-thing";
 
 type Stop = Pick<
   StationArtifactView,
@@ -129,8 +130,40 @@ export function journeyOutcome(stop: Stop, horizonDue: string | null): string | 
       return n > 0 ? (n === 1 ? "spec written" : plural(n, "prd")) : null;
     }
     case "design": {
-      const n = count(stop, "prototype");
-      return n > 0 ? plural(n, "prototype") : null;
+      /*
+       * ── "5 PROTOTYPES" WHERE THERE IS ONE DRAWING, MADE FIVE TIMES ───────
+       *
+       * Measured across every track that filed more than two:
+       *
+       *   track       filed   distinct names   distinct bodies
+       *   2fdf93b6     13           2                3
+       *   ce846e9b     10           3                5
+       *   0c0db8e6      5           1                1
+       *   6cc7a010      3           1                2
+       *
+       * On `0c0db8e6` the road said "5 prototypes" and there is ONE name and
+       * ONE description. Five copies of one drawing. `whatItProduced`'s own
+       * header records paying for this shape on decisions -- *"eight distinct
+       * calls is what a person infers, and one call re-made is what
+       * happened"* -- and the road is where a person reads it first.
+       *
+       * It is also the same fact rendered two ways on ONE screen: the artifact
+       * pane folds versions and says "5 versions, 4 the same" while this node
+       * said "5 prototypes". A reader comparing them has to work out which is
+       * true, and both are.
+       *
+       * `foldVersions` is the pane's own fold, so the two cannot disagree
+       * about what counts as one thing. When they agree, the line is unchanged.
+       */
+      const drawings = stop.items.filter((i) => i.kind === "prototype" && !i.missing);
+      if (drawings.length === 0) return null;
+      const distinct = foldVersions(drawings).length;
+      /* THE REPETITION SURVIVES rather than being folded away. A station that
+         drew one screen five times is not a station that drew one screen, and
+         on a jam the repetition is the signal a person needs from the road. */
+      return distinct === drawings.length
+        ? plural(drawings.length, "prototype")
+        : `${plural(distinct, "prototype")}, ${drawings.length} times`;
     }
     case "build": {
       const c = newest(stop, "changeset");
