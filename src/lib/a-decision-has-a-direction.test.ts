@@ -22,10 +22,13 @@
  */
 import { describe, expect, it } from "bun:test";
 import { readFileSync } from "node:fs";
+import { theCallLine } from "./spine/which-way-the-call-went";
 
 const REGISTRY = readFileSync("src/lib/ai/tools/registry.server.ts", "utf8");
 const DECISIONS = readFileSync("src/lib/decisions.functions.ts", "utf8");
 const MIGRATION = readFileSync("supabase/migrations/20260909101200_decisions_call.sql", "utf8");
+const CHAIN = readFileSync("src/lib/spine/chain.ts", "utf8");
+const DRIVER = readFileSync("src/lib/spine/driver.server.ts", "utf8");
 
 /** One insert, bounded at its own closing brace, so a neighbour is never read as this one. */
 function insertBlock(src: string, marker: string): string {
@@ -85,5 +88,45 @@ describe("the direction is written, not inferred", () => {
   it("the column refuses anything but the two directions, and admits null", () => {
     expect(MIGRATION).toContain("decisions_call_check");
     expect(MIGRATION).toContain(`"call" is null or "call" in ('build', 'do-not-build')`);
+  });
+});
+
+/**
+ * ── AND IT REACHES THE STATION, NOT ONLY THE SCREEN ──────────────────────────
+ *
+ * `ARTIFACT_SOURCE.decision.also` feeds two readers: the run screen's stops
+ * and the BRIEF a downstream station receives. The second is why the column
+ * was worth adding. 31 runs decided decline-or-wait at Decide and 11 filed a
+ * spec, a design or a code change afterwards; the seat doing that work could
+ * not read the direction because it was not in the row.
+ */
+describe("the direction reaches the seat that does the next work", () => {
+  it("rides the decision's brief columns", () => {
+    const at = CHAIN.indexOf("  decision: {");
+    expect(at).toBeGreaterThan(-1);
+    const block = CHAIN.slice(at, CHAIN.indexOf("\n  prototype:", at));
+    expect(block).toContain('also: ["call",');
+  });
+
+  it("arrives as prose, never as the column's own value", () => {
+    // A bare `do-not-build` in a brief is a machine name in prose a person
+    // reads, and read quickly it is one hyphen from its opposite.
+    expect(DRIVER).toContain("call: theCallLine,");
+  });
+
+  /*
+   * THE MIRROR (law 12). "It renders do-not-build" passes just as well if the
+   * renderer answers something for every input, and the value of the column is
+   * that 33 rows answer nothing. So the null case is asserted in the same
+   * breath, by driving the renderer rather than reading it.
+   */
+  it("renders the two directions and nothing else, so an unrecorded one stays silent", () => {
+    // The REAL renderer, imported, not a copy of its branch written here: a
+    // test carrying its own copy passes when the thing it tests is wrong.
+    expect(theCallLine("do-not-build")).toBe("The call: not to build this");
+    expect(theCallLine("build")).toBe("The call: to build this");
+    for (const nothing of [null, undefined, "", "BUILD", "decline", 1, {}]) {
+      expect(theCallLine(nothing)).toBeNull();
+    }
   });
 });

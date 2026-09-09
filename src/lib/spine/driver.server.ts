@@ -28,6 +28,7 @@
  * go, never that policy stopped applying.
  */
 import { trackGoalSentence } from "@/lib/track-origin";
+import { theCallLine } from "@/lib/spine/which-way-the-call-went";
 import {
   metricsForTheBrief,
   gradedAgainstFromStates,
@@ -1129,6 +1130,7 @@ function routeOf(row: DriveRow): SpineRoute {
  */
 /** Plain words for the extra columns a brief carries. See `ArtifactSource.also`. */
 const LABEL_FOR: Record<string, string> = {
+  call: "The call",
   forecast_claim: "What we expected",
   forecast_how_we_will_know: "How we would know",
   forecast_horizon_date: "Expected by",
@@ -1145,6 +1147,9 @@ const LABEL_FOR: Record<string, string> = {
  */
 const RENDER_FOR: Record<string, (v: unknown) => string | null> = {
   contract: (v) => metricsForTheBrief(v),
+  /* The decision's direction, as prose. Its own module so the guard can drive
+     it rather than read it: see `which-way-the-call-went.ts`. */
+  call: theCallLine,
 };
 
 async function loadUpstream(

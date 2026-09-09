@@ -157,7 +157,23 @@ export const ARTIFACT_SOURCE: Readonly<Record<string, ArtifactSource>> = {
     table: "decisions",
     title: "title",
     body: "rationale",
-    also: ["forecast_claim", "forecast_how_we_will_know", "forecast_horizon_date"],
+    /*
+     * `call` IS HERE FOR THE STATION, NOT FOR THE SCREEN (2026-09-10).
+     *
+     * `also` feeds two readers: the run screen's stops, and the BRIEF a
+     * downstream station receives (`loadUpstream` in driver.server.ts). The
+     * second is the one that matters here. 31 runs decided decline-or-wait at
+     * Decide and 11 of them filed a spec, a design or a code change afterwards
+     * (worktree-1-68, 2026-09-09); the seat that did the work had no way to
+     * read the direction, because until `20260909101200` the direction was
+     * only in `status` when the gate happened to approve, and otherwise only
+     * in the title's first word.
+     *
+     * It carries a renderer in `RENDER_FOR`. Without one the seat would read
+     * the bare string `do-not-build` in prose written for a person, which is
+     * the machine name the system prompt forbids in as many words.
+     */
+    also: ["call", "forecast_claim", "forecast_how_we_will_know", "forecast_horizon_date"],
   },
   prototype: { table: "prototypes", title: "name", body: "description" },
   // A learning's `summary` IS its text, so it is both the name and the body.

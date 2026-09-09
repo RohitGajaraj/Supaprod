@@ -52,7 +52,18 @@ const learnBriefs = () => [
 
 describe("1 · the values travel with the decision", () => {
   it("the decision source carries its three forecast columns", () => {
+    /*
+     * STILL AN EXACT LIST, and deliberately not loosened to `toContain`. The
+     * point of the equality is that a column cannot join a station's brief
+     * without someone saying so here, and `call` joining it on 2026-09-10 is
+     * exactly the event this assertion exists to make visible: it carries the
+     * decision's direction to the seat doing the next work, and it needs a
+     * renderer, because the column's own value is a machine name.
+     * Weakening the test to admit it would have removed the only place that
+     * asks.
+     */
     expect(ARTIFACT_SOURCE.decision.also).toEqual([
+      "call",
       "forecast_claim",
       "forecast_how_we_will_know",
       "forecast_horizon_date",
