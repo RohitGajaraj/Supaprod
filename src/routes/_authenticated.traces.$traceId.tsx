@@ -130,6 +130,7 @@ import {
   Region,
 } from "@/components/meridian/surface-parts";
 import { readModelStep, actionLine } from "@/components/traces/what-the-model-said";
+import { toolCallFacts } from "@/lib/spine/tool-call-facts";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import * as React from "react";
@@ -253,15 +254,49 @@ function clip(s: string, n = 180) {
  */
 function modelSaid(preview: string): React.ReactNode {
   const step = readModelStep(preview);
-  if (!step || (!step.thought && !step.action)) return clip(preview);
-  const act = actionLine(step);
-  return (
-    <>
-      {step.thought ? clip(step.thought) : null}
-      {step.thought && act ? " · " : null}
-      {act ? <Num>{act}</Num> : null}
-    </>
-  );
+  if (!step) return clip(preview);
+  /*
+   * ── THE WHOLE LINE GOES TO THE THOUGHT, AND THE ACTION IS DROPPED ────────
+   *
+   * A first version appended the tool the step chose (`... · workspace.search`)
+   * and it was wrong twice over, both visible only once it rendered. The row's
+   * `sub` is ONE line, so a thought long enough to be worth reading pushed the
+   * action off the end and it was never seen; and the action is redundant
+   * anyway, because the very next row in this stream is `Critique ran
+   * workspace.search`. The stream already says what it called. This says what
+   * it was thinking, which is the thing nothing else says.
+   */
+  if (!step.thought) return actionLine(step) ?? clip(preview);
+  return clip(step.thought);
+}
+
+/**
+ * ── WHAT A TOOL CALL WAS FOR AND WHETHER IT FOUND ANYTHING ────────────────
+ *
+ * The tool rows rendered `clip(JSON.stringify(t.result ?? t.args))`, so a
+ * search read as
+ * `[{"id":"a468f120-18bb-47b1-a9d2-290ae0c10d80","kind":"learning","score":0.117,…`
+ * With the model rows now in prose, the column alternated between English and
+ * machine noise, and the noise sat on exactly the rows a reader needs to follow
+ * the story: on this trace the seat searched, found little, said so, and
+ * searched again.
+ *
+ * `toolCallFacts` already answers both halves and is the transcript's own
+ * reader, so the trace and the run screen cannot describe one call two ways.
+ * `argument` is the query in quotes or the path; `found` is the row count, null
+ * for anything that is not a list, and a zero is never invented.
+ *
+ * Falls back to the raw JSON when it can say neither, because a row that
+ * carries something a reader might need must not go blank to look tidy.
+ */
+function toolDid(tool: string, args: unknown, result: unknown): React.ReactNode {
+  const facts = toolCallFacts(tool, args, result);
+  const found =
+    facts.found === null ? null : facts.found === 1 ? "1 result" : `${facts.found} results`;
+  if (!facts.argument && !found) {
+    return (result ?? args) != null ? clip(JSON.stringify(result ?? args)) : "No result recorded";
+  }
+  return [facts.argument, found].filter(Boolean).join(" · ");
 }
 
 /** Plain-words clock for the one whole-trace timestamp in the head. */
@@ -966,10 +1001,8 @@ export function TraceDetail({ id }: { id: string }) {
                     </>
                   ) : !t.ok && t.error ? (
                     <span className="text-mrd-fail">{clip(t.error)}</span>
-                  ) : (t.result ?? t.args) != null ? (
-                    clip(JSON.stringify(t.result ?? t.args))
                   ) : (
-                    "No result recorded"
+                    toolDid(t.tool_name, t.args, t.result)
                   )
                 }
                 time={fmtMs(latency)}
