@@ -300,7 +300,11 @@ describe("getForecastCallRateImpl (FC-01)", () => {
       { forecast_resolution: "miss" },
     ];
     const s = await getForecastCallRateImpl(mockDb({ rows }));
-    expect(s.label).toBe("You called 2 of the last 3");
+    /* THE IDIOM WHOLE, NEVER THE BARE VERB. "You called 2 of the last 3" reads
+       as "you MADE two of the last three calls" under an eyebrow that says
+       "Your calls" -- and agents make calls here too. `FORECAST_SAYS.hit` is
+       "you called it", and the "it" is what makes it mean got-it-right. */
+    expect(s.label).toBe("You called it on 2 of the last 3");
   });
 
   it("fails soft to the honest zero state on a missing column", async () => {

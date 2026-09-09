@@ -131,6 +131,25 @@ export type ForecastCallSummary = {
  * Letting the product take credit for a person's judgment claims more than it
  * delivers. The zero state keeps the shared wording, because "Not enough
  * resolved calls yet" is also the honest form while nothing has resolved.
+ *
+ * ── "CALLED IT", NEVER "CALLED" ───────────────────────────────────────────
+ *
+ * WALKED AS A STRANGER ON /outcomes, 2026-09-10. Under the eyebrow "Your
+ * calls" this read:
+ *
+ *   Your calls
+ *   You called 6 of the last 9
+ *
+ * A "call" in this product is a DECISION, and agents make them too -- the
+ * eyebrow directly above says so. So the line reads first as "you personally
+ * made 6 of the last 9 decisions", which is a different and entirely plausible
+ * statement, on the one line that answers whether the person is any good at
+ * this. Two readings, no way to choose.
+ *
+ * `FORECAST_SAYS.hit` is **"you called it"**, and the idiom is unambiguous
+ * precisely BECAUSE of the "it": called-it means got-it-right and nothing
+ * else. Dropping it to fit a count turned the canon's own phrase back into the
+ * word it was distinguishing itself from. So the count takes the idiom whole.
  */
 export function summarizeForecastCalls(
   rows: Array<{ resolution: string | null }>,
@@ -141,7 +160,7 @@ export function summarizeForecastCalls(
     resolved,
     hits,
     hitRate: resolved > 0 ? hits / resolved : null,
-    label: resolved > 0 ? `You called ${hits} of the last ${resolved}` : NO_CALLS_YET,
+    label: resolved > 0 ? `You called it on ${hits} of the last ${resolved}` : NO_CALLS_YET,
   };
 }
 

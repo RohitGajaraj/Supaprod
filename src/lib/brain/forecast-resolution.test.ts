@@ -1,6 +1,7 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, it, test } from "bun:test";
 import {
   isForecastDue,
+  NO_CALLS_YET,
   canAutoSettle,
   summarizeForecastCalls,
   buildDeferPatch,
@@ -147,7 +148,11 @@ describe("summarizeForecastCalls (FC-01)", () => {
     ]);
     expect(s.resolved).toBe(3);
     expect(s.hits).toBe(2);
-    expect(s.label).toBe("You called 2 of the last 3");
+    /* THE IDIOM WHOLE, NEVER THE BARE VERB. "You called 2 of the last 3" reads
+       as "you MADE two of the last three calls" under an eyebrow that says
+       "Your calls" -- and agents make calls here too. `FORECAST_SAYS.hit` is
+       "you called it", and the "it" is what makes it mean got-it-right. */
+    expect(s.label).toBe("You called it on 2 of the last 3");
     expect(s.label).not.toContain("Supaprod");
   });
 
@@ -213,5 +218,47 @@ describe("a human settle leaves no agent fingerprint (FC-01)", () => {
       agentSlug: "forecast-auditor",
     });
     expect(patch.forecast_resolved_by_agent_slug).toBe("forecast-auditor");
+  });
+});
+
+/*
+ * ── THE SUMMARY MUST NOT BE READABLE AS A COUNT OF DECISIONS ──────────────
+ *
+ * The defect this pins is not a spelling, it is an AMBIGUITY, so it is asserted
+ * as one: the sentence has to survive being read by somebody who knows that a
+ * "call" in this product is a decision and that agents make them too.
+ */
+describe("the calibration line says got-it-right and cannot be read another way", () => {
+  const rows = (hits: number, total: number) =>
+    Array.from({ length: total }, (_, i) => ({ resolution: i < hits ? "hit" : "miss" }));
+
+  it("uses the canon's own idiom, whole", () => {
+    // `FORECAST_SAYS.hit` is "you called it". Two surfaces must never call one
+    // thing two things, and the "it" is the half that carries the meaning.
+    expect(summarizeForecastCalls(rows(6, 9)).label).toContain("called it");
+  });
+
+  it("never leaves `called` sitting directly on a number", () => {
+    /*
+     * THE MIRROR, AND IT IS THE ASSERTION THAT WOULD HAVE CAUGHT THE ORIGINAL.
+     * "You called 6 of the last 9" parses as a count of calls made. Anything of
+     * the form `called <number>` reopens that reading, whatever else the
+     * sentence says.
+     */
+    for (const [h, t] of [
+      [0, 3],
+      [1, 1],
+      [6, 9],
+      [12, 12],
+    ]) {
+      const label = summarizeForecastCalls(rows(h!, t!)).label;
+      expect({ h, t, ambiguous: /called\s+\d/.test(label) }).toEqual({ h, t, ambiguous: false });
+    }
+  });
+
+  it("still says nothing at all before anything has resolved", () => {
+    // A rate from zero observations is the claim `calibration-claim.ts` exists
+    // to refuse.
+    expect(summarizeForecastCalls([]).label).toBe(NO_CALLS_YET);
   });
 });
