@@ -3636,7 +3636,7 @@ function VersionedLine({
         aria-expanded={open}
         aria-controls={id}
         onClick={() => setToggle({ at: openArtifactId, open: !open })}
-        className="flex items-center gap-mrd-1 self-start rounded-mrd-xs py-mrd-1 text-mrd-small text-mrd-mute transition-colors hover:text-mrd-ink focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--mrd-focus)]"
+        className="flex items-center gap-mrd-1 self-start rounded-mrd-xs py-mrd-1 text-mrd-small text-mrd-mute transition-colors hover:text-mrd-ink mrd-focus-inset"
       >
         <Chevron open={open} />
         <span>

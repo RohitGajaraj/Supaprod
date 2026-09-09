@@ -606,12 +606,32 @@ export function TrackConsent({
                      * every `Action` on this surface already does; this button
                      * is hand-rolled for its two-span layout and missed them.
                      */
+                    /*
+                     * ── AND THE INSET FOCUS RING THE CASCADE COULD NOT GIVE IT ──
+                     *
+                     * The class here was `focus-visible:outline-2
+                     * focus-visible:outline-offset-[-2px]
+                     * focus-visible:outline-[var(--mrd-focus)]`, and the offset
+                     * never applied. Meridian draws the ring from
+                     * `[data-mrd][data-mrd] :focus-visible { outline-offset: 1px }`
+                     * -- a DELIBERATE double-attribute specificity bump, as that
+                     * rule's own comment says -- and this button carries
+                     * `data-mrd` itself, so the system's +1px won and the declared
+                     * -2px lost. The ring drew OUTSET on a control written to be
+                     * inset, and it is a full-width row inside a scrolling card,
+                     * which is the case the inset variant exists for.
+                     *
+                     * `mrd-focus-inset` is specified one step higher again
+                     * (`[data-mrd][data-mrd] .mrd-focus-inset`), so it actually
+                     * wins. Three utilities became one, here and on the decline
+                     * button below and on ArtifactPane's versions fold.
+                     */
                     aria-busy={busy || undefined}
                     onClick={() => {
                       setAnsweringId(g.approvalId);
                       decide.mutate({ approvalId: g.approvalId, verdict: "approve" });
                     }}
-                    className="flex w-full items-start gap-mrd-3 rounded-mrd-ctl px-mrd-4 py-mrd-3 text-left transition-colors enabled:hover:bg-mrd-hover focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--mrd-focus)] disabled:cursor-default disabled:opacity-45"
+                    className="flex w-full items-start gap-mrd-3 rounded-mrd-ctl px-mrd-4 py-mrd-3 text-left transition-colors enabled:hover:bg-mrd-hover mrd-focus-inset disabled:cursor-default disabled:opacity-45"
                     style={{ transitionDuration: "var(--mrd-d-press)" }}
                   >
                     <span
@@ -643,7 +663,7 @@ export function TrackConsent({
                     setDeclineAll(false);
                     setDecliningId(decliningId === g.approvalId ? null : g.approvalId);
                   }}
-                  className="mt-mrd-2 flex w-full items-start gap-mrd-3 rounded-mrd-ctl px-mrd-4 py-mrd-3 text-left transition-colors enabled:hover:bg-mrd-hover focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--mrd-focus)] disabled:cursor-default disabled:opacity-45"
+                  className="mt-mrd-2 flex w-full items-start gap-mrd-3 rounded-mrd-ctl px-mrd-4 py-mrd-3 text-left transition-colors enabled:hover:bg-mrd-hover mrd-focus-inset disabled:cursor-default disabled:opacity-45"
                   style={{ transitionDuration: "var(--mrd-d-press)" }}
                 >
                   <span
