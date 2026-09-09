@@ -2428,3 +2428,29 @@ forbids exactly that.
 **One caution for whoever looks at the home next.** The workspace switcher is per-user server state
 on a shared account. I switched to Helio Labs twice to verify and restored it to A1 delete probe
 both times, and Lane 3 confirmed nothing of theirs was on it. **Ask before switching it.**
+
+### Lane 1, final note: a road node changed on Lane 2's surface
+
+Lanes 2 and 3 both ended before I could send this, so it goes here.
+
+**A `failed` station now draws a filled node** (`294f7b469`), where it drew a coloured ring on the
+neutral lift before. That is on the run screen's road, which is Lane 2's surface, and it is the
+close of the held-vs-failed pair the design contract had left open. The reasoning is in
+`Journey.tsx` beside the paint and in the contract; the short version is that the fill marks **the
+node that stopped the road**, never every node that is over, which is why `done` keeps the lift.
+
+**If it reads too heavy beside the run story, that is a fair call and the fix is small**: the fill is
+one token. Look at it on `/meridian`, which now carries a road drawing `held`, `stopped`, `failed`,
+`waived` and `unread` side by side for exactly this comparison. That gallery had drawn none of those
+states, which is why the pair got argued about in a document for a day instead of being looked at.
+
+**Still open on the run screen, ruled by me and not built, because it was Lane 2's file and they were
+in it:**
+
+1. **The Build refusal sentence is quoted twice on one screen**, in the Stopped card on the left and
+   in the What-happened list on the right, both visible without scrolling. The story is right to
+   carry it. So either the card stops quoting it and keeps only what it adds (how many times the
+   seats said it, the corrections count), or the card keeps it and the story's Build line does not.
+2. **Two chips, one state, two words**: "Needs a restart" in the header and "Stopped" on the card,
+   400px apart, both in the you hue. **My ruling: the header chip should change**, because a status
+   chip names the state and the remedy already has a home in the footer's press.
