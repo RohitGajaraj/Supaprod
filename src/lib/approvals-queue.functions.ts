@@ -153,6 +153,15 @@ export type ApprovalQueueItem = ApprovalItem & {
    *  trust, or a mission with no resolvable project - see the ledger note). */
   projectId: string | null;
   projectName: string | null;
+  /**
+   * The run this call belongs to, so the Inbox can open it (Lane 1's fifth
+   * review, 2026-09-09: of 21 pending calls, none could name a run, and the
+   * layers could not be stitched from either side). The link is
+   * `agent_approvals.run_id` to `agent_runs.track_id`, both written by the
+   * loop; null when the gate predates the spine or belongs to no run, which
+   * is every family but the tool call.
+   */
+  trackId: string | null;
   /** The agent that owns this gate (real slug for tool-call gates, else the
    *  owning station's specialist); renders the attribution chip. Set in the
    *  final map, so the per-kind constructions do not each repeat it. */
@@ -857,6 +866,8 @@ export async function readApprovalsQueue(
         // queue and the governance surface cannot disagree about whether the
         // same gate is holding anything.
         gatesLiveWork: (a as { gatesLiveWork?: boolean | null }).gatesLiveWork ?? null,
+        // The run behind the call, resolved in the govern read at no extra hop.
+        trackId: (a as { trackId?: string | null }).trackId ?? null,
         filterBucket: "gates",
         kind: "GATE",
         kindTone,
@@ -897,6 +908,10 @@ export async function readApprovalsQueue(
         // Not held open by a run: see `gatesLiveWork` on the type. Declared
         // rather than defaulted, so a new kind has to decide this on purpose.
         gatesLiveWork: null,
+        /* No run behind it: only a tool call is raised inside one. Declared
+           rather than defaulted, on the same rule as the line above, so a new
+           kind has to decide whether it can name a run. */
+        trackId: null,
         sourceId: d.id,
         filterBucket: "proposals",
         kind: "PROPOSAL",
@@ -933,6 +948,10 @@ export async function readApprovalsQueue(
         // Not held open by a run: see `gatesLiveWork` on the type. Declared
         // rather than defaulted, so a new kind has to decide this on purpose.
         gatesLiveWork: null,
+        /* No run behind it: only a tool call is raised inside one. Declared
+           rather than defaulted, on the same rule as the line above, so a new
+           kind has to decide whether it can name a run. */
+        trackId: null,
         sourceId: c.id,
         filterBucket: "memory",
         kind: "MEMORY",
@@ -964,6 +983,10 @@ export async function readApprovalsQueue(
         // Not held open by a run: see `gatesLiveWork` on the type. Declared
         // rather than defaulted, so a new kind has to decide this on purpose.
         gatesLiveWork: null,
+        /* No run behind it: only a tool call is raised inside one. Declared
+           rather than defaulted, on the same rule as the line above, so a new
+           kind has to decide whether it can name a run. */
+        trackId: null,
         sourceId: r.id,
         filterBucket: "memory",
         kind: "MEMORY",
@@ -990,6 +1013,10 @@ export async function readApprovalsQueue(
         // Not held open by a run: see `gatesLiveWork` on the type. Declared
         // rather than defaulted, so a new kind has to decide this on purpose.
         gatesLiveWork: null,
+        /* No run behind it: only a tool call is raised inside one. Declared
+           rather than defaulted, on the same rule as the line above, so a new
+           kind has to decide whether it can name a run. */
+        trackId: null,
         sourceId: t.id,
         filterBucket: "gates",
         kind: "TRUST",
@@ -1017,6 +1044,10 @@ export async function readApprovalsQueue(
         // Not held open by a run: see `gatesLiveWork` on the type. Declared
         // rather than defaulted, so a new kind has to decide this on purpose.
         gatesLiveWork: null,
+        /* No run behind it: only a tool call is raised inside one. Declared
+           rather than defaulted, on the same rule as the line above, so a new
+           kind has to decide whether it can name a run. */
+        trackId: null,
         sourceId: p.id,
         filterBucket: "proposals",
         kind: "SPEC",
@@ -1043,6 +1074,10 @@ export async function readApprovalsQueue(
         // Not held open by a run: see `gatesLiveWork` on the type. Declared
         // rather than defaulted, so a new kind has to decide this on purpose.
         gatesLiveWork: null,
+        /* No run behind it: only a tool call is raised inside one. Declared
+           rather than defaulted, on the same rule as the line above, so a new
+           kind has to decide whether it can name a run. */
+        trackId: null,
         sourceId: o.id,
         filterBucket: "proposals",
         kind: "PROPOSAL",
@@ -1114,6 +1149,10 @@ export async function readApprovalsQueue(
           // Not held open by a run: see `gatesLiveWork` on the type. Declared
           // rather than defaulted, so a new kind has to decide this on purpose.
           gatesLiveWork: null,
+          /* No run behind it: only a tool call is raised inside one. Declared
+           rather than defaulted, on the same rule as the line above, so a new
+           kind has to decide whether it can name a run. */
+          trackId: null,
           sourceId: c.id,
           filterBucket: "gates",
           kind: "CHALLENGE",
@@ -1139,6 +1178,10 @@ export async function readApprovalsQueue(
         // Not held open by a run: see `gatesLiveWork` on the type. Declared
         // rather than defaulted, so a new kind has to decide this on purpose.
         gatesLiveWork: null,
+        /* No run behind it: only a tool call is raised inside one. Declared
+           rather than defaulted, on the same rule as the line above, so a new
+           kind has to decide whether it can name a run. */
+        trackId: null,
         sourceId: p.id,
         filterBucket: "proposals",
         kind: "DESIGN",
@@ -1175,6 +1218,10 @@ export async function readApprovalsQueue(
           // Not held open by a run: see `gatesLiveWork` on the type. Declared
           // rather than defaulted, so a new kind has to decide this on purpose.
           gatesLiveWork: null,
+          /* No run behind it: only a tool call is raised inside one. Declared
+           rather than defaulted, on the same rule as the line above, so a new
+           kind has to decide whether it can name a run. */
+          trackId: null,
           sourceId: p.id,
           filterBucket: "proposals",
           kind: "PLAYBOOK",

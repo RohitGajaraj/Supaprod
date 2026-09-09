@@ -346,7 +346,12 @@ describe("the correction budget, which is what stops this being worse than a fre
     const d = decideCorrection(at("build", { filed: ["prd"], corrections: MAX_TRACK_CORRECTIONS }));
     expect(d.action).toBe("give-up");
     if (d.action !== "give-up") return;
-    expect(d.because.toLowerCase()).toContain("nothing more");
+    /* The CAUSE, not the effect: since 2026-09-09 the effect ("nothing more
+       will be tried") is said once, by the hold line, and this sentence
+       carries the station, the missing thing and the correction count. */
+    expect(d.because).toContain("Build has a spec");
+    expect(d.because).toContain("still cannot finish");
+    expect(d.because.toLowerCase()).not.toContain("nothing more");
   });
 
   it("spends at most MAX_TRACK_CORRECTIONS whatever the station", () => {

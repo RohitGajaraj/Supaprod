@@ -675,7 +675,14 @@ export function decideCorrection(i: CorrectionInputs): CorrectionDecision {
     }
     return {
       action: "give-up",
-      because: `${label(i.station)} has ${need.missing}, has been corrected ${i.corrections} times, and still cannot finish. Nothing more will be tried on this automatically.`,
+      /* THE CAUSE, AND ONLY THE CAUSE (2026-09-09). This ended with "Nothing
+         more will be tried on this automatically", which is the EFFECT, and
+         the effect is already said two lines above it on the card by
+         HOLD_LINE["given-up"] and again by the way out's own offer: three
+         sentences, one fact. What nothing else can state is this half, the
+         station, the missing thing by name and the real correction count, so
+         this sentence keeps that and stops there. */
+      because: `${label(i.station)} has ${need.missing}, has been corrected ${i.corrections} times, and still cannot finish.`,
     };
   }
 
@@ -725,7 +732,10 @@ export function decideCorrection(i: CorrectionInputs): CorrectionDecision {
   if (ownKind && (i.filedAtThisStation ?? []).includes(ownKind)) {
     return {
       action: "give-up",
-      because: `${label(i.station)} has ${need.missing}, produced its own work from it, and still cannot finish. What is wrong is downstream of the ${need.missing}, so sending it back would rewrite something that was never the problem. Nothing more will be tried on this automatically.`,
+      /* Same trim as the sibling above: the effect belongs to the hold line,
+         and this sentence carries the cause and the reason a go-back would be
+         the wrong move, which nothing else on the card can say. */
+      because: `${label(i.station)} has ${need.missing}, produced its own work from it, and still cannot finish. What is wrong is downstream of the ${need.missing}, so sending it back would rewrite something that was never the problem.`,
     };
   }
 

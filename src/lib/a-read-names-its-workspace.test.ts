@@ -204,6 +204,14 @@ const DELIBERATELY_UNSCOPED: Record<string, string> = {
  * baseline number is not.
  */
 const DELIBERATE_READS: Record<string, { reads: number; why: string }> = {
+  "src/lib/governance.functions.ts": {
+    reads: 1,
+    why: "The pending gates' runs, asked by mission id and by run id inside one `.or()` so the live-work check and the run's track cost one hop rather than two; both id sets come from approval rows this request has already read under the caller's own RLS, so it is narrowed by id in the way the register above describes, in a form the narrowing pattern cannot see.",
+  },
+  "src/lib/spine/driver.server.ts": {
+    reads: 1,
+    why: "repairStaleGates is a cron repair across tenants, like the sweep below: it prunes gate pointers whose approvals have settled on open tracks the driver can no longer reach (a terminal hold excludes them from track-tick), drives nothing, and is bounded per pass.",
+  },
   "src/routes/api/public/hooks/resume-runs.ts": {
     reads: 2,
     why: "The minute sweep drives a fresh open track nobody has driven yet, in whichever workspace it was started (F-55 'sweep'), and generates the starter runs a cancelled Worker dropped for a product from the last day; both reads are the cron pass across tenants, bounded (three tracks under fifteen minutes old; two products with no runs and no live claim).",

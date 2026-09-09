@@ -4543,6 +4543,89 @@ export async function driveTrackOnce(
 }
 
 /** The columns driveTrackOnce needs. Exported so the tick and the driver agree. */
+/**
+ * ── A GATE THAT IS OVER MUST NOT GO ON SAYING IT IS WAITING (2026-09-09) ────
+ *
+ * Lane 2 measured six open tracks on production whose `pending_gates` named a
+ * gate no surface could answer: four expired unanswered, one was executed and
+ * one cancelled, all of them settled weeks ago. One of the six (`197769e8`)
+ * was held at `waiting-on-a-person` because of a gate that expired on
+ * 2026-08-27, so the driver was telling a person to answer something that no
+ * longer existed, and no press anywhere could clear it.
+ *
+ * WHY THE HARVEST NEVER REACHED THEM. `harvestAnsweredGates` prunes exactly
+ * this, and it is correct, but it only runs inside a drive; and four of the
+ * six are held at `station-cannot-finish`, a TERMINAL hold, which `track-tick`
+ * excludes from its query by design. So the one pass that would fix the
+ * pointer is the one pass those tracks can never get: the hold hides the
+ * record that says the hold is over.
+ *
+ * THIS IS A REPAIR, NOT A DRIVE. It harvests and prunes, and it runs no
+ * station, so a terminal hold stays terminal and a paused workspace is
+ * untouched by it. The one hold it does clear is `waiting-on-a-person` with
+ * nothing left pending: that hold is a claim about a person's move, and when
+ * the last gate is settled the claim is simply false. Bounded per pass, and a
+ * track that throws is reported rather than stopping the others.
+ */
+export async function repairStaleGates(
+  supabase: SupabaseClient,
+  limit = 10,
+): Promise<{ pruned: string[]; released: string[]; failed: string[] }> {
+  const pruned: string[] = [];
+  const released: string[] = [];
+  const failed: string[] = [];
+  try {
+    const { data, error } = await supabase
+      .from("spine_tracks" as never)
+      .select("id,last_hold,pending_gates")
+      .eq("status", "open")
+      .not("pending_gates", "is", null)
+      .order("updated_at", { ascending: true })
+      .limit(limit * 5);
+    if (error) {
+      failed.push(`read: ${error.message}`);
+      return { pruned, released, failed };
+    }
+    const rows = (
+      (data ?? []) as unknown as Array<{
+        id: string;
+        last_hold: string | null;
+        pending_gates: unknown;
+      }>
+    )
+      .filter((r) => Array.isArray(r.pending_gates) && r.pending_gates.length > 0)
+      .slice(0, limit);
+    for (const row of rows) {
+      try {
+        const before = (row.pending_gates as PendingGate[]).length;
+        const { keep } = await harvestAnsweredGates(supabase, row as unknown as DriveRow);
+        if (keep.length === before) continue;
+        pruned.push(row.id);
+        if (keep.length === 0 && row.last_hold === "waiting-on-a-person") {
+          const { error: clearErr } = await supabase
+            .from("spine_tracks" as never)
+            .update({
+              last_hold: null,
+              last_hold_because: null,
+              // Nobody has driven it since the wait ended, which is what the
+              // sweeps order on: this is how it gets its next turn.
+              driven_at: null,
+              updated_at: new Date().toISOString(),
+            } as never)
+            .eq("id", row.id);
+          if (clearErr) failed.push(`${row.id}: ${clearErr.message}`);
+          else released.push(row.id);
+        }
+      } catch (e) {
+        failed.push(`${row.id}: ${e instanceof Error ? e.message : String(e)}`);
+      }
+    }
+  } catch (e) {
+    failed.push(`repair: ${e instanceof Error ? e.message : String(e)}`);
+  }
+  return { pruned, released, failed };
+}
+
 export const DRIVE_SELECT =
   "id,user_id,workspace_id,product_id,title,origin,entry_station,station,path,waived,attempts,last_hold," +
   // F-43: the counter that catches a station which never converges.

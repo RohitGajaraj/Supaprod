@@ -7,7 +7,12 @@ import { advanceMissionCore, type MissionLite } from "@/lib/ai/mission-advance.s
 import { classifyMissionGate } from "@/lib/reliability/gate-state";
 import { withJobRun } from "@/lib/observability";
 import { recordStageEvent } from "@/lib/stage-events.server";
-import { driveTrackOnce, DRIVE_SELECT, type DriveRow } from "@/lib/spine/driver.server";
+import {
+  driveTrackOnce,
+  repairStaleGates,
+  DRIVE_SELECT,
+  type DriveRow,
+} from "@/lib/spine/driver.server";
 import { claimStarterRuns, keepStarterRuns } from "@/lib/onboarding.functions";
 import { STARTER_RUNS_CLAIM_MS } from "@/lib/starter-runs";
 import { DEFAULT_STUCK_MS, isRunStuck, stuckReason } from "@/lib/reliability/stuck-runs";
@@ -665,11 +670,17 @@ export const Route = createFileRoute("/api/public/hooks/resume-runs")({
              * belongs to the server: this sweep runs every minute, so a fresh
              * open track nobody has driven yet is driven here, once, as the
              * sweep's own work (via "sweep", F-55: nobody is watching it).
-             * Bounded to three per pass and to tracks under fifteen minutes
-             * old, so a backlog of abandoned starts cannot take the minute;
-             * older ones stay track-tick's, whose ordering already puts a
-             * never-driven track first. A track that asked to stop is left
-             * alone, and one that throws must not stop the pass.
+             * Bounded to three per pass and to tracks that MOVED in the last
+             * fifteen minutes, so a backlog of abandoned starts cannot take
+             * the minute; older ones stay track-tick's, whose ordering already
+             * puts a never-driven track first. A track that asked to stop is
+             * left alone, and one that throws must not stop the pass.
+             *
+             * "Moved", not "created" (2026-09-09): releasing a hold clears
+             * `driven_at` and stamps `updated_at`, because nobody has driven
+             * the track since the person pressed. So this block is also what
+             * makes the hold card's "It runs again on its next turn" true, on
+             * a released track of any age.
              */
             const freshTracks: string[] = [];
             const freshFailed: string[] = [];
@@ -681,8 +692,8 @@ export const Route = createFileRoute("/api/public/hooks/resume-runs")({
                 .eq("status", "open")
                 .is("driven_at", null)
                 .is("stop_requested_at", null)
-                .gte("created_at", freshSince)
-                .order("created_at", { ascending: true })
+                .gte("updated_at", freshSince)
+                .order("updated_at", { ascending: true })
                 .limit(3);
               const sweepStartedAt = Date.now();
               for (const row of (fresh ?? []) as unknown as DriveRow[]) {
@@ -746,10 +757,26 @@ export const Route = createFileRoute("/api/public/hooks/resume-runs")({
               starterRunsFailed.push(`read: ${e instanceof Error ? e.message : String(e)}`);
             }
 
+            /*
+             * THE GATE POINTERS NOTHING ELSE CAN CLEAR. A settled gate is
+             * pruned by the driver's own harvest, but the harvest only runs
+             * inside a drive, and a track held at a terminal hold is excluded
+             * from track-tick by design: the hold hides the record that says
+             * the hold is over (Lane 2's measurement, 2026-09-09, six open
+             * tracks pointing at gates settled weeks ago, one of them telling
+             * a person to answer a gate that expired on 2026-08-27). This
+             * repairs the pointer without driving anything.
+             */
+            const gateRepair = await repairStaleGates(admin as unknown as SupabaseClient, 10);
+
             return new Response(
               JSON.stringify({
                 ok: true,
                 resumed,
+                // Gate pointers pruned, and the waits they were faking, ended.
+                gatesPruned: gateRepair.pruned,
+                gatesReleased: gateRepair.released,
+                gatesFailed: gateRepair.failed,
                 // Fresh open tracks nobody had driven, started here (F-55 sweep).
                 freshTracksDriven: freshTracks,
                 freshTracksFailed: freshFailed,

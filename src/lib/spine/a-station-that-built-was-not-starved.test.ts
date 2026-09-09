@@ -54,7 +54,11 @@ describe("a station that produced its own work is not sent back for its input", 
     expect(d.action).toBe("give-up");
     if (d.action !== "give-up") throw new Error("unreachable");
     expect(d.because).toContain("produced its own work from it");
-    expect(d.because).toContain("Nothing more will be tried");
+    /* The CAUSE and the reason a go-back is wrong; the effect ("nothing more
+       will be tried") is the hold line's sentence, said once, since
+       2026-09-09. */
+    expect(d.because).toContain("downstream of the");
+    expect(d.because.toLowerCase()).not.toContain("nothing more");
   });
 
   it("says the problem is downstream, not that the spec was bad", () => {

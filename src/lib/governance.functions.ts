@@ -530,6 +530,8 @@ export type GovernApprovalsRead = {
     mission_title: string | null;
     risk: ReturnType<typeof toolRisk>;
     gatesLiveWork: boolean | null;
+    /** The track this gate's run belongs to, or null when it has none. */
+    trackId: string | null;
   }>;
   trackByAgent: Record<string, AgentTrackRecord>;
   outcomeByAgent: Record<string, AgentOutcomeRecord>;
@@ -573,12 +575,14 @@ export async function readGovernApprovals(
     decided_at: string | null;
     error: string | null;
     mission_id: string | null;
+    /** The run this gate was raised inside, which is how it reaches a track. */
+    run_id: string | null;
   };
   // Pre-migration tolerant (the api/chat.ts precedent): mission_id lands
   // with 20260612100000 via the Lovable sync; until it applies, retry the
   // select without the column so the queue still renders.
   const baseColumns =
-    "id,agent_slug,tool_name,args,rationale,status,escalation_state,expires_at,created_at,decided_at,error";
+    "id,agent_slug,tool_name,args,rationale,status,escalation_state,expires_at,created_at,decided_at,error,run_id";
   let rows: Partial<ApprovalRow>[] | null = null;
   let error: { message: string } | null = null;
   /*
@@ -641,6 +645,12 @@ export async function readGovernApprovals(
         .map((a) => a.mission_id as string),
     ),
   ];
+  /** The runs the pending gates were raised inside; how a call reaches a track. */
+  const pendingRunIds = [
+    ...new Set(
+      approvals.filter((a) => a.status === "pending" && a.run_id).map((a) => a.run_id as string),
+    ),
+  ];
   // CORE-UX-TRUST: the per-agent track record, now surfaced HERE (the point of
   // decision moved off Today into Govern → Approvals). All-time decided rows for
   // the agents in this queue (RLS-scoped to the caller); honest, no fabricated
@@ -660,14 +670,38 @@ export async function readGovernApprovals(
     missionIds.length
       ? db.from("missions").select("id,title").in("id", missionIds)
       : Promise.resolve({ data: [] as { id: string; title: string }[] }),
-    pendingMissionIds.length
+    /*
+     * ── A CALL THAT CANNOT NAME ITS RUN (Lane 1, 2026-09-09) ──────────────
+     *
+     * This read answered one question, "is the work behind this pending gate
+     * still live", from the gate's mission. The same rows answer a second one
+     * the Inbox could not answer at all: WHICH RUN this call belongs to, and
+     * so which track a person can open from it. `agent_runs.track_id` is
+     * written by the loop on every spine run, and the approval has carried
+     * `run_id` since F-STUDIO, so the link was there on the write and nothing
+     * read it: of 21 pending calls, none could name a run. One `.or()` here
+     * asks both by mission and by id, so the answer costs no extra hop.
+     */
+    pendingMissionIds.length || pendingRunIds.length
       ? db
           .from("agent_runs")
-          .select("mission_id,status,created_at")
-          .in("mission_id", pendingMissionIds)
+          .select("id,mission_id,track_id,status,created_at")
+          .or(
+            [
+              pendingMissionIds.length ? `mission_id.in.(${pendingMissionIds.join(",")})` : null,
+              pendingRunIds.length ? `id.in.(${pendingRunIds.join(",")})` : null,
+            ]
+              .filter(Boolean)
+              .join(","),
+          )
           .order("created_at", { ascending: false })
       : Promise.resolve({
-          data: [] as Array<{ mission_id: string; status: string }>,
+          data: [] as Array<{
+            id: string;
+            mission_id: string | null;
+            track_id: string | null;
+            status: string;
+          }>,
           error: null as { message: string } | null,
         }),
     // One decided-history fetch feeds BOTH the per-agent track record AND the
@@ -743,12 +777,21 @@ export async function readGovernApprovals(
   const medianResponseMs = waits.length ? waits[Math.floor(waits.length / 2)] : null;
 
   const liveByMission = new Map<string, boolean>();
+  /** The track each pending gate's own run belongs to, when it has one. */
+  const trackByRun = new Map<string, string>();
   if (runsRes.error) {
     console.error(
       `approvals queue: run status unreadable, gates left unknown: ${runsRes.error.message}`,
     );
   } else {
-    for (const r of (runsRes.data ?? []) as Array<{ mission_id: string; status: string }>) {
+    for (const r of (runsRes.data ?? []) as Array<{
+      id: string;
+      mission_id: string | null;
+      track_id: string | null;
+      status: string;
+    }>) {
+      if (r.track_id) trackByRun.set(r.id, r.track_id);
+      if (!r.mission_id) continue;
       // Newest first, so the first row seen for a mission is the current one.
       if (!liveByMission.has(r.mission_id)) {
         liveByMission.set(r.mission_id, LIVE_RUN_STATUSES.has(r.status));
@@ -827,6 +870,10 @@ export async function readGovernApprovals(
        * would tell a person the work had finished when nothing ever started.
        */
       gatesLiveWork: a.mission_id ? (liveByMission.get(a.mission_id) ?? null) : null,
+      /* The run this gate was raised inside, and the track that run belongs
+         to: null when the gate predates the spine, which is every pending
+         call raised before this product had tracks. */
+      trackId: a.run_id ? (trackByRun.get(a.run_id) ?? null) : null,
     })),
     trackByAgent,
     outcomeByAgent,

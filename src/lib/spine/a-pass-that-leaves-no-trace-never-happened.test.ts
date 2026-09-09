@@ -75,9 +75,13 @@ describe("the seat that judges the design is told to file the judgement", () => 
 
   it("it can still say the design is sound by changing nothing", () => {
     // The fix must not turn "sound as it stands" into a forced revision. The
-    // instruction adds a filing step; it does not add a change.
+    // instruction adds a filing step; it does not add a change. Reworded
+    // 2026-09-09 to say the same thing the other way round, after the seat was
+    // found re-filing the drawing it had just read as its "critique": a redraw
+    // is conditional, the verdict is not.
     const brief = stationGoal("design", TRACK, [], critic()!);
-    expect(brief).toContain("design.draft with the corrected version");
+    expect(brief).toContain("ONLY if the design itself must change");
+    expect(brief).toMatch(/re-filing the drawing you just read is not a critique/i);
   });
 });
 

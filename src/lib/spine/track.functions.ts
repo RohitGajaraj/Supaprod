@@ -2491,7 +2491,21 @@ export const retryStation = createServerFn({ method: "POST" })
           // not, so a track never reads "released" while still excluded from
           // the sweep's own query.
           deferred_until: null,
-          driven_at: now,
+          /*
+           * ── THE PRESS AND THE SENTENCE AGREE NOW (2026-09-09) ────────────
+           *
+           * This stamped `driven_at: now`, which is the one thing a release is
+           * not: nobody has driven the track since the person pressed. Both
+           * sweeps order by `driven_at` ascending with nulls first, so the
+           * stamp sent a just-released track to the BACK of the queue while
+           * the card promised "It runs again on its next turn". Null is the
+           * true value and it is also the fast one: the minute sweep takes an
+           * open, undriven track that moved in the last quarter hour, so the
+           * next turn is within the minute. The deferred branch below still
+           * drives immediately, because a deferral would otherwise hold the
+           * track past its own release.
+           */
+          driven_at: null,
           updated_at: now,
         } as never)
         .eq("id", data.trackId)

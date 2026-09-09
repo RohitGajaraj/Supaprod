@@ -228,7 +228,7 @@ export const CREW_ROLE: Record<string, { job: string; file: string }> = {
      * `critic.evaluate` already persists a verdict on the row, including the
      * design lens. Calling it is how a pass becomes a fact.
      */
-    file: "If the design needs to change, call design.draft with the corrected version. Then call critic.evaluate on the spec, WHETHER OR NOT you changed anything: a design you judged sound leaves no record unless you file it, and a spec nobody filed a verdict on cannot be told apart from one nobody read.",
+    file: "Call critic.evaluate on the spec, WHETHER OR NOT you changed anything: a design you judged sound leaves no record unless you file it, and a spec nobody filed a verdict on cannot be told apart from one nobody read. Call design.draft ONLY if the design itself must change, and then only with what is different: re-filing the drawing you just read is not a critique of it, and it files a second copy of one design (measured 2026-09-09: 23 of 59 drawings on tracks were identical copies, so the product counted three designs as ten). Your verdict is the record of your turn; the drawing is the designer's.",
   },
   // 05 Build
   builder: {

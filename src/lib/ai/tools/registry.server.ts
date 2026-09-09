@@ -6512,6 +6512,47 @@ const designDraft = def({
 
     // 2. THE SHARE RECORD. Unchanged shape and unchanged return field, because
     //    src/lib/spine/attach.ts files this tool's output by `prototype_id`.
+    /*
+     * ── FILING THE SAME DRAWING TWICE IS NOT TWO DRAWINGS (2026-09-09) ─────
+     *
+     * Measured on production by Lane 2: of 59 prototypes filed on tracks, 36
+     * are distinct and 23 are byte-identical copies of another version of the
+     * same thing. The shape is regular rather than a race: every design is
+     * filed twice about eighteen seconds apart, once by `ux-architect` and
+     * once by `design-critic`, whose own instruction says to redraw only "if
+     * the design needs to change" and which re-files what it just reviewed.
+     * The run screen then counts ten prototypes over three designs, and every
+     * count that reads `spine_track_members` inherits it.
+     *
+     * The instruction is sharpened below, but an instruction is not a
+     * guarantee: this tool is the write, so this is where sameness is decided.
+     * A call whose name AND description match a drawing already on the same
+     * spec files nothing, returns the drawing that is already there, and says
+     * so. Two seats agreeing costs one row, which is what it is worth. A
+     * changed word is a new version and still files, because judging how much
+     * change makes a new version is not a decision a write path may take.
+     */
+    const { data: twin } = await supabase
+      .from("prototypes")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("name", a.name)
+      .eq("description", a.description)
+      .eq("prd_id", a.prd_id ?? null)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (twin) {
+      const existingId = (twin as { id: string }).id;
+      return {
+        prototype_id: existingId,
+        name: a.name,
+        filed: false,
+        drawing: { drawn: false, reason: "this drawing is already on the record, unchanged" },
+        next: "Nothing was filed: this is the drawing that is already there, word for word. If you meant to change it, call this again with what changed; if you meant to judge it, call critic.evaluate on the spec.",
+      };
+    }
+
     const { data, error } = await supabase
       .from("prototypes")
       .insert({
@@ -6548,6 +6589,7 @@ const designDraft = def({
     return {
       prototype_id: prototypeId,
       name: a.name,
+      filed: true,
       drawing: drew.drawn
         ? {
             drawn: true,

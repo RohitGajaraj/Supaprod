@@ -55,7 +55,16 @@ describe("the fact is fetched once, for the rows that can use it", () => {
   });
 
   it("in one query for the whole queue, not one per row", () => {
-    expect(GOV).toContain('.in("mission_id", pendingMissionIds)');
+    /* One query for the whole queue, still: since 2026-09-09 the same read
+       also answers which run each pending gate belongs to, so it asks by
+       mission AND by run id in one `.or()` rather than making a second trip. */
+    expect(GOV).toContain('`mission_id.in.(${pendingMissionIds.join(",")})`');
+    expect(GOV).toContain('.select("id,mission_id,track_id,status,created_at")');
+    // One trip inside the gate read's own hop, whatever else the file reads.
+    const at = GOV.indexOf("const [missions, runsRes, histRes, learningsRes]");
+    const hop = GOV.slice(at, GOV.indexOf("]);", at));
+    expect(at).toBeGreaterThan(-1);
+    expect(hop.match(/\.from\("agent_runs"\)/g) ?? []).toHaveLength(1);
   });
 
   it("and the newest run per mission decides it", () => {
