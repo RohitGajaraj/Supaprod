@@ -273,6 +273,40 @@ export function transcriptLead(t: Turn): string {
   return who ? `${verdict}. ${who}.` : `${verdict}.`;
 }
 
+/**
+ * The lead and the meta for a run of turns folded into one row.
+ *
+ * ── THE SEAT MOVES OUT OF THE LEAD WHEN THERE IS MORE THAN ONE ─────────────
+ * An ordinary row reads "Filed nothing. Engineer, 8.6s." -- verdict, seat,
+ * stopwatch -- and the seat belongs there because there is exactly one. A fold
+ * across `builder` and `qa` has two, and naming the representative turn's seat
+ * would report six turns under one agent's name when the other took three of
+ * them.
+ *
+ * So the lead keeps the verdict alone and the meta carries who, how many and
+ * over what span. The stopwatch goes with it: six turns have six durations and
+ * one of them is not the answer, where the SPAN is -- forty minutes on one wall
+ * is the fact, not that the third attempt took 6.9 seconds.
+ */
+export function foldedLines(
+  t: Turn,
+  seats: readonly string[],
+  count: number,
+  from: string,
+  to: string,
+): { lead: string; meta: string } {
+  const who =
+    seats.length <= 1
+      ? null
+      : seats.length === 2
+        ? `${seats[0]} and ${seats[1]}`
+        : `${seats.length} seats`;
+  const turns = `${count} turns, ${from} to ${to}`;
+  return who === null
+    ? { lead: transcriptLead(t), meta: `${count} times, ${from} to ${to}` }
+    : { lead: `${headline(t)}.`, meta: `${who} · ${turns}` };
+}
+
 /** The live turn's age, ticking. Reports the WORK, not the component. */
 /**
  * Can this turn's output be opened in the pane beside it?
@@ -1894,7 +1928,13 @@ export function TrackActivity({
                            `foldRepeats`. The clock is the last one, the span
                            says how long the loop kept trying. */
                         const t = row.turn;
-                        const span = `${item.count} times, ${clockOf(item.firstAt)} to ${clockOf(item.lastAt)}`;
+                        const fold = foldedLines(
+                          t,
+                          item.seats,
+                          item.count,
+                          clockOf(item.firstAt),
+                          clockOf(item.lastAt),
+                        );
                         return (
                           <li key={item.key} className={RUN_ROW}>
                             <RunClock at={item.lastAt} />
@@ -1904,10 +1944,10 @@ export function TrackActivity({
                             </span>
                             <span className="min-w-0 pb-1">
                               <span className={RUN_LINE}>
-                                <RunSubject>{transcriptLead(t)}</RunSubject>
+                                <RunSubject>{fold.lead}</RunSubject>
                                 {chipOf(t)}
                               </span>
-                              <RunMeta>{span}</RunMeta>
+                              <RunMeta>{fold.meta}</RunMeta>
                               {t.stopLine ? <RunNote>{t.stopLine}</RunNote> : null}
                               {saidLine(t.said) ? (
                                 <RunNote>

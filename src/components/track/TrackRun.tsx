@@ -1008,6 +1008,18 @@ export function TrackRunLeft({
     },
   });
 
+  /*
+   * Off the SAME cache entry the transcript and the tally already hold, so this
+   * costs no round trip; see `run-refrain.ts` for why it is a hook rather than a
+   * callback lifted out of `TrackActivity`.
+   *
+   * ABOVE `wayOut` BECAUSE THE WAY OUT NOW READS IT. It was declared beside the
+   * hold card two hundred lines down, which is where it is drawn; the way out
+   * defers to a named blocker, so the fact has to exist before the sentence
+   * that stands down for it.
+   */
+  const { refrain, blocker } = useRefrain(trackId);
+
   const holdWayOut = wayOut(
     track?.holdReason,
     { undo: Boolean(holdTakeOver?.undoTo), handback: Boolean(holdTakeOver?.handback) },
@@ -1016,6 +1028,25 @@ export function TrackRunLeft({
     shipStop
       ? { line: shipStopLine(shipStop), actionable: shipStopWaitsOnAPerson(shipStop) }
       : null,
+    /*
+     * ── THE WAY OUT DEFERS WHEN THE RUN NAMED ITS OWN WALL (S1, 45199b668) ──
+     *
+     * On `6cc7a010` the way out for `going-in-circles` read "Send it back a step
+     * so it starts from different ground", and sending it back a step was what
+     * had already happened three times and what produced the loop. Build had
+     * said "No repository is connected... bind a repository on Connectors" six
+     * times, and no door on the screen went there.
+     *
+     * `Boolean(blocker)` rather than something narrower, and the reason is that
+     * the blocker's own bar is already the narrow one: two turns minimum, the
+     * same station, the same claim, nothing filed, and a failed outcome. Any
+     * blocker that clears that is a wall the run hit and reported, and no
+     * generic next step is better than the sentence the seat wrote about it.
+     *
+     * It suppresses the SENTENCE and never the controls -- undo and handback are
+     * still the right presses if a person decides to make one.
+     */
+    Boolean(blocker),
   );
   const showCalmHold = isCalmHold && !walkingMidRoute;
 
@@ -1192,12 +1223,6 @@ export function TrackRunLeft({
   /* The facts a hold used to carry as rows under "Why it stopped". */
   const holdFacts = track && (now.register === "held" || now.register === "stopped");
 
-  /*
-   * Off the SAME cache entry the transcript and the tally already hold, so this
-   * costs no round trip; see `run-refrain.ts` for why it is a hook rather than a
-   * callback lifted out of `TrackActivity`.
-   */
-  const { refrain, blocker } = useRefrain(trackId);
   /* The station's own retry stands down wherever pressing it changes nothing:
      a call is in front of the person, the preview is what stopped Ship, or
      nothing will pick the work up again. */
