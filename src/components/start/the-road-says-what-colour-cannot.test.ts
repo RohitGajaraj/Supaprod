@@ -60,6 +60,27 @@ describe("the road names the work that has stopped", () => {
     );
   });
 
+  it("names three, which is the founder's other workspace as it actually stands", () => {
+    /*
+     * MEASURED: "My workspace" holds 8 runs and every one is stopped --
+     * `station-cannot-finish` at Decide and Design, `tools-refused` at Build,
+     * `going-in-circles` at Decide. All four holds are in `TERMINAL_HOLDS`, so
+     * three stations light `stopped` at once and the caption has to carry a
+     * list rather than a name. That is the workspace the sentence matters most
+     * on, so it is pinned rather than assumed.
+     */
+    const three = A1.map((s) =>
+      s.key === "build"
+        ? at("build", "stopped", 1)
+        : s.key === "decide"
+          ? at("decide", "stopped", 3)
+          : s,
+    );
+    expect(captionFor({ mode: "map", stations: three, selected: null })).toBe(
+      "Decide, Design and Build have stopped, and will not move without you.",
+    );
+  });
+
   it("says nothing about stopping when nothing has stopped", () => {
     /*
      * The mirror that matters. A caption that always warned would be
