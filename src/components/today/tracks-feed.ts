@@ -3,7 +3,8 @@ import { STALL_MINUTES } from "@/lib/loop-health.functions";
 import { formatElapsed } from "@/components/meridian/run-rows";
 import { TERMINAL_HOLDS } from "@/lib/spine/correction";
 import { waitingOnTime } from "@/components/track/a-calendar-wait-is-not-a-stoppage";
-import { isOverdue, stoppedFor } from "@/components/meridian/stopped-for";
+import { stoppedFor } from "@/components/meridian/stopped-for";
+import { nothingHasPickedItUp } from "@/components/track/nothing-has-picked-it-up";
 import { AGENT_STATIONS, type AgentStation } from "@/lib/agent-vocabulary";
 import { holdLine } from "@/lib/spine/driver";
 import { FORECAST_SAYS } from "@/components/learn/forecast-words";
@@ -611,20 +612,36 @@ function startRowRest(
    * no reason string on the row to hang it from. The clock is the only witness
    * it has.
    *
-   * THE BOUNDARY IS `isOverdue` AND IT IS NOT A NEW NUMBER. A day, because it
-   * "has survived a night nobody looked" -- StalledWork's own threshold, and
-   * the one the queue's rows and its gate already agree on. The sweep re-reads
-   * every ten minutes, so a day is about 144 passes that did not take it: far
-   * past any argument about cadence, and one boundary rather than a second
-   * opinion about when a wait stops being one.
+   * ── THE BOUNDARY WAS WRONG FOR ONE DEPLOY, AND LANE 2 MEASURED IT ────────
+   *
+   * This first shipped on `isOverdue`, StalledWork's 24 hours, and the reason
+   * given here was that the sweep re-reads every ten minutes so a day is "far
+   * past any argument about cadence". That reasoning was not measured, and it
+   * was wrong. Lane 2 scored 1,730 real gaps the loop has actually closed over
+   * thirty days: p50 10.4 minutes, p90 99.9 minutes, **p99 about 2.07 days**.
+   * A day is INSIDE the ordinary distribution, so the line would have called
+   * routine sweep behaviour a stoppage -- a false alarm on the entry, which is
+   * the exact class of defect this line exists to remove.
+   *
+   * `isOverdue`'s day is also a different question. Its docstring says what it
+   * is for: *"past a day it has survived a night nobody looked"* -- a PERSON
+   * being late. This asks whether the LOOP has stopped coming, a question
+   * about a machine's cadence that the machine's own record answers. One
+   * number across both would make one of them wrong.
+   *
+   * So it takes `nothingHasPickedItUp`, which owns that question for the run
+   * screen too. Not merely the constant: the predicate also refuses to call a
+   * track cold while `deferredUntil` is still in the future, which the inline
+   * version here got wrong -- a run waiting on a date BY DESIGN would have
+   * been reported as abandoned.
    *
    * IT STILL NAMES THE STATION. Where the work stands has not changed and is
    * still the first thing a reader wants; what is added is the fact that
    * changes what the station means.
    */
   if (!r.drivenAt) return "Not started yet";
-  const drivenAt = Date.parse(r.drivenAt);
-  if (!Number.isNaN(drivenAt) && isOverdue(drivenAt, now)) {
+  if (nothingHasPickedItUp({ drivenAt: r.drivenAt, nowMs: now })) {
+    const drivenAt = Date.parse(r.drivenAt);
     return `Waiting at ${r.stationName}, and nothing has picked it up for ${stoppedFor(drivenAt, now)}.`;
   }
   return `Waiting at ${r.stationName}`;

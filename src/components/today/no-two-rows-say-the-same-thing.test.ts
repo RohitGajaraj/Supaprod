@@ -21,6 +21,7 @@
  */
 import { describe, expect, it } from "bun:test";
 import { holdLine } from "@/lib/spine/driver";
+import { COLD_AFTER_MS, nothingHasPickedItUp } from "@/components/track/nothing-has-picked-it-up";
 import { FORECAST_SAYS } from "@/components/learn/forecast-words";
 
 import {
@@ -466,14 +467,55 @@ describe("a wait nothing is coming for", () => {
     expect(m).toContain("Build");
   });
 
-  it("uses the queue's own overdue boundary, not a second opinion about it", () => {
-    // `isOverdue` is a day. Just under stays plain, just over does not, and the
-    // number lives in `stopped-for.ts` where the Inbox's rows and its gate
-    // already agree on it.
-    const under = startRowMiddle(run({ drivenAt: "2026-09-01T12:00:01Z" }), NOW, WORDS, phrase);
-    const over = startRowMiddle(run({ drivenAt: "2026-09-01T11:59:59Z" }), NOW, WORDS, phrase);
+  it("uses the boundary the LOOP's own record sets, not a person's overdue day", () => {
+    /*
+     * THIS TEST WAS WRONG FOR ONE COMMIT AND IT IS THE INTERESTING PART.
+     *
+     * It first pinned `isOverdue`, StalledWork's 24 hours, and my reasoning was
+     * that the sweep re-reads every ten minutes so a day is far past any
+     * argument about cadence. That was asserted, not measured. Lane 2 scored
+     * 1,730 gaps the loop has actually closed over thirty days: p50 10.4
+     * minutes, p90 99.9 minutes, p99 about 2.07 days. A day sits INSIDE the
+     * ordinary distribution, so the line would have called routine sweep
+     * behaviour a stoppage.
+     *
+     * `isOverdue`'s day answers a different question anyway -- "it has survived
+     * a night nobody looked" is about a PERSON being late. This asks whether
+     * the LOOP has stopped coming.
+     *
+     * So it is pinned on `COLD_AFTER_MS`, computed rather than written as a
+     * literal, and the boundary moves with the module that owns the question.
+     */
+    const at = (msBefore: number) => new Date(NOW - msBefore).toISOString();
+    const under = startRowMiddle(run({ drivenAt: at(COLD_AFTER_MS - 60_000) }), NOW, WORDS, phrase);
+    const over = startRowMiddle(run({ drivenAt: at(COLD_AFTER_MS + 60_000) }), NOW, WORDS, phrase);
     expect(under).toBe("Waiting at Build");
     expect(over).toContain("nothing has picked it up");
+  });
+
+  it("is quiet through a gap the loop routinely closes", () => {
+    // p90 is under two hours and p99 is about 2.07 days. Thirty hours is
+    // ordinary for the sweep and overdue for a person, which is exactly why
+    // these two boundaries must not be one number.
+    const thirtyHours = new Date(NOW - 30 * 60 * 60 * 1000).toISOString();
+    expect(startRowMiddle(run({ drivenAt: thirtyHours }), NOW, WORDS, phrase)).toBe(
+      "Waiting at Build",
+    );
+  });
+
+  it("does not call a run cold while it is deferred to a date on purpose", () => {
+    /*
+     * The inline version of this got it wrong, and taking Lane 2's predicate
+     * rather than only its constant is what fixed it: a track waiting on a
+     * date BY DESIGN would have been reported as abandoned.
+     */
+    expect(
+      nothingHasPickedItUp({
+        drivenAt: new Date(NOW - 15 * 24 * 60 * 60 * 1000).toISOString(),
+        deferredUntil: new Date(NOW + 60 * 60 * 1000).toISOString(),
+        nowMs: NOW,
+      }),
+    ).toBe(false);
   });
 
   /*
