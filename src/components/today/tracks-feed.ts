@@ -656,9 +656,40 @@ function startRowRest(
    * `holdReason` is the discriminator and not `gone`: ANY cleared hold ends
    * the wall's claim, whether the wall lifted or a person stepped in.
    */
+  /*
+   * ── AND THE WALL MUST BE THE THING THAT CAUSED **THIS** HOLD ─────────────
+   *
+   * READ ON THE SERVED HOME, 2026-09-09 23:28 UTC, an hour after the gate
+   * above shipped. `a30d6b62` had just walked `define -> design -> build` and
+   * held at Build, and its row said **"It ran out of credit and stopped. There
+   * is credit again."**
+   *
+   *   last_hold ........... produced-nothing
+   *   last_hold_because ... "The last thing it tried was repo.tree, which
+   *                          said: No repository is connected..."
+   *   newest halt ......... out_of_credit, 2026-09-04 05:41
+   *   driven_at ........... 2026-09-09 23:20
+   *
+   * The credit wall was FIVE DAYS OLD and the track was held today for a
+   * repository. Requiring a hold to exist was not enough; the halt has to
+   * belong to the drive that produced the hold.
+   *
+   * `drivenAt` IS THE DISCRIMINATOR. A hold comes from a drive, so a halt older
+   * than the last drive cannot have caused it — something ran since and stopped
+   * for another reason. Null `drivenAt` means nothing has driven it since the
+   * hold was written, so the newest halt is still the best account of why it
+   * stopped, which is the state the two released tracks are in.
+   *
+   * THE SECOND TIME THIS EXACT SHAPE HAS CAUGHT ME TONIGHT, and it is the same
+   * shape both times: `stoppedBecause` reads a row that never goes away, so
+   * every gate on it has to say WHEN it stopped being the explanation. First it
+   * was "the hold cleared"; now it is "a later drive replaced it".
+   */
+  const wallExplainsThisHold =
+    !!r.stoppedBecause && (!r.drivenAt || r.stoppedBecause.at >= r.drivenAt);
   const wall =
-    r.holdReason && r.stoppedBecause
-      ? (HALT_LINE as Record<string, string | undefined>)[r.stoppedBecause.kind]
+    r.holdReason && wallExplainsThisHold
+      ? (HALT_LINE as Record<string, string | undefined>)[r.stoppedBecause!.kind]
       : null;
   /*
    * ── AND WHEN THE WALL HAS COME DOWN, THAT IS THE SENTENCE ────────────────
@@ -676,7 +707,7 @@ function startRowRest(
    * reads as a dead run and the change without the cause reads as a non
    * sequitur.
    */
-  if (r.holdReason && r.stoppedBecause?.now === "gone")
+  if (r.holdReason && wallExplainsThisHold && r.stoppedBecause?.now === "gone")
     return "It ran out of credit and stopped. There is credit again.";
   if (wall) return wall;
 

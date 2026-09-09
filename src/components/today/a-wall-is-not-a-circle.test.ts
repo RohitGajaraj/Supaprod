@@ -275,3 +275,73 @@ describe("a wall belongs to a run that is still stopped", () => {
     ).toBe("It ran out of credit and stopped. There is credit again.");
   });
 });
+
+/*
+ * ── A WALL FROM FIVE DAYS AGO IS NOT WHY IT STOPPED TODAY ─────────────────
+ *
+ * READ ON THE SERVED HOME, 2026-09-09 23:28 UTC, an hour after the
+ * cleared-hold gate shipped. `a30d6b62` had just walked `define -> design ->
+ * build` and held at Build, and its row said **"It ran out of credit and
+ * stopped. There is credit again."**
+ *
+ *   last_hold ........... produced-nothing
+ *   last_hold_because ... "The last thing it tried was repo.tree, which said:
+ *                          No repository is connected..."
+ *   newest halt ......... out_of_credit, 2026-09-04 05:41
+ *   driven_at ........... 2026-09-09 23:20
+ *
+ * The credit wall was five days old and the track was held today for a
+ * repository. Requiring a hold to EXIST was not enough — the halt has to belong
+ * to the drive that produced the hold.
+ *
+ * `drivenAt` is the discriminator: a hold comes from a drive, so a halt older
+ * than the last drive cannot have caused it. **The same shape caught me twice
+ * in one night** — `stoppedBecause` reads a row that never goes away, so every
+ * gate on it has to say when it stopped being the explanation.
+ */
+describe("a wall must be the thing that caused this hold", () => {
+  const line = (r: StartRowInput) => startRowMiddle(r, NOW, KIND_WORD, phrase, "UTC");
+  /** `a30d6b62` exactly as it stood when this was read. */
+  const walkedOn: StartRowInput = {
+    ...CIRCLES,
+    station: "build",
+    stationName: "Build",
+    holdReason: "produced-nothing",
+    holdBecause: "The last thing it tried was repo.tree, which said: No repository is connected.",
+    drivenAt: "2026-09-09T23:20:28Z",
+    stoppedBecause: { kind: "out_of_credit", at: "2026-09-04T05:41:36Z", now: "gone" },
+  };
+
+  it("says nothing about credit when a later drive produced the hold", () => {
+    expect({ mentionsCredit: /credit/i.test(line(walkedOn)) }).toEqual({ mentionsCredit: false });
+  });
+
+  it("says the driver's own account of THIS hold instead", () => {
+    // The repository sentence is the true one and it was already on the row.
+    expect(line(walkedOn)).toContain("repo.tree");
+  });
+
+  it("still says the wall when the halt IS from the last drive", () => {
+    // The mirror. A halt at or after the drive that set the hold is exactly
+    // what the sentence was written for.
+    const sameDrive = {
+      ...walkedOn,
+      stoppedBecause: {
+        kind: "out_of_credit",
+        at: "2026-09-09T23:20:30Z",
+        now: "standing" as const,
+      },
+    };
+    expect(line(sameDrive)).toBe("Stopped: the account ran out of credit, so the seat never ran.");
+  });
+
+  it("still says the wall when nothing has driven it since", () => {
+    /*
+     * `drivenAt` null is the state the two released tracks are in: nothing has
+     * run since the hold was written, so the newest halt is still the best
+     * account of why it stopped.
+     */
+    const notDrivenSince = { ...walkedOn, drivenAt: null };
+    expect(line(notDrivenSince)).toBe("It ran out of credit and stopped. There is credit again.");
+  });
+});
