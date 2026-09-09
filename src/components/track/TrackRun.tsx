@@ -1551,10 +1551,26 @@ function RunStory({
     staleTime: 10_000,
   });
   const fTrack = useServerFn(getTrack);
+  /*
+   * ── `spine-track`, WHICH IS THE ROUTE'S OWN KEY, NOT A SECOND ONE ────────
+   *
+   * The first version of this used `["track", trackId]` and was wrong in the
+   * way `run-tally.ts`'s header names in as many words: "One fact about one run
+   * must not have two freshnesses ... a private key here would run both server
+   * functions a second time on every run a person opens." The route already
+   * holds this exact read at `["spine-track", trackId]` on a ten-second
+   * interval; a second key would have been a second `getTrack` per visit AND
+   * two cache entries for one row, free to disagree about which station the run
+   * is standing at while this list draws from one and the road above draws from
+   * the other.
+   *
+   * No `staleTime` and no interval: the route's own observer sets the refetch
+   * policy for this entry, and a second opinion about how often one row is
+   * fresh is the same defect one layer down.
+   */
   const trackQ = useQuery({
-    queryKey: ["track", trackId],
+    queryKey: ["spine-track", trackId],
     queryFn: () => fTrack({ data: { trackId } }),
-    staleTime: 10_000,
   });
   const refrain = useRefrain(trackId);
   const track = trackQ.data ?? null;
