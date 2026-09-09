@@ -201,3 +201,82 @@ describe("the road counts specs, not filings", () => {
     expect(journeyOutcome(plan(five), null)).toBe("2 specs, 5 times");
   });
 });
+
+/*
+ * ── THE ROAD SAID A RUN THAT STOPPED FOUR DAYS AGO WAS BUILDING ───────────
+ *
+ * WALKED AS A STRANGER ON THE SERVED RUN SCREEN, 2026-09-10. Track `6cc7a010`
+ * is stopped at Design with `going-in-circles` and was last touched on the
+ * 4th. The road read `Build  building`, and its own accessible name composed
+ * to **"Build: not yet, building"** -- a state and its sublabel contradicting
+ * each other inside four words.
+ *
+ * It was also the one station whose line said what is HAPPENING while every
+ * other says what CAME OF IT: "nothing found", "spec written", "1 prototype,
+ * 3 times", "did not go out". A reader who has learnt the road reads a result
+ * there and is handed a promise.
+ *
+ * What had actually happened, from the story on the same screen: Engineer and
+ * Review could not start Build six times, because no repository is bound to
+ * the workspace. A mission was filed and no code exists.
+ */
+describe("Build says what came of it, like every other station", () => {
+  const mission = {
+    kind: "mission",
+    artifactId: "m-1",
+    title: "Build the reschedule flow",
+    missing: false,
+    createdAt: "2026-09-04T03:00:00Z",
+    fields: {},
+  };
+  const build = (state: "here" | "not-reached", items = [mission]) => ({
+    station: "build" as const,
+    label: "Build",
+    state,
+    waivedReason: null,
+    expects: { kind: "changeset", word: "change" },
+    everDriven: true,
+    hold: null,
+    holdReason: null,
+    items,
+  });
+
+  it("does not claim a stopped run is building", () => {
+    // The defect exactly: not-reached, a mission filed, no seat turning.
+    expect(journeyOutcome(build("not-reached"), null, false)).toBe("nothing built");
+  });
+
+  it("does not claim it either when the run STANDS at Build and nothing is turning", () => {
+    /*
+     * The same lie one state over, and the reason `here` is not enough on its
+     * own: a run STOPPED at Build is `here` too. Only a live seat is building.
+     */
+    expect(journeyOutcome(build("here"), null, false)).toBe("nothing built");
+  });
+
+  it("says building while a seat is actually turning", () => {
+    // The mirror. Refusing the present tense everywhere would be the same
+    // defect facing the other way: a running build must read as running.
+    expect(journeyOutcome(build("here"), null, true)).toBe("building");
+  });
+
+  it("still says nothing when Build has filed nothing at all", () => {
+    // A station that has not been asked yet is "not yet", which the state
+    // already says. Inventing "nothing built" there would make every untouched
+    // road carry a failure word.
+    expect(journeyOutcome(build("not-reached", []), null, false)).toBeNull();
+  });
+
+  it("a real change outranks all of it, live or not", () => {
+    const changeset = {
+      kind: "changeset",
+      artifactId: "c-1",
+      title: "Reschedule flow",
+      missing: false,
+      createdAt: "2026-09-04T04:00:00Z",
+      fields: { pr_number: 14 },
+    };
+    expect(journeyOutcome(build("here", [mission, changeset]), null, true)).toBe("PR #14");
+    expect(journeyOutcome(build("not-reached", [mission, changeset]), null, false)).toBe("PR #14");
+  });
+});

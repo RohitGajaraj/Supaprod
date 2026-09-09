@@ -107,7 +107,16 @@ const LEARN_VERDICT: Record<string, "pass" | "fail" | "open"> = {
 };
 
 /** The one short line under a stop. Null when the station has nothing to say yet. */
-export function journeyOutcome(stop: Stop, horizonDue: string | null): string | null {
+export function journeyOutcome(
+  stop: Stop,
+  horizonDue: string | null,
+  /**
+   * A seat is working on this run RIGHT NOW. Only Build reads it, and only to
+   * refuse the present tense when nothing is present. Defaulted so the
+   * hundred assertions that do not care about Build need not say so.
+   */
+  live = false,
+): string | null {
   if (stop.state === "waived") return "skipped";
   /* A station the route has not reached, or was sent back before, still says
      what it filed on an earlier pass; only a station with nothing says nothing. */
@@ -216,7 +225,35 @@ export function journeyOutcome(stop: Stop, horizonDue: string | null): string | 
       const pr = c ? c.fields.pr_number : null;
       if (typeof pr === "number") return `PR #${pr}`;
       if (c) return "change staged";
-      return count(stop, "mission") > 0 ? "building" : null;
+      if (count(stop, "mission") === 0) return null;
+      /*
+       * ── "BUILDING" ON A RUN THAT STOPPED FOUR DAYS AGO ──────────────────
+       *
+       * WALKED AS A STRANGER, 2026-09-10, on `6cc7a010` -- stopped at Design
+       * with `going-in-circles`, last touched 2026-09-04. The road read:
+       *
+       *   Build   building
+       *   aria:   "Build: not yet, building"
+       *
+       * A state and its own sublabel contradicting each other inside four
+       * words. And it is not a wording slip: Build was the ONE station whose
+       * line said what is HAPPENING while every other station says what CAME
+       * OF IT -- "nothing found", "spec written", "1 prototype, 3 times",
+       * "did not go out". A reader who has learnt the road reads a result
+       * there and gets a promise.
+       *
+       * What actually happened is in the story below, and it is the opposite
+       * of building: Engineer and Review could not start Build six times,
+       * because no repository is bound to the workspace. A mission was filed
+       * and no code exists.
+       *
+       * SO THE MISSION IS AN ATTEMPT, NOT A STATE. It only means "building"
+       * while a seat is actually turning, which is `live` and nothing else --
+       * `here` is not enough, because a run STOPPED at Build is `here` too and
+       * that is the same lie one state over. Otherwise it says what Discover
+       * says in the same situation, in the same shape, in the past tense.
+       */
+      return live && stop.state === "here" ? "building" : "nothing built";
     }
     case "ship": {
       const d = newest(stop, "deployment");
@@ -315,7 +352,7 @@ export function journeyStations(input: {
     return {
       key: stop.station,
       state,
-      outcome: journeyOutcome(stop, due),
+      outcome: journeyOutcome(stop, due, Boolean(input.live)),
       verdict,
       at: state === "working" ? input.liveSince : null,
     };
