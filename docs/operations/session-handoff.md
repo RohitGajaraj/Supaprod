@@ -1918,26 +1918,30 @@ Four lenses (empty/first, loading/long-running, error/interrupted, dense/partial
 screen and its depth panes, one skeptic per finding against HEAD: **26 raised, 23 confirmed, 3
 refuted.** Its full output is at
 `/private/tmp/claude-501/.../tasks/wehticsse.output` (JSON; `result.confirmed`), and the run is
-`wf_ba557e66-46e` if it needs resuming. **17 of the 23 are closed.** What is left, by name:
+`wf_ba557e66-46e` if it needs resuming. **All 23 are now closed** - 22 here, and the
+twenty-third (the header's road) by Lane 1, who added a ninth `JourneyState`, `unread`, and
+published the general rule this audit was really about in
+[`docs/design/DESIGN-SYSTEM.md`](../design/DESIGN-SYSTEM.md): **a read that refused and a read that
+answered empty are different facts, and a surface that draws them the same is claiming the one it
+did not measure.** Use `unread` wherever that applies.
 
-1. **The road still draws seven `pending` stops when the artifacts read fails.** With that read now
-   throwing, `artifactsQ.data` is undefined and `journeyStations` maps that to all-pending, so a
-   finished run can still read as one that never started. The pane beside it now says the record did
-   not come back, which is the half a person acts on. The road's own honest state needs a
-   `JourneyState` that means "not read", which is a component Lane 1 owns.
-2. **`LiveStation` says "Nothing called yet." while the tool-call read is still out or has failed**
-   (`LiveStation.tsx:124`). Same class as everything closed above, one component along.
-3. **The Now card can name the live seat and then describe a tool call a different, already-finished
-   seat made** (`LiveWork.tsx:32`).
-4. **Tool calls are capped at the 200 newest for the WHOLE TRACK**, so a turn whose calls fell
-   outside the window renders as a turn that called nothing (`TrackActivity.tsx:511`, `:524`). The
-   turn cap is fixed and disclosed; this one is not, and it is the harder of the two because the
-   window is per-track while the display is per-turn.
-5. **The footer's clock and bill are summed over the capped turns** (`run-tally.ts:235`) and printed
-   as the run's totals. Now that the window is the NEWEST 200 this understates a long run rather
-   than describing its first day, which is better and still not right.
-6. **A folded run of repeated turns collapses N turns into one row with no way into any of them**
-   (`TrackActivity.tsx:1790`) - no expand, no tool calls, no trace link.
+What each cluster was, so the shape is reusable rather than the list:
+
+- **A refused read wearing the empty state's clothes**, in four reads
+  (`readTrackChain` twice, `getTrackArtifacts`, `getTrackActivity`'s members). The members one was
+  the sharpest: `Turn.made` IS the members join, so a refusal printed **"Filed nothing" on every
+  turn of a run that filed plenty** and would have manufactured a false refrain out of it.
+- **A capped read taking the OLDEST rows**, twice in one file. The turns window is flipped,
+  disclosed, and guarded by `a-capped-read-takes-the-newest.test.ts`; the tool-call window is
+  disclosed through `coverageLine`; the footer's clock and bill are marked "at least" rather than
+  printed as totals they were never summing.
+- **A control that failed, lied or lost your words**, six of them: a steer into a stopped run
+  confirmed as reaching somebody, a long steer whose remainder was destroyed by the same success
+  that announced it, a navigation that fired whether or not the write landed, two mutations with no
+  error path at all, and a copy that did nothing and said nothing.
+- **A sentence joining two true facts into one nobody wrote**: the Now card named a live seat and
+  described a call a different, already-finished seat had made. `useCurrentTool` is deleted, because
+  a whole-track "current tool" has no honest caller.
 
 #### Observations true nowhere else
 
