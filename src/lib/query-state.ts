@@ -76,6 +76,35 @@ export type AnswerableQuery = {
    * hand-rolled stub keeps meaning exactly what it meant.
    */
   fetchStatus?: "fetching" | "paused" | "idle";
+  /**
+   * ── `isError` IS NOT THE DISCRIMINATOR ON A POLLING READ ──────────────────
+   *
+   * A query with a `refetchInterval` spends its retries again on every tick.
+   * So a read that fails on EVERY attempt does not settle into error and stay
+   * there: it settles, then the next tick puts it back to `isPending: true,
+   * fetchStatus: "fetching", data: undefined`, which is byte-for-byte the state
+   * of a read that has simply not answered yet. Every clause above is satisfied
+   * and the surface waits again, forever, one tick at a time.
+   *
+   * MEASURED ON THE SERVED ENTRY, 2026-09-10. `listRunsForStart` polls at 10s.
+   * With it failing, the home's headline gate never opened and the page held
+   * *"Reading your workspace. Still reading."* for a read that was never going
+   * to answer -- with a Try again that re-ran the same failure. `Hero` has
+   * taken a `failed` flag all along and never got the chance to use it.
+   *
+   * `failureCount` is the one field that REMEMBERS an attempt has already come
+   * back empty-handed, and it resets to 0 on success, which is exactly the
+   * question a surface needs answered. Optional, so every existing caller and
+   * every hand-rolled stub keeps meaning what it meant.
+   *
+   * THIS ADDS NO NEW HAZARD, and the hazard is real enough to say so. The
+   * docblock on `stillWaiting` warns that ending a wait on failure renders the
+   * EMPTY state, which is only safe where an error arm is reachable. That is
+   * already true of `isError` here; this clause only makes a POLLING read
+   * behave the way a one-shot read has behaved since 2026-08-11, rather than
+   * escaping the rule by never settling.
+   */
+  failureCount?: number;
 };
 
 /**
@@ -113,8 +142,21 @@ export type AnswerableQuery = {
  */
 export function stillWaiting(...queries: AnswerableQuery[]): boolean {
   return queries.some(
-    (q) => !q.isError && !isNeverComing(q) && (q.isPending || q.data === undefined),
+    (q) => !hasFailed(q) && !isNeverComing(q) && (q.isPending || q.data === undefined),
   );
+}
+
+/**
+ * The read has come back empty-handed at least once since its last success.
+ *
+ * `isError` alone was the test until 2026-09-10 and it is right for a one-shot
+ * read. On a POLLING read it keeps settling back, because the next tick spends
+ * the retries again -- so a read failing on every attempt reports `isError:
+ * false` for most of its life while never once producing an answer. See
+ * `failureCount` above for where that was measured.
+ */
+function hasFailed(q: AnswerableQuery): boolean {
+  return q.isError === true || (q.failureCount ?? 0) > 0;
 }
 
 /**

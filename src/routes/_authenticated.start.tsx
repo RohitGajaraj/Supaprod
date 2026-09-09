@@ -22,7 +22,7 @@ import { presenceColour } from "@/components/meridian/AgentPresence";
 import { listRunningNow, readHome, readStationTimings } from "@/lib/spine/track.functions";
 import { runningNowKey } from "@/lib/query-keys";
 import { HOME_STALE_MS, homeKey, seedHome } from "@/components/start/home-read";
-import { heroCanDraw, type ReadState } from "@/components/start/a-failed-read-is-not-a-slow-one";
+import { heroCanDraw } from "@/components/start/a-failed-read-is-not-a-slow-one";
 import { WhatWeAlreadyHold } from "@/components/spine/WhatWeAlreadyHold";
 import {
   homeRoadMode,
@@ -504,21 +504,7 @@ function StartLanding() {
    * one that simply has not answered. The entry sat on "Reading your
    * workspace. Still reading." for a read that was never going to answer.
    */
-  const asRead = (q: {
-    isPending: boolean;
-    fetchStatus: string;
-    failureCount: number;
-  }): ReadState => ({
-    isPending: q.isPending,
-    isFetching: q.fetchStatus === "fetching",
-    failureCount: q.failureCount,
-  });
-  const heroReady = heroCanDraw({
-    workspaceLoading,
-    seeded,
-    queue: asRead(queueRead),
-    runs: asRead(runs),
-  });
+  const heroReady = heroCanDraw({ workspaceLoading, seeded, queue: queueRead, runs });
 
   const sinceYouLooked = homeAnswers({
     waitingShape: null,
