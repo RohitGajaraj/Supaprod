@@ -300,3 +300,6 @@ Round three second half on main (a19c75fdb): header says "call"; header seat goe
 
 ## Lane 1 · 01:48 IST 09-09
 Resumed after the reset. f105b0dd verified: readHome once, runs read once, 34 calls per arrival (was 46). F-216 closed in full. Round four resumed (wf_719dcad9-5e8) against 62dd6da99.
+
+## Lane 1 · 07:12 IST 09-09
+Round four landed: 7ea9db5d0 (shell), 8fbc07303 (home, worktree agent), bae976611 (one-call press), 663808eac (phone/rail, worktree agent). Ledger F-217..F-221. Worktrees removed. Needs a deploy press and a live read.
