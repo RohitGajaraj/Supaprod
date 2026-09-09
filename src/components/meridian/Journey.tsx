@@ -475,6 +475,43 @@ function Link({
 }) {
   const travelled = from.state === "done" || from.state === "waived";
   const reached = travelled && to.state !== "pending";
+  /*
+   * ── THE ROAD IS CUT WHERE THE ROAD ENDED (law 19, closed 2026-09-10) ─────
+   *
+   * `you` and `stopped` render the same pixel and the contract has carried
+   * that as an open pair since 2026-09-09: measured on the served home,
+   * Decide with three runs waiting on an answer and Design with two that gave
+   * up came back byte-identical, fill `oklch(0.28 0.14 315)` and ink
+   * `oklch(0.74 0.11 315)`. Both states genuinely ARE "a person required", so
+   * sharing the hue is right, and every channel on the NODE has an owner: the
+   * glyph is the station's (law 4), the fill is spent closing `held`/`failed`,
+   * the dashed ring is `waived`, and label weight says which stop is current.
+   * The contract's instruction was to say which channel is taken and why.
+   *
+   * NONE OF THEM. THE LINK HAS CARRIED NO STATE OF A STOP IN ITS LIFE. It has
+   * exactly two appearances -- travelled or not -- which is a fact about the
+   * ROUTE and not about any station's state, so nothing is taken from anything.
+   *
+   * AND IT IS THE ONE CHANNEL THAT SAYS THE THING COLOUR CANNOT. The
+   * difference between these two states is not intensity, it is CONTINUATION:
+   * `you` is a gate with something to press and the road runs on the moment
+   * you press it; `stopped` is a loop that ran out of road and will not
+   * continue at all. A severed line is that sentence as a drawing, and a
+   * reader needs no legend for it.
+   *
+   * FULL SIZE ONLY, and that is not a compromise. The row's link is 4px wide,
+   * where a gap is not a gap, and the contract already ruled the row is not
+   * the same problem: `YourRuns` draws a control naming the state ("Why it
+   * stopped") and a sentence beside it, so the row carries the distinction in
+   * structure rather than in a 6px dot.
+   *
+   * WHAT IT CANNOT DO: a run stopped at the LAST station has no outgoing link
+   * to cut. That is stated rather than hidden -- the road simply ends there
+   * anyway, which is the only case where the drawing and the fact agree by
+   * accident.
+   */
+  const severed = size === "full" && from.state === "stopped";
+  const track = reached || travelled ? "var(--mrd-edge)" : "var(--mrd-line-soft)";
   return (
     <span
       aria-hidden="true"
@@ -484,7 +521,14 @@ function Link({
           : "h-px w-[4px] shrink-0"
       }
       style={{
-        background: reached || travelled ? "var(--mrd-edge)" : "var(--mrd-line-soft)",
+        /* A GAP, NOT A DASH. `waived` owns dashing on the node and a dashed
+           line here would read as related to it. One break in the middle
+           reads as a cut, and it survives every width this link takes because
+           it is proportional. The phone's road runs downward, so the axis
+           follows the writing direction of the drawing rather than the page. */
+        background: severed
+          ? `linear-gradient(var(--mrd-road-axis, to right), ${track} 0 34%, transparent 34% 66%, ${track} 66% 100%)`
+          : track,
         transitionProperty: "background-color",
         transitionDuration: "var(--mrd-d-move)",
         transitionTimingFunction: "var(--mrd-ease)",

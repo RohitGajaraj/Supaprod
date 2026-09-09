@@ -835,7 +835,7 @@ at `you` at all.
 For an edit that is not in a table: find everything that COMPARES the value you changed. The question
 is never *"was this change right"* but ***"what now looks the same that did not before"***.
 
-### 19. OPEN PAIR: `you` and `stopped` are one pixel, and every channel is spoken for
+### 19. CLOSED: `you` and `stopped` are one pixel, so the ROAD tells them apart
 
 Added 2026-09-09, filed rather than settled, on this component's own precedent — the contract
 already carried `held`/`failed` as an open pair and asked whoever took it to measure and say which
@@ -868,11 +868,44 @@ from another state, and that reaches every lane's surfaces.
 the badge (currently never coloured, and that rule would have to be broken deliberately), and a
 second mark. Say which and why, in the file.
 
-**What shipped instead is words**, because the caption is the one channel colour cannot contend for
+**What shipped first was words**, because the caption is the one channel colour cannot contend for
 and it was spending itself on furniture — a label the section's own `aria-label` already carried,
 plus an instruction the first press teaches. It now names the station that has stopped and says
-nothing will move it. That is a mitigation and not the answer: it says WHICH station on a road that
-still cannot show it.
+nothing will move it. That was a mitigation: it said WHICH station on a road that could not show it.
+
+---
+
+**CLOSED 2026-09-10, and the answer is none of the three candidates.** The channel taken is the
+**link between the stops**, and nothing is taken from anything: `Link` has carried no state of a
+station in its life. It has exactly two appearances, travelled or not, which is a fact about the
+ROUTE.
+
+**It is also the one channel that says the thing colour cannot.** The difference between these two
+states is not intensity, it is **continuation**. `you` is a gate with something to press and the road
+runs on the moment you press it. `stopped` is a loop that ran out of road and will not continue at
+all. **The link leaving a `stopped` station is cut** — one break in the middle of the line, in the
+same colour the line would have been — and a reader needs no legend for it.
+
+**A break, never a dash.** `waived` owns dashing on the node, and a dashed line here would read as
+related to it. One gap reads as a cut and stays proportional at every width the link takes.
+
+**Full size only, and that is a ruling rather than a compromise.** The row's link is 4px wide, where
+a gap is not a gap. The row already carries the distinction in structure: `YourRuns` draws a control
+naming the state (*"Why it stopped"*) beside a sentence, which is what law 5 asks of it.
+
+**The node paints still collide, and `no-two-states-look-the-same` still files the pair.** That guard
+reads the paint table, and the table is unchanged and correct — both states genuinely ARE "a person
+required". What is settled is the DRAWING. Anything that renders these states without the road
+around them is still on the wrong side of this law.
+
+**One case it cannot draw:** a run stopped at the last station has no outgoing link to cut. Stated
+rather than hidden — the road ends there anyway, which is the one place the drawing and the fact
+agree by accident.
+
+**`--mrd-road-axis` is new in Meridian** because the component cannot see the breakpoint: the road is
+horizontal on a desktop and vertical on a phone, and a gradient has to name an axis. Without the
+phone rule the cut would draw across a 1px-wide element, a third of a pixel wide, on exactly the
+viewport with least room to say it in words.
 
 ---
 

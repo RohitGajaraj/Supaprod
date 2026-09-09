@@ -352,6 +352,18 @@
   --mrd-edge: oklch(0.98 0.003 70 / 0.22); /* a drawn edge: chip, rule, ring */
 
   /*
+   * THE DIRECTION THE ROAD RUNS, so a drawing that has to break its own line
+   * knows which way the line goes. `Journey`'s connector is horizontal on a
+   * desktop and vertical on a phone -- the same drawing, rotated (phone
+   * review, 2026-09-08) -- and a gradient has to name an axis. The component
+   * cannot see the breakpoint, so the breakpoint tells the component.
+   *
+   * Added 2026-09-10 to close law 19: the link leaving a `stopped` station is
+   * cut, which is the one channel that says a road does not continue.
+   */
+  --mrd-road-axis: to right;
+
+  /*
    * ── A FORM CONTROL'S BOUNDARY, MEASURED RATHER THAN CHOSEN ──────────────
    * Added 2026-08-16, and the reason is a number. WCAG 1.4.11 asks 3:1 of a
    * UI component's boundary, and a field's border is the ONLY thing that says
@@ -2429,6 +2441,14 @@
  * someone waiting on a long job that it has stalled. That distinction is the
  * rule: if stopping it removes a fact, it is not decoration.
  */
+/* The road turns down the screen below the phone breakpoint, so its cut turns
+   with it. Tailwind's `sm` is 640px and `max-sm` is everything under it. */
+@media (max-width: 639.98px) {
+  :root {
+    --mrd-road-axis: to bottom;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   [style*="mrd-pixel-on"],
   [style*="mrd-attention"],
