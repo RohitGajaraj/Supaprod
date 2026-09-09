@@ -1872,6 +1872,18 @@ readable source it holds at `waiting-on-a-person` and names the Learn desk), and
 carries the cause alone** now that the hold line carries the effect (Lane 2's finding, their trim, my
 file).
 
+**The gate repair, verified on production rather than asserted.** Deployment c256c12b served at
+04:10:32 UTC; at 04:15:06, after two sweeps, tracks carrying a settled gate entry went 6 to 1 and
+`waiting-on-a-person` 1 to 0, so the nineteen-day false wait on `197769e8` is over. Two things came out
+of the check and both are worth keeping. **A sweep's own truth is in `job_runs`** (`job_name`,
+`status`, `duration_ms`), which showed the cron unbroken every minute at 224 to 502 ms; the commit says
+nothing about whether a pass ran. And **the first "after" was read as thirteen minutes when it was two
+and a half**, because the elapsed time was counted from the earlier BEFORE and against a deploy log in
+IST while the database answers in UTC. The one track that did not clear was a real flaw on top:
+`pending_gates` defaults to `[]`, so a filter on "is not null" matched all 74 open tracks and the last
+stale one sat at row 54 of a 50-row window, out of reach for ever. `6fcf63619` excludes the empty array
+so the window holds only tracks the pass can help.
+
 **Pending, by name, for whoever is next:** `listStudioSessions`'s third hop (a SQL sum for the per-trace
 cost); the lint gate's non-`src` errors (founder's call on `eslint.config.js`); the Findings receipt's
 words, where the toggle carries two consents and only the Boundary bar keeps them apart (Lane 2 has the
