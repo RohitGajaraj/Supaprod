@@ -300,7 +300,7 @@ function SpecPromise({
       {c.intent ? (
         <div className="flex flex-col gap-mrd-1">
           <span className="mrd-eyebrow">What it is for</span>
-          <p className="mrd-copy max-w-[62ch]">{c.intent}</p>
+          <p className="mrd-copy max-w-[var(--mrd-measure-prose)]">{c.intent}</p>
         </div>
       ) : null}
 
@@ -315,14 +315,14 @@ function SpecPromise({
             is entitled to know that before they are shown a verdict, or the
             absence of one.
           */}
-          <p className="mrd-copy max-w-[62ch]">{whatLearnCanMeasure(states)}</p>
+          <p className="mrd-copy max-w-[var(--mrd-measure-prose)]">{whatLearnCanMeasure(states)}</p>
           {c.metrics.map((m, i) => {
             const state = states[i];
             const text = typeof m.text === "string" ? m.text : "";
             return (
               <div key={typeof m.id === "string" ? m.id : text} className="flex flex-col gap-mrd-1">
-                <p className="mrd-copy max-w-[62ch]">{text}</p>
-                <p className="mrd-meta max-w-[62ch]">{metricSourceLine(state)}</p>
+                <p className="mrd-copy max-w-[var(--mrd-measure-prose)]">{text}</p>
+                <p className="mrd-meta max-w-[var(--mrd-measure-prose)]">{metricSourceLine(state)}</p>
                 {/* The press sits beside the metric it would measure, not in a
                     settings screen: the person is looking at the thing that
                     cannot be graded at the moment they learn it cannot. */}
@@ -345,7 +345,7 @@ function SpecPromise({
         <span className="mrd-eyebrow">What it is not doing</span>
         {c.nonGoals.length > 0 ? (
           c.nonGoals.map((g) => (
-            <p key={g} className="mrd-copy max-w-[62ch]">
+            <p key={g} className="mrd-copy max-w-[var(--mrd-measure-prose)]">
               {g}
             </p>
           ))
@@ -1182,9 +1182,23 @@ function ThemeCard({ item, trackId }: { item: ArtifactView; trackId: string }) {
 
   return (
     <div className="flex flex-col gap-mrd-2 border-b border-mrd-line-soft pb-mrd-3 last:border-0">
-      <span className="text-mrd-label font-medium leading-mrd-snug text-mrd-ink">
-        {item.title ?? item.word}
-      </span>
+      {/*
+       * ── THE PATTERN OUTRANKS ITS EVIDENCE, AND IT DID NOT ─────────────────
+       *
+       * A theme IS the pattern a group of signals forms, and the signals under
+       * it are the evidence for it. Both titles carried the byte-identical
+       * class string -- `text-mrd-label font-medium leading-mrd-snug
+       * text-mrd-ink`, 12.5px / 500 / ink -- four pixels apart in one column.
+       * So the most convincing thing this pane does, signals visibly clustering
+       * into a named pattern, drew as six equal rows, and a reader had to read
+       * the words to learn that the first one contains the other five. Group
+       * membership was carried by nothing visual at all.
+       *
+       * `mrd-subtitle` is 14px / 600 / ink, so it differs on SIZE and WEIGHT:
+       * Meridian's own rule is that two roles a reader must tell apart without
+       * reading differ on at least two axes, and one axis was zero here.
+       */}
+      <span className="mrd-subtitle">{item.title ?? item.word}</span>
       {plainProse(summary) ? <Prose markdown={false}>{plainProse(summary)}</Prose> : null}
       <span className="mrd-meta">
         {[

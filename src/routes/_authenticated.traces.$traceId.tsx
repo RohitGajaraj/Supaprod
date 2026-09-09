@@ -487,8 +487,24 @@ function SpanDetail({
             // DID versus SAID: the scores above are a record, this is a claim,
             // and they must never share a treatment. Quoted, in prose, in the
             // judge's own words rather than paraphrased into a fact.
+            /*
+             * ── IT DECLARED TWO FONT SIZES AND NO AUTHOR COULD SAY WHICH WON ──
+             *
+             * Was `text-mrd-base ... text-mrd-prose`, which is 13px AND 14px on
+             * one element. This is the one block on this surface that quotes the
+             * model's own words back -- the thing an engineer opened the page to
+             * read -- and it rendered at a size nobody chose. `mrd-copy` is that
+             * intent as one class: 14px, regular, prose leading, body colour.
+             *
+             * The width moved too, and for a separate reason. It was
+             * `--mrd-measure`, which is `68ch` (meridian.css:977) and therefore
+             * font-dependent: the same written number renders a different width
+             * at every size it is used on, which is the inversion the prose
+             * ladder was migrated off `ch` to end on 2026-09-01.
+             * `--mrd-measure-prose` is 32rem and cannot do that.
+             */
             <div
-              className={`max-w-[var(--mrd-measure)] text-mrd-base leading-mrd-prose text-mrd-prose text-mrd-body ${
+              className={`mrd-copy max-w-[var(--mrd-measure-prose)] ${
                 scores.length > 0 ? "mt-mrd-5" : ""
               }`}
             >

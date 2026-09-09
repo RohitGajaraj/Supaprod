@@ -587,7 +587,7 @@ export function TrackConsent({
                     </span>
                     <span className="flex min-w-0 flex-col gap-0.5">
                       <span className="text-mrd-small font-medium text-mrd-ink">Let it run</span>
-                      <span className="max-w-[62ch] text-mrd-data leading-mrd-prose text-mrd-mute">
+                      <span className="max-w-[var(--mrd-measure-prose)] text-mrd-data leading-mrd-prose text-mrd-mute">
                         {`${REVERSIBILITY_LABEL[c.reversible]}. ${c.undo}`}
                       </span>
                     </span>
@@ -613,7 +613,7 @@ export function TrackConsent({
                   </span>
                   <span className="flex min-w-0 flex-col gap-0.5">
                     <span className="text-mrd-small font-medium text-mrd-ink">Don't run it</span>
-                    <span className="max-w-[62ch] text-mrd-data leading-mrd-prose text-mrd-mute">
+                    <span className="max-w-[var(--mrd-measure-prose)] text-mrd-data leading-mrd-prose text-mrd-mute">
                       {`Nothing runs. It stays on the record, and the agent working this run is told why.`}
                     </span>
                   </span>

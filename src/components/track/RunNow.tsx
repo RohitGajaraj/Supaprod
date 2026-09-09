@@ -47,7 +47,7 @@ export function RunNow({
           </span>
         </div>
         {now.line ? (
-          <p className="max-w-[64ch] text-mrd-small leading-mrd-prose text-mrd-mute">{now.line}</p>
+          <p className="max-w-[var(--mrd-measure-prose)] text-mrd-small leading-mrd-prose text-mrd-mute">{now.line}</p>
         ) : null}
       </div>
       {children ? <div className="flex flex-col gap-mrd-3">{children}</div> : null}
@@ -64,9 +64,9 @@ export function RunNow({
 export function HoldFact({ children, sub }: { children: React.ReactNode; sub?: string }) {
   return (
     <div className="flex flex-col gap-0.5">
-      <p className="max-w-[64ch] text-mrd-small leading-mrd-prose text-mrd-body">{children}</p>
+      <p className="max-w-[var(--mrd-measure-prose)] text-mrd-small leading-mrd-prose text-mrd-body">{children}</p>
       {sub ? (
-        <p className="max-w-[64ch] text-mrd-small leading-mrd-prose text-mrd-mute">{sub}</p>
+        <p className="max-w-[var(--mrd-measure-prose)] text-mrd-small leading-mrd-prose text-mrd-mute">{sub}</p>
       ) : null}
     </div>
   );
