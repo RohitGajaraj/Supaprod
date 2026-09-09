@@ -1126,7 +1126,7 @@ function ProfileSection() {
         </Line>
       </Region>
 
-      <div id={HOURS_ANCHOR} style={{ scrollMarginTop: "var(--mrd-s7)" }}>
+      <div id={HOURS_ANCHOR} className="scroll-mt-mrd-7">
         {/*
           ── A NUMBER IN A BOX THAT NEVER SAID WHAT IT WAS (2026-09-01) ───────
           Photographed on the rendered page: two bare fields containing `9` and
@@ -1194,7 +1194,7 @@ function ProfileSection() {
         </Region>
       </div>
 
-      <div id={APPEARANCE_ANCHOR} style={{ scrollMarginTop: "var(--mrd-s7)" }}>
+      <div id={APPEARANCE_ANCHOR} className="scroll-mt-mrd-7">
         <Region title="Appearance">
           <Line label="Theme" sub="System follows your device. Dark is the default.">
             <Choice value={theme} options={THEME_CHOICES} onPick={setTheme} label="Theme" />
@@ -1782,7 +1782,7 @@ function WorkspaceSection() {
        * Duplicated by /admin, which is gated on being an admin, so it stays here until
        * it has a section of its own.
        */}
-      <div id={PEOPLE_ANCHOR} style={{ scrollMarginTop: "var(--mrd-s7)" }}>
+      <div id={PEOPLE_ANCHOR} className="scroll-mt-mrd-7">
         {/* MembersCard draws no Block of its own, so it keeps this one. TeamCard does
           draw one, which is exactly why it must not be inside this. */}
         <Region title="People">
@@ -2266,7 +2266,7 @@ function ByoKeysBlock() {
   const keyList = keys.data?.keys ?? [];
 
   return (
-    <div id={BYO_KEYS_ANCHOR} style={{ scrollMarginTop: "var(--mrd-s7)" }}>
+    <div id={BYO_KEYS_ANCHOR} className="scroll-mt-mrd-7">
       <Region
         title="Your own provider keys"
         sub={
@@ -3044,7 +3044,7 @@ function CreditsSection() {
           than an id on Block, which takes no id prop and should not grow one for a
           single caller's anchor. `scroll-mt` keeps the heading clear of the sticky
           header instead of landing it underneath. */}
-      <div id={CREDITS_ANCHOR} style={{ scrollMarginTop: "var(--mrd-s7)" }}>
+      <div id={CREDITS_ANCHOR} className="scroll-mt-mrd-7">
         <Region title="Buy more">
           {catalog.isLoading ? (
             <Reading>Reading the price list.</Reading>
