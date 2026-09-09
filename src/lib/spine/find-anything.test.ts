@@ -131,4 +131,29 @@ describe("searchDoors: P-64's nine doors, matched on their own label and tagline
     expect(SEARCHABLE_DOORS.map((d) => d.label)).toContain("Team");
     expect(SEARCHABLE_DOORS.map((d) => d.label)).toContain("Spend and limits");
   });
+
+  /**
+   * THE BOUNDARY'S OWN WORDS REACH TEAM, 2026-09-09 (fifth review).
+   *
+   * These seven were asserted against Settings' own search until the Autonomy
+   * group folded into Team (`a-pane-with-no-door-is-still-findable.test.ts`
+   * carries the pointer). `searchSections` cannot answer for a pane that is no
+   * longer a settings section, so the claim lives here, against the search a
+   * person actually types into. Removing a door and its search hit in one
+   * commit is this repo's most expensive defect; this is what stops the fold
+   * from being that.
+   */
+  it("finds The boundary, and every word its panels answer to reaches Team", () => {
+    const boundary = searchDoors(["boundary"], SEARCHABLE_DOORS).find(
+      (d) => d.label === "The boundary",
+    );
+    expect(boundary).toBeTruthy();
+    expect(boundary!.to).toBe("/crew");
+    expect(boundary!.search).toEqual({ tab: "boundary" });
+
+    for (const word of ["spend", "budget", "cap", "limit", "stop", "tool", "approve"]) {
+      const reached = searchDoors([word], SEARCHABLE_DOORS).map((d) => d.to);
+      expect(reached, `"${word}" reaches nothing`).toContain("/crew");
+    }
+  });
 });

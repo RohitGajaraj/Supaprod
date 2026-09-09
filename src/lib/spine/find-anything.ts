@@ -112,6 +112,24 @@ const SUB_DOORS: readonly NavItemDef[] = [
       "What the crew is costing this week, the caps, the costliest model, and what has failed.",
     search: { tab: "spend" },
   },
+  /*
+   * THE BOUNDARY, 2026-09-09 (fifth review). Settings' Autonomy group folded
+   * into Team, so the words a person types when they want to change what an
+   * agent may do without asking no longer resolve on the settings surface at
+   * all -- `searchSections` reads the settings groups and those two sections
+   * are gone. Without this entry the fold would have removed a door and its
+   * search hit in the same commit, which is this repo's most expensive defect.
+   * The tagline carries the real words the pane's panels answer to: the tools,
+   * the spend ceiling, the budget caps, what must be approved, and the stop.
+   */
+  {
+    to: "/crew",
+    label: "The boundary",
+    zone: "home",
+    tagline:
+      "Every tool the crew may use, the spend ceiling, the budget caps, what it must ask you to approve, and the switch that stops all of it.",
+    search: { tab: "boundary" },
+  },
 ];
 
 /** Every door search actually reaches: the nine rail doors plus any named

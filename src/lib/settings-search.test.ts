@@ -214,9 +214,10 @@ describe("every door is findable, and every keyword is true", () => {
       "gdpr", // what "Your data" is FOR; no surface says the acronym
       "topup", // spelled "top-up" in copy
       "colour", // the product spells it "color" in code
-      "autopilot", // the concept behind the kill switch and auto-pipelines
+      /* "autopilot" and "who" left this list on 2026-09-09 with the sections
+         they argued for: the boundary and the roster are Team's now, so an
+         entry excusing their words would excuse nothing and read as coverage. */
       "quiet", // working hours ARE quiet hours, per the route's own header
-      "who", // "Roster" answers it without saying it
       "outside", // "an agent outside Supaprod" is the sub, hyphenation varies
       // Reached through "Manage billing", which opens the Stripe portal where the
       // invoices actually are. The capability is real and the word is theirs, not ours.

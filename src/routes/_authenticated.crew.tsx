@@ -195,6 +195,7 @@ import { setAgentToolCap, listAgentReflections } from "@/lib/agents.functions";
 import { setAgentEnabled } from "@/lib/onboarding.functions";
 import { CrewMethods } from "@/components/crew/CrewMethods";
 import { EngineRoomEmbedded, ROOM_KEYS } from "@/components/engine-room/EngineRoomEmbedded";
+import { BoundaryPane } from "@/components/settings/BoundaryPane";
 import type { RoomKey } from "@/lib/engine-room-glance";
 import {
   ARC_CHOICE,
@@ -215,7 +216,13 @@ import {
 export type CrewSearch = {
   agent?: string;
   panel?: "methods";
-  tab?: "spend";
+  /* `boundary` joined `spend` on 2026-09-09 (fifth review): Settings' Autonomy
+     group folded in here, and the tab takes the name this page already gave
+     the thing. "The boundary" is the row under "Across the whole crew" and the
+     heading on a member's page, so a third word for it would have been a
+     second name for one boundary, which is the defect crew-words.ts exists to
+     prevent. */
+  tab?: "spend" | "boundary";
   room?: RoomKey;
   view?: string;
   suite?: string;
@@ -236,7 +243,9 @@ export const Route = createFileRoute("/_authenticated/crew")({
     agent: typeof search.agent === "string" && search.agent ? search.agent : undefined,
     panel: search.panel === "methods" ? "methods" : undefined,
     // P-79: the engine room, folded in as Team's own "Spend and limits" tab.
-    tab: search.tab === "spend" ? "spend" : undefined,
+    // `boundary` is the Autonomy fold (2026-09-09). A closed set of two, so an
+    // unrecognised value falls back to the roster rather than rendering nothing.
+    tab: search.tab === "spend" ? "spend" : search.tab === "boundary" ? "boundary" : undefined,
     room: ROOM_KEYS.includes(search.room as RoomKey) ? (search.room as RoomKey) : undefined,
     view: typeof search.view === "string" ? search.view : undefined,
     suite: typeof search.suite === "string" ? search.suite : undefined,
@@ -331,6 +340,12 @@ function Crew() {
     },
     [navigate],
   );
+
+  // THE BOUNDARY, 2026-09-09. Same precedence as the two below and for the
+  // same reason: it is a question about the crew as a whole, so it takes over
+  // the URL rather than competing with an agent left open in the same one. It
+  // is checked first only because it needs none of the room search fields.
+  if (tab === "boundary") return <BoundaryPane onBack={() => open(null)} />;
 
   // P-79: Spend and limits is its own top-level surface, same precedence as
   // the methods panel below -- it takes over the URL rather than competing
@@ -668,15 +683,13 @@ function Roster({ onOpen }: { onOpen: (slug: string) => void }) {
           <DoorRow
             lead="The boundary"
             sub="Every tool, across the whole crew. Set once, and it never interrupts work already running."
-            /* Item 22's fold: /boundary closed, the controls live on the
-               Safety room's front tab. The door names where it goes rather
-               than silently bouncing through a stub. */
-            onClick={() =>
-              void navigate({
-                to: "/crew",
-                search: { tab: "spend", room: "safety", view: "rules" },
-              })
-            }
+            /* IT POINTS AT ITS OWN TAB NOW, 2026-09-09. This row used to open
+               Spend and limits, then the Safety room, then that room's rules
+               view -- a door three levels down into content whose other half
+               was drawn a second time under Settings > Autonomy. The Autonomy
+               group folded in here, so the boundary has one address and this
+               row is it. */
+            onClick={() => void navigate({ to: "/crew", search: { tab: "boundary" } })}
           />
           <DoorRow
             lead="The methods"

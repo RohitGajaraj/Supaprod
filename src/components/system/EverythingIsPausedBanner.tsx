@@ -77,8 +77,10 @@ export function EverythingIsPausedBanner() {
           switch that will refuse them. */}
       {!system ? (
         <Link
-          to="/settings"
-          search={{ section: "autonomy" }}
+          /* The stop switch moved with the Autonomy fold, 2026-09-09: it is
+             Team's boundary tab now, not a settings section. */
+          to="/crew"
+          search={{ tab: "boundary" }}
           className="text-mrd-small underline"
           style={{ marginLeft: "auto", flexShrink: 0, color: "var(--mrd-ink)" }}
         >

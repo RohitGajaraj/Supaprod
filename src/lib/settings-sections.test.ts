@@ -7,6 +7,7 @@ import {
   PRIMARY_GROUPS,
   RECESSED_GROUPS,
   LEGACY_SECTION_MAP,
+  OFF_PAGE_SECTIONS,
   DEFAULT_SECTION,
   normalizeSection,
   paneForSection,
@@ -34,23 +35,29 @@ import {
  * in a DOM test because they are pure functions - a keyboard contract that only
  * exists inside an event handler is a keyboard contract nobody can assert.
  *
- * SEVEN GROUPS SINCE P-23 (2026-09-02), UP FROM FOUR. The 16 original section
- * ids all survive; one is new (`brief`, split out of `workspace`). See
+ * SIX GROUPS SINCE 2026-09-09 (fifth review), seven under P-23 before that.
+ * The `autonomy` GROUP folded into Team, taking `staff` and `autonomy` with
+ * it, because `/crew` already answered both questions and a person setting an
+ * agent's rope met two doors that wrote the same rows. See
  * `settings-sections.ts`'s own header for the full ruling.
+ *
+ * THE CONTRACT DID NOT LOOSEN WHEN IT SHRANK. Those two addresses still have
+ * to land somewhere true, and they do -- on Team, through `OFF_PAGE_SECTIONS`
+ * and the route's `beforeLoad`. The list below is what Settings itself holds;
+ * `OFF_PAGE_SECTIONS` is asserted separately, and between them every
+ * `?section=` value ever shipped is still accounted for.
  */
 
 /*
- * The 18 section ids the route ships with - the routing contract that must
- * hold. WAS 17; `hosting` joined it (P-118b) because a preview app is a thing
- * this workspace put outside itself and the account it fills is the founder's,
- * so it needed somewhere to be looked at. Adding an id is meant to fail this
- * list: a door nobody decided to add is the thing it is guarding against.
+ * The 16 section ids the route ships with - the routing contract that must
+ * hold. Was 18; `staff` and `autonomy` left on 2026-09-09 with the Autonomy
+ * fold, and they are the only two ever removed. Adding an id is meant to fail
+ * this list too: a door nobody decided to add is the other thing it guards
+ * against.
  */
 const ORIGINAL_SECTION_IDS: SectionId[] = [
   "connections",
   "ai",
-  "staff",
-  "autonomy",
   "brief",
   "workspace",
   "brand",
@@ -68,7 +75,7 @@ const ORIGINAL_SECTION_IDS: SectionId[] = [
 ];
 
 describe("settings-sections - the routing contract is preserved", () => {
-  it("exposes exactly the 18 section ids (no id added or dropped)", () => {
+  it("exposes exactly the 16 section ids (no id added or dropped)", () => {
     expect([...ALL_SECTION_IDS].sort()).toEqual([...ORIGINAL_SECTION_IDS].sort());
   });
 
@@ -84,22 +91,22 @@ describe("settings-sections - the routing contract is preserved", () => {
   });
 });
 
-describe("settings-sections - the seven groups are named by the boundary they set", () => {
+describe("settings-sections - the six groups are named by the boundary they set", () => {
   /*
-   * SEVEN SINCE P-23, up from four. The count is still pinned rather than
-   * loosened: a closed number is what makes an eighth group a decision
-   * somebody takes on purpose instead of a drift.
+   * SIX SINCE THE AUTONOMY FOLD, seven under P-23. The count is still pinned
+   * rather than loosened: a closed number is what makes a seventh group a
+   * decision somebody takes on purpose instead of a drift, and it is what
+   * would catch Autonomy being added back beside the Team row.
    */
-  it("presents exactly seven groups, none recessed", () => {
-    expect(SETTINGS_GROUPS.length).toBe(7);
-    expect(PRIMARY_GROUPS.length).toBe(7);
+  it("presents exactly six groups, none recessed", () => {
+    expect(SETTINGS_GROUPS.length).toBe(6);
+    expect(PRIMARY_GROUPS.length).toBe(6);
     expect(RECESSED_GROUPS.length).toBe(0);
   });
 
-  it("the seven groups run you, autonomy, brief, connections, workspace, usage, security", () => {
+  it("the six groups run you, brief, connections, workspace, usage, security", () => {
     expect(SETTINGS_GROUPS.map((g) => g.id)).toEqual([
       "you",
-      "autonomy",
       "brief",
       "connections",
       "workspace",
@@ -124,22 +131,38 @@ describe("settings-sections - the seven groups are named by the boundary they se
     }
   });
 
-  it("Autonomy holds who works here and their rope, and NOT the models", () => {
+  it("holds no group answering who works here or what they may do, because Team does", () => {
+    /*
+     * THE ASSERTION THE FOLD IS FOR, 2026-09-09. Settings drew a group called
+     * Autonomy holding "Who works here" and "What they may do without asking";
+     * `/crew` is the roster and owns the one set of boundary editors, so two
+     * rail doors answered one question and neither said so. This fails if
+     * either section is declared here again under any group.
+     */
+    expect(ALL_SECTION_IDS).not.toContain("staff" as SectionId);
+    expect(ALL_SECTION_IDS).not.toContain("autonomy" as SectionId);
+    expect(SETTINGS_GROUPS.map((g) => String(g.id))).not.toContain("autonomy");
     /*
      * `ai` MOVED TO `connections` UNDER P-23 (A1's ruling, 2026-09-02 22:25):
      * "a provider key is a connection to what the agents run on - one group
-     * for everything external."
+     * for everything external." It did NOT go with the fold: a provider key is
+     * plumbing, which is what this surface keeps.
      */
-    expect(groupForSection("staff")).toBe("autonomy");
-    expect(groupForSection("autonomy")).toBe("autonomy");
     expect(groupForSection("ai")).toBe("connections");
   });
 
-  it("puts who works here BEFORE the rope they are given", () => {
-    // A person cannot have an opinion about anybody's autonomy before they have met
-    // the crew. Autonomy was leading with a dial for agents the reader had not seen.
-    const agents = SETTINGS_GROUPS.find((g) => g.id === "autonomy")!;
-    expect(agents.sections.map((sec) => sec.id)).toEqual(["staff", "autonomy"]);
+  it("sends the four retired addresses to Team rather than to the default", () => {
+    // Removing a door is only allowed if every saved link still lands
+    // somewhere true. `agents`/`staff` are the roster; `crew`/`autonomy` are
+    // the pane they used to open, which is Team's boundary tab now.
+    expect(OFF_PAGE_SECTIONS.agents).toEqual({ to: "/crew", search: {} });
+    expect(OFF_PAGE_SECTIONS.staff).toEqual({ to: "/crew", search: {} });
+    expect(OFF_PAGE_SECTIONS.crew).toEqual({ to: "/crew", search: { tab: "boundary" } });
+    expect(OFF_PAGE_SECTIONS.autonomy).toEqual({ to: "/crew", search: { tab: "boundary" } });
+    // And none of them is also a live section, or the redirect would shadow a pane.
+    for (const id of Object.keys(OFF_PAGE_SECTIONS)) {
+      expect(ALL_SECTION_IDS).not.toContain(id as SectionId);
+    }
   });
 
   it("Brief is its own group now, split out of Workspace (P-23)", () => {
@@ -196,10 +219,11 @@ describe("settings-sections - the seven groups are named by the boundary they se
 });
 
 describe("settings-sections - the nav ring", () => {
-  it("draws 14 doors: every section except the four that are address-only", () => {
-    /* 13 before Hosting. The four address-only sections below are unchanged:
-       this is one more DOOR, not one fewer exception. */
-    expect(NAV_DOOR_IDS.length).toBe(14);
+  it("draws 12 doors: every section except the four that are address-only", () => {
+    /* 14 before the Autonomy fold took "Who works here" and "What they may do
+       without asking" to Team. The four address-only sections below are
+       unchanged: this is two fewer DOORS, not two more exceptions. */
+    expect(NAV_DOOR_IDS.length).toBe(12);
     /*
      * FOUR ADDRESS-ONLY SECTIONS, unchanged in count and reason by the regroup:
      *   memory  - dead pane, live address
@@ -235,12 +259,12 @@ describe("settings-sections - the nav ring", () => {
   });
 
   // A bare /settings is an address people ARRIVE at - the account menu, `g s`,
-  // the /notifications redirect - rather than one they ask for, so it must not
-  // land on the governance pane. Autonomy is the second group, so Home then one
-  // Down still reaches it in two presses from anywhere in the index.
-  it("a bare /settings does not open on a governance pane", () => {
+  // the /notifications redirect - rather than one they ask for, so it lands on
+  // the pane nobody has to be warned about. The governance pane it used to be
+  // contrasted with is Team's now, which is the stronger form of the same rule.
+  it("a bare /settings lands on the account, not on a consequential pane", () => {
     expect(DEFAULT_SECTION).toBe("profile");
-    expect(DEFAULT_SECTION).not.toBe("autonomy");
+    expect(NAV_DOOR_IDS[0]).toBe(DEFAULT_SECTION);
   });
 
   it("every group's landing section draws a door", () => {
@@ -278,7 +302,7 @@ describe("settings-sections - the folded addresses still answer", () => {
 });
 
 describe("settings-sections - derivations", () => {
-  it("groupForSection round-trips with primarySection for all seven groups", () => {
+  it("groupForSection round-trips with primarySection for all six groups", () => {
     for (const g of SETTINGS_GROUPS) {
       const primary = primarySection(g.id);
       expect(groupForSection(primary)).toBe(g.id);
@@ -323,12 +347,8 @@ describe("settings-sections - derivations", () => {
     // "Models and keys" on screen) because the route carried its own door list.
     // It reads this module now, so the two cannot drift again.
     expect(sectionLabel("ai")).toBe("Models");
-    /* "Who works here", not "Roster": a house word nobody types, and "Agents" would
-       have collided with its own group heading. The keywords still carry "roster". */
-    expect(sectionLabel("staff")).toBe("Who works here");
     expect(sectionLabel("workspace")).toBe("About your company");
     expect(sectionLabel("brief")).toBe("Brief and voice");
-    expect(sectionLabel("autonomy")).toBe("What they may do without asking");
     // Founder ruling 2026-07-29 (commit 9900c049): "Sources is now Connectors,
     // in the nav label, the head and every line of prose."
     expect(sectionLabel("connections")).toBe("Connected tools");
@@ -350,12 +370,26 @@ describe("settings-sections - normalizeSection (deep-link safety)", () => {
     }
   });
 
-  it("keeps the retired group ids landing (agents -> Roster, you -> Profile)", () => {
+  it("keeps the retired group ids landing (you -> Profile)", () => {
     // Links saved under the previous grouping still arrive. Profile in
     // particular: the account menu and every "you" link must not fall back to
-    // the new default, which would silently send someone to Autonomy.
-    expect(normalizeSection("agents")).toBe("staff");
+    // a default that happens to be somewhere else.
     expect(normalizeSection("you")).toBe("profile");
+  });
+
+  it("leaves the four off-page ids to the redirect rather than resolving them here", () => {
+    /*
+     * `agents` USED TO RESOLVE TO `staff` AND MUST NOT ANY MORE, 2026-09-09.
+     * There is no pane on this surface for it to name, so a mapping would have
+     * to invent one. The route's `beforeLoad` reads `OFF_PAGE_SECTIONS` before
+     * this function is ever called, so the address lands on Team; the fallback
+     * here is what a person sees only if that redirect is ever removed, and it
+     * is the account rather than an unrelated pane.
+     */
+    for (const id of Object.keys(OFF_PAGE_SECTIONS)) {
+      expect(LEGACY_SECTION_MAP[id]).toBeUndefined();
+      expect(normalizeSection(id)).toBe(DEFAULT_SECTION);
+    }
   });
 
   it("lands ?section=brief on the real Brief pane now, not folded into Workspace", () => {
@@ -407,7 +441,7 @@ describe("settings-sections - the nav is one tab stop, on every address", () => 
      */
     expect(navTabStop("health")).toBe("profile");
     expect(navTabStop("profile")).toBe("profile");
-    expect(navTabStop("autonomy")).toBe("autonomy");
+    expect(navTabStop("brief")).toBe("brief");
   });
 
   it("a doorless address still leaves the nav reachable", () => {
@@ -420,7 +454,7 @@ describe("settings-sections - the nav is one tab stop, on every address", () => 
     expect(navTabStop("sync")).toBe("connections");
   });
 
-  it("gives exactly one tab stop for every one of the 17 addresses", () => {
+  it("gives exactly one tab stop for every one of the 16 addresses", () => {
     for (const id of ORIGINAL_SECTION_IDS) {
       const stop = navTabStop(id);
       expect(NAV_DOOR_IDS.filter((d) => d === stop).length).toBe(1);
@@ -443,19 +477,19 @@ describe("settings-sections - Up, Down, Home and End", () => {
   });
 
   it("returns null for a key it does not own, so the caller does not swallow it", () => {
-    expect(stepDoor("autonomy", "Tab")).toBeNull();
-    expect(stepDoor("autonomy", "a")).toBeNull();
+    expect(stepDoor("brief", "Tab")).toBeNull();
+    expect(stepDoor("brief", "a")).toBeNull();
   });
 
   it("Down and Up step one door, across group boundaries", () => {
-    /* Order since P-23: profile, notifications | staff, autonomy | brief |
-       connections, ai, interop | workspace, brand, products | billing | data
-       The pipes are group boundaries, and the ring must cross them without
-       stopping. */
-    expect(stepDoor("notifications", "ArrowDown")).toBe("staff");
-    expect(stepDoor("staff", "ArrowUp")).toBe("notifications");
-    expect(stepDoor("autonomy", "ArrowDown")).toBe("brief");
-    expect(stepDoor("brief", "ArrowUp")).toBe("autonomy");
+    /* Order since the Autonomy fold: profile, notifications | brief |
+       connections, ai, interop, hosting | workspace, brand, products |
+       billing | data. The pipes are group boundaries, and the ring must cross
+       them without stopping. Notifications used to step into "Who works here";
+       it steps straight into Brief now, which is the fold seen from the
+       keyboard. */
+    expect(stepDoor("notifications", "ArrowDown")).toBe("brief");
+    expect(stepDoor("brief", "ArrowUp")).toBe("notifications");
     expect(stepDoor("brief", "ArrowDown")).toBe("connections");
     /* Hosting sits after Outside access in Connections, so the step that used
        to cross into Workspace now lands on it first and crosses from there.
@@ -483,7 +517,7 @@ describe("settings-sections - Up, Down, Home and End", () => {
     expect(stepDoor("memory", "ArrowDown")).toBe(NAV_DOOR_IDS[1]);
   });
 
-  it("walking Down through the whole ring visits all 13 doors exactly once", () => {
+  it("walking Down through the whole ring visits all 12 doors exactly once", () => {
     const seen: SectionId[] = [];
     let at: SectionId = NAV_DOOR_IDS[0]!;
     for (let i = 0; i < NAV_DOOR_IDS.length; i += 1) {
@@ -495,7 +529,7 @@ describe("settings-sections - Up, Down, Home and End", () => {
   });
 });
 
-describe("settings-sections - typeahead, the shortcut into any of the thirteen", () => {
+describe("settings-sections - typeahead, the shortcut into any of the twelve", () => {
   it("jumps to the first door whose label starts with what you typed", () => {
     /*
      * TYPEAHEAD MATCHES THE LABEL, NEVER THE ID, and this pair is the clearest
@@ -504,20 +538,24 @@ describe("settings-sections - typeahead, the shortcut into any of the thirteen",
      * by P-23, since neither label moved.
      *
      * "d" still reaches nothing: Diagnostics never drew a door and nothing else
-     * in the new seven groups starts with D either.
+     * in the six groups starts with D either.
      */
-    expect(doorByTypeahead("y", "autonomy")).toBe("data");
-    expect(doorByTypeahead("d", "autonomy")).toBeNull();
-    expect(doorByTypeahead("a", "autonomy")).toBe("workspace");
-    expect(doorByTypeahead("br", "autonomy")).toBe("brief");
+    /* THE CURSOR IS `profile` NOW, NOT `autonomy`. Typeahead steps from the
+       door you are standing on, and `autonomy` stopped being a door with the
+       2026-09-09 fold. Profile is the one door every entrance to this surface
+       already lands on, so it is the honest place to type from. */
+    expect(doorByTypeahead("y", "profile")).toBe("data");
+    expect(doorByTypeahead("d", "profile")).toBeNull();
+    expect(doorByTypeahead("a", "profile")).toBe("workspace");
+    expect(doorByTypeahead("br", "profile")).toBe("brief");
     // Credits folded into Billing, so "cre" has no door of its own to reach.
-    expect(doorByTypeahead("cre", "autonomy")).toBeNull();
+    expect(doorByTypeahead("cre", "profile")).toBeNull();
   });
 
   it("a single repeated letter cycles through every door that starts with it", () => {
     // B: "Brief", "Brand", "Billing" - three now, up from the pair under four
     // groups, because Brief moved to its own group whose door is also a B.
-    const first = doorByTypeahead("b", "autonomy");
+    const first = doorByTypeahead("b", "profile");
     expect(first).toBe("brief");
     const second = doorByTypeahead("b", first!);
     expect(second).toBe("brand");
@@ -534,21 +572,21 @@ describe("settings-sections - typeahead, the shortcut into any of the thirteen",
   });
 
   it("returns null on a typo rather than jumping somewhere arbitrary", () => {
-    expect(doorByTypeahead("zzz", "autonomy")).toBeNull();
-    expect(doorByTypeahead("", "autonomy")).toBeNull();
-    expect(doorByTypeahead("   ", "autonomy")).toBeNull();
+    expect(doorByTypeahead("zzz", "profile")).toBeNull();
+    expect(doorByTypeahead("", "profile")).toBeNull();
+    expect(doorByTypeahead("   ", "profile")).toBeNull();
   });
 
   it("is case-insensitive", () => {
-    expect(doorByTypeahead("Y", "autonomy")).toBe("data");
-    expect(doorByTypeahead("CO", "autonomy")).toBe("connections");
+    expect(doorByTypeahead("Y", "profile")).toBe("data");
+    expect(doorByTypeahead("CO", "profile")).toBe("connections");
   });
 
-  it("reaches every one of the 13 doors by its own full label", () => {
+  it("reaches every one of the 12 doors by its own full label", () => {
     // The claim "type a name" in the nav's hint is only true if it is true for
     // all of them.
     for (const id of NAV_DOOR_IDS) {
-      expect(doorByTypeahead(sectionLabel(id), "autonomy")).toBe(id);
+      expect(doorByTypeahead(sectionLabel(id), "profile")).toBe(id);
     }
   });
 });

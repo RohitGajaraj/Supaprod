@@ -1,12 +1,14 @@
 /**
  * P-17'S TWO PROVABLE ACCEPTANCE LINES, PINNED AGAINST SOURCE.
  *
- * P-17 (A-QUEUE.md) asked for a Settings > Autonomy tab covering the ceiling,
- * the kill switch, and the resolver's own tool-mode list. All three already
- * existed here before this packet, mounted 2026-08-27 under S0 ruling A-006 as
- * `BoundaryPane` (BoundaryControls + BudgetsPanel + ControlsPanel). What did
- * not exist is this file's first check: the pane said nothing that survives
- * regardless of the arc, the ceiling, or the kill switch.
+ * P-17 (A-QUEUE.md) asked for a tab covering the ceiling, the kill switch, and
+ * the resolver's own tool-mode list. All three already existed before this
+ * packet, mounted 2026-08-27 under S0 ruling A-006 as `BoundaryPane`
+ * (BoundaryControls + BudgetsPanel + ControlsPanel). What did not exist is
+ * this file's first check: the pane said nothing that survives regardless of
+ * the arc, the ceiling, or the kill switch. The pane was Settings\' Autonomy
+ * section until 2026-09-09; it is Team\'s boundary tab now, and every claim
+ * below is about the pane rather than about where it is mounted.
  *
  * THE ONE HALF THAT ALWAYS HOLDS. `footerMode()`'s "Working on its own. It
  * will ask before it ships." reads as one sentence, and only the second half
@@ -34,17 +36,24 @@ import { readFileSync } from "node:fs";
 
 import { describe, expect, it } from "bun:test";
 
-const route = readFileSync(new URL("../_authenticated.settings.tsx", import.meta.url), "utf8");
+/*
+ * IT READS THE PANE, NOT THE ROUTE, SINCE 2026-09-09 (fifth review).
+ *
+ * `BoundaryPane` lived inside `_authenticated.settings.tsx` until Settings'
+ * Autonomy group folded into Team. It moved whole into its own file, so the
+ * claim below moves with it rather than being dropped: the pane must import
+ * the invariant half of the footer sentence and must not retype it. Both
+ * halves are still scanned raw (not comment-stripped), because a
+ * comment-stripped scan cannot tell an import from a retyped literal near it.
+ */
+const pane = readFileSync(new URL("../BoundaryPane.tsx", import.meta.url), "utf8");
 const boundaryControls = readFileSync(
-  new URL("../../components/governance/BoundaryControls.tsx", import.meta.url),
+  new URL("../../governance/BoundaryControls.tsx", import.meta.url),
   "utf8",
 );
-const footerMode = readFileSync(
-  new URL("../../components/track/footer-mode.ts", import.meta.url),
-  "utf8",
-);
+const footerMode = readFileSync(new URL("../../track/footer-mode.ts", import.meta.url), "utf8");
 
-describe("the Autonomy tab's one sentence that holds regardless of the arc", () => {
+describe("the boundary pane's one sentence that holds regardless of the arc", () => {
   it("footer-mode.ts exports the invariant half as its own constant", () => {
     expect(footerMode).toContain(
       'export const WILL_ASK_BEFORE_IT_SHIPS = "It will ask before it ships."',
@@ -58,19 +67,17 @@ describe("the Autonomy tab's one sentence that holds regardless of the arc", () 
     );
   });
 
-  it("the settings route imports the constant rather than retyping the sentence", () => {
-    expect(route).toContain(
+  it("the boundary pane imports the constant rather than retyping the sentence", () => {
+    expect(pane).toContain(
       'import { WILL_ASK_BEFORE_IT_SHIPS } from "@/components/track/footer-mode"',
     );
-    expect(route).not.toContain('"It will ask before it ships."');
+    expect(pane).not.toContain('"It will ask before it ships."');
   });
 
-  it("the Autonomy pane's heading actually uses the imported constant", () => {
-    const paneStart = route.indexOf("function BoundaryPane()");
+  it("the boundary pane's heading actually uses the imported constant", () => {
+    const paneStart = pane.indexOf("export function BoundaryPane(");
     expect(paneStart).toBeGreaterThan(-1);
-    const paneEnd = route.indexOf("\nfunction ", paneStart + 1);
-    const pane = route.slice(paneStart, paneEnd === -1 ? undefined : paneEnd);
-    expect(pane).toContain("${WILL_ASK_BEFORE_IT_SHIPS}");
+    expect(pane.slice(paneStart)).toContain("${WILL_ASK_BEFORE_IT_SHIPS}");
   });
 });
 

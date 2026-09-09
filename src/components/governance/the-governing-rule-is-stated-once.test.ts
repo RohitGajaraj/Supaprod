@@ -92,14 +92,23 @@ describe("the boundary rule", () => {
   });
 
   it("has exactly one surface embedding ControlsPanel, and it states the rule", () => {
+    /*
+     * THE SURFACE MOVED, THE COUNT DID NOT, 2026-09-09 (fifth review). This
+     * read `routes/_authenticated.settings.tsx` until Settings' Autonomy group
+     * folded into Team; `BoundaryPane` went with it, whole, into its own file.
+     * The rule being held is unchanged and is the reason the path is pinned at
+     * all: exactly ONE surface embeds the controls-only panel, and that surface
+     * renders the component whose posture line states the rule. A second entry
+     * in this array is the defect, wherever it lives.
+     */
     const embedders = tsxFiles(SRC)
       .filter((f) => !f.endsWith(".test.tsx"))
       .filter((f) => /<ControlsPanel[^>]*\bcontrolsOnly\b/s.test(code(f)))
       .map((f) => f.replace(SRC, ""));
-    expect(embedders).toEqual(["routes/_authenticated.settings.tsx"]);
+    expect(embedders).toEqual(["components/settings/BoundaryPane.tsx"]);
 
     // And that surface renders the component whose posture line carries it.
-    const settings = readFileSync(join(SRC, "routes/_authenticated.settings.tsx"), "utf8");
-    expect(settings).toContain("<BoundaryControls headingShownElsewhere />");
+    const pane = readFileSync(join(SRC, "components/settings/BoundaryPane.tsx"), "utf8");
+    expect(pane).toContain("<BoundaryControls headingShownElsewhere />");
   });
 });

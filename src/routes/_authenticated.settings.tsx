@@ -85,16 +85,17 @@
  *      name; every animate-pulse skeleton.
  *    MOVED, 2026-08-10, and this is the receipt for the line that used to sit
  *      here saying it was pending:
- *      · the per-agent tool-reach control -> /crew, which already had it. What
- *        stays is a READ of the same rows under /crew's own query key, and a
- *        door per agent. See the RosterSection header for the second thing that
- *        went with it, which was worse than the duplication: a posture this
- *        page GUESSED at from the agent catalog rather than read from the
- *        stored dial.
- *      · every tool boundary -> /boundary, the one home for it by founder
- *        ruling. Autonomy states what that boundary currently allows and links
- *        to it; it no longer offers a second set of levers in a second
- *        vocabulary over the same stored value.
+ *      · the per-agent tool-reach control -> /crew, which already had it.
+ *    MOVED, 2026-09-09 (fifth review), and this finishes that one:
+ *      · the roster and the boundary -> Team, whole. What stayed in 2026-08-10
+ *        was a READ of /crew's own rows and a door per agent, which is a
+ *        mirror, and a mirror one rail row from the page it reflects is a
+ *        second answer to a question the rail says Team owns. Settings is
+ *        where you configure an application; Team is where you decide how much
+ *        rope your workforce gets. `?section=agents`, `staff`, `crew` and
+ *        `autonomy` redirect there in `beforeLoad`, so no saved link went
+ *        dark, and no editor moved with them because there were none left
+ *        here to move.
  *    STILL PENDING, unmoved and honestly flagged -
  *      · the credit debit ledger and per-product attribution -> Engine room,
  *        Spend. Purchases stay, because the purchase is made here.
@@ -265,6 +266,7 @@ import {
   NAV_GROUPS,
   SETTINGS_GROUPS,
   normalizeSection,
+  OFF_PAGE_SECTIONS,
   paneForSection,
   searchSections,
   subTargetFor,
@@ -294,15 +296,6 @@ import { NotificationsSection } from "@/components/settings/NotificationsSection
 import { RedeemCodeCard } from "@/components/settings/RedeemCodeCard";
 import { MembersCard } from "@/components/settings/MembersCard";
 import { TeamCard } from "@/components/settings/TeamCard";
-import { ControlsPanel } from "@/components/governance/ControlsPanel";
-import { BoundaryControls } from "@/components/governance/BoundaryControls";
-import { WILL_ASK_BEFORE_IT_SHIPS } from "@/components/track/footer-mode";
-import { getBoundary } from "@/lib/governance.functions";
-import { SessionEnded, endedSessionFor } from "@/components/system/SessionEnded";
-import { BudgetsPanel } from "@/components/governance/BudgetsPanel";
-import { GuardrailsPanel } from "@/components/governance/GuardrailsPanel";
-import { HouseRulesPanel } from "@/components/governance/HouseRulesPanel";
-import { RoutinesPanel } from "@/components/engine-room/rooms/RoutinesPanel";
 import { DesignMemoryPanel } from "@/components/knowledge/DesignMemoryPanel";
 import { ARC_CHOICE, MODE_CHOICE } from "@/components/crew/crew-words";
 import { stationCrew } from "@/lib/spine/driver";
@@ -375,12 +368,21 @@ export const Route = createFileRoute("/_authenticated/settings")({
    * no click on a dead end. Done in `beforeLoad` so the pane never paints:
    * rendering the apology and then navigating away would show the reader the
    * dead end on the way past it.
+   *
+   * AND THE SAME MECHANISM CARRIES THE AUTONOMY FOLD, 2026-09-09 (fifth
+   * review). `?section=agents`, `staff`, `crew` and `autonomy` used to open a
+   * roster and a boundary pane that Team already owned. The group is gone and
+   * the four addresses are not, so they land on Team here rather than falling
+   * through to Profile. `OFF_PAGE_SECTIONS` is the one list of them, beside
+   * the section model it was carved out of.
    */
   beforeLoad: ({ search }) => {
     const asked =
       (search as { section?: string; tab?: string }).section ??
       (search as { section?: string; tab?: string }).tab;
     if (asked === "memory") throw redirect({ to: "/outcomes" });
+    const offPage = asked ? OFF_PAGE_SECTIONS[asked] : undefined;
+    if (offPage) throw redirect({ to: offPage.to, search: offPage.search });
   },
   component: SettingsPage,
   head: () => ({ meta: [{ title: "Settings · Supaprod" }] }),
@@ -730,14 +732,9 @@ function SettingsPage() {
             <ProductsTab />
           </>
         )}
-        {/* No door in the index; the address still answers so old links land. */}
-        {active === "staff" && (
-          <RosterSection
-            onOpenCrew={(slug) => navigate({ to: "/crew", search: slug ? { agent: slug } : {} })}
-          />
-        )}
-        {active === "autonomy" && <BoundaryPane />}
-
+        {/* `staff` and `autonomy` had branches here until 2026-09-09. They are
+            Team's now and their addresses redirect in `beforeLoad` above, so
+            there is nothing left to render and nothing left to reach. */}
         {active === "ai" && <ModelsSection />}
 
         {active === "connections" &&
@@ -1913,526 +1910,23 @@ function DiagnosticsMoved({ onOpen }: { onOpen: () => void }) {
 }
 
 /* ================================================================== *
- * Agents - the roster, models, keys
+ * THE ROSTER LEFT THIS SURFACE, 2026-09-09 (fifth review).
  *
- * THE ROSTER STOPPED BEING A SECOND EDITOR, 2026-08-10.
+ * `RosterSection` and `AgentDetail` read `listCrew` under /crew's own query
+ * key and drew a census, one line per agent, and a read-only panel per agent
+ * whose every action was a door to /crew. So Settings answered "who works
+ * here" a second time, one rail row away from the Team page that owns it, and
+ * the rail's claim about how a person thinks - Team owns the crew and their
+ * limits, Settings owns the account and the plumbing - was contradicted by
+ * this file.
  *
- * It rendered a per-agent tool-reach Select writing `setAgentToolCap` - the
- * same column /crew writes, from a page whose own header already conceded the
- * move was pending and never made. Worse, the POSTURE beside each name was
- * invented here: `defaultPosture` derived "runs alone / asks first / needs
- * review" from the agent's station in the catalog, so a workspace that had
- * actually pulled an agent back to "everything waits for you" was told by this
- * page that it ran alone. A governance surface guessing at a boundary is a
- * worse defect than a duplicated control, because a guess is unfalsifiable
- * from the screen.
- *
- * Both are gone. This pane now reads `listCrew` - the same server function
- * under the same query key /crew uses, so the two share one cache entry - and
- * states the real stored dial per agent, in the shared vocabulary. Every row
- * is a door to the one page that can change it.
- *
- * WHAT IT KEEPS, deliberately: the census, and one line per agent. A VP
- * standing in Settings still has to be able to answer "how much of my crew
- * runs unattended" without leaving the surface they are on. Removing the
- * duplicate control is the fix; removing the ANSWER would have been a
- * different bug wearing the fix's clothes.
+ * NOTHING A PERSON COULD CHANGE WENT WITH IT: the panel had no editor at all.
+ * The arc dial, the tool-reach cap, the on/off switch, the per-tool policy,
+ * the lessons and the track record are `/crew?agent=<slug>`'s, and were
+ * already the only writeable copies. `?section=agents` and `?section=staff`
+ * redirect there now (`OFF_PAGE_SECTIONS`, settings-sections.ts), so the
+ * addresses land on the surface that can act rather than on a mirror.
  * ================================================================== */
-
-function RosterSection({ onOpenCrew }: { onOpenCrew: (slug: string | null) => void }) {
-  /*
-   * WHICH AGENT IS OPEN, HELD HERE RATHER THAN IN THE URL. Opening a colleague to read
-   * them is not a navigation: it does not deserve a history entry, and a Back press
-   * after reading three of them should leave Settings, not walk back up the roster.
-   */
-  const [openSlug, setOpenSlug] = useState<string | null>(null);
-  const { activeWorkspace } = useWorkspace();
-  const fList = useServerFn(listCrew);
-  // Same key, same function, same cache entry as /crew. Not "a read that
-  // agrees with it" - the identical one.
-  const crew = useQuery({
-    queryKey: ["crew", "roster", activeWorkspace?.id ?? null],
-    queryFn: () => fList({ data: { workspaceId: activeWorkspace?.id ?? null } }),
-    staleTime: 30_000,
-  });
-
-  const head = (sub: React.ReactNode) => <PageHeading title="Roster" sub={sub} />;
-
-  if (crew.isLoading) {
-    return (
-      <>
-        {head("Reading the boundary in force.")}
-        <Reading>Reading the roster.</Reading>
-      </>
-    );
-  }
-
-  if (crew.isError) {
-    return (
-      <>
-        {head("The roster did not load.")}
-        <ReadFailedLine onRetry={() => void crew.refetch()}>
-          Nothing below would be the real boundary. {readFailureMessage(crew.error)}
-        </ReadFailedLine>
-      </>
-    );
-  }
-
-  // Read down the loop (station order, cast then conductor), not by insert
-  // order. An agent the catalog has never heard of still renders, at the end.
-  /*
-   * ── THE WHOLE CREW, NOT ONLY THE ONES WITH A ROW ──────────────────────────
-   *
-   * Founder: "It just shows three cards ... clicking on Roster itself, it should land
-   * on the full set of agents here itself."
-   *
-   * He was looking at a real under-report, not a layout problem. This listed
-   * `crew.members`, which is STORED agent rows, and rows are written lazily -- the
-   * empty state below says so in its own words: "They arrive with the first mission
-   * that needs one, already running on the default policy." So a workspace with three
-   * rows saw three agents, while eighteen active agents in the catalog were doing the
-   * work. The roster was answering "who has a database row" and calling it the crew.
-   *
-   * It is worse than a miscount, because the missing ones are not idle. An agent with
-   * no row runs on the DEFAULT policy -- `loadAgentArc` returns `trusted` when no row
-   * exists -- so the fifteen a person could not see were the fifteen running with the
-   * most rope. A boundary surface that hides the agents operating unsupervised is
-   * telling the reader the opposite of the truth.
-   *
-   * So the CATALOG is the spine of this list and stored rows are merged onto it. An
-   * agent with no row is shown as running on the default, which is what it is doing.
-   */
-  const catOrder = new Map(SPECIALIST_CATALOG.map((c, i) => [c.slug, i]));
-  const stored = new Map((crew.data?.members ?? []).map((m) => [m.slug, m]));
-  /*
-   * CAST ONLY, AND THIS CORRECTS MY OWN OVERREACH. Spanning the catalog fixed the
-   * three-card under-report and introduced the opposite error: it began listing tier
-   * `crew` agents, which the catalog itself labels "engine-only mechanisms, never
-   * user-facing (not seeded as loop agents)". Reactor and Archivist are plumbing.
-   * Presenting plumbing as a colleague is the Engine-Room doctrine's exact failure --
-   * the user meets the output of the machine, never the machine.
-   */
-  const members = SPECIALIST_CATALOG.filter((c) => c.status === "active" && c.tier === "cast")
-    .map((c) => {
-      const row = stored.get(c.slug);
-      return (
-        row ?? {
-          slug: c.slug,
-          name: c.name,
-          /* No row means nothing has been switched off, and the default arc is
-             `trusted` (loadAgentArc). Stating that is the honest default; showing it
-             as absent or disabled would invent a boundary nobody set. */
-          enabled: true,
-          arc: "trusted" as const,
-          /* The REAL shape, not `string[]`. The synthetic row claimed a type the
-             stored row does not have, and it compiled only because nothing read
-             `asking` off the union. The moment the detail panel did, it broke. */
-          asking: [] as CrewMember["asking"],
-        }
-      );
-    })
-    /* Anything stored that the catalog has never heard of still renders, at the end,
-       so a custom or renamed agent is never silently dropped. */
-    .concat(
-      (crew.data?.members ?? []).filter((m) => !SPECIALIST_CATALOG.some((c) => c.slug === m.slug)),
-    )
-    .filter((m) => catalogEntry(m.slug)?.status !== "deprecated")
-    .sort((a, b) => (catOrder.get(a.slug) ?? 999) - (catOrder.get(b.slug) ?? 999));
-
-  if (members.length === 0) {
-    return (
-      <>
-        {head("Nobody has a row here yet.")}
-        {/* The whole pane is this branch -- no `Region` is rendered on it at all --
-            so it takes the bordered half of the pair. */}
-        <NothingHere action={<Action onClick={() => onOpenCrew(null)}>Open Crew</Action>}>
-          This account has no agent rows, so there is no boundary to read. They arrive with the
-          first mission that needs one, already running on the default policy.
-        </NothingHere>
-      </>
-    );
-  }
-
-  // The boundary in force, counted off the STORED dial rather than off the
-  // station a catalog file happens to file each agent under.
-  const on = members.filter((m) => m.enabled);
-  const alone = on.filter((m) => m.arc === "trusted" || m.arc === "ambient").length;
-  const asks = on.filter((m) => m.arc === "proving" || m.arc === "observing").length;
-  const off = members.length - on.length;
-  const asking = members.filter((m) => m.asking.length > 0).length;
-  // Exactly one mark on a screen may blink, and it belongs to the first thing
-  // actually waiting on a person.
-  const blinkSlug = members.find((m) => m.asking.length > 0)?.slug ?? null;
-
-  return (
-    <>
-      {head(
-        <>
-          <Num>{alone}</Num> run without asking you, <Num>{asks}</Num> ask first
-          {off > 0 ? (
-            <>
-              , <Num>{off}</Num> are switched off
-            </>
-          ) : null}
-          .
-        </>,
-      )}
-
-      <Region
-        title="Who works here"
-        // The different fact, not the census again: where this is changed, and
-        // what is currently waiting on a person.
-        sub={
-          asking > 0 ? (
-            <>
-              <Num>{asking}</Num> {asking === 1 ? "is asking" : "are asking"} for more room. Open
-              one to rule on it.
-            </>
-          ) : (
-            "How much rope each one gets is set on Crew, one agent at a time."
-          )
-        }
-        /*
-         * NO "OPEN CREW" DOOR ANY MORE. Founder: "why are there multiple steps, like
-         * click on Roster and see only three cards, and then click on Open Crew?"
-         *
-         * Everything that door was opened for -- what an agent is, what it may do
-         * without you, what it can touch, whether it has been any good -- is now one
-         * click away on this pane. What /crew still owns is CHANGING a tool boundary,
-         * and that is reached from the agent you are already reading, not from a
-         * general-purpose escape hatch at the top of the list.
-         */
-      >
-        {/*
-         * ONE CARD PER AGENT, replacing a list of tight rows.
-         *
-         * Founder: "for each agent, it needs to be each agent card", the crew shown
-         * first, each opening onto that agent. A row cannot give a colleague any
-         * presence, and presence is the point: this product's claim is that these do
-         * the work. The grid also uses the width it is given rather than capping
-         * itself, which is his separate complaint about these surfaces.
-         *
-         * `blurb` is the catalog's own one-liner, so no copy is invented here.
-         */}
-        <AgentCards
-          cards={members.map((m) => ({
-            slug: m.slug,
-            name: m.name,
-            role: catalogEntry(m.slug)?.blurb,
-            enabled: m.enabled,
-            runsAlone: m.arc === "trusted" || m.arc === "ambient",
-            waiting: m.asking.length,
-            /* The station, in the product's own words for it. Reading the roster down
-               the spine answers "who works on the part I am looking at", which an
-               eighteen-card alphabetical grid cannot. */
-            group: (() => {
-              const st = agentStation(m.slug);
-              /* STAGE_LABEL is the product's existing station-to-name map (Discover,
-                 Decide, Plan...). Reused rather than retyped: a second list of the
-                 seven names is how a rename lands in one place and not the other. */
-              /*
-               * THE CONDUCTOR IS NOT AT A STATION, and the founder called this out:
-               * "Reactor and Chief of Staff ... work across all surfaces and all
-               * stations, why is that gated". He is right about Chief of Staff.
-               *
-               * The catalog files it at `decide` and that is a filing artifact, not a
-               * design: it carries `conductor: true`, its blurb is "Runs the loop and
-               * brings you the calls that need you", and `driver.test.ts` EXCLUDES
-               * conductors from station-crew coverage on purpose. It is dispatched
-               * through orchestrator.functions.ts, never as a station's crew. Showing
-               * it under Decide told a reader it works one seventh of the loop.
-               *
-               * Grouped separately rather than restationed: `station` is stored and the
-               * driver reads it, so changing the DATA would change dispatch. This
-               * changes only what the roster says, which is the thing that was wrong.
-               */
-              const entry = catalogEntry(m.slug);
-              if (entry?.conductor) return "Across the whole loop";
-              return st ? STAGE_LABEL[st] : "Across the whole loop";
-            })(),
-          }))}
-          activeSlug={openSlug}
-          /* A second press on the open card closes it. The card is the control, so it
-             has to work both ways, or the only way to dismiss is to open another one. */
-          onOpen={(slug) => setOpenSlug((cur) => (cur === slug ? null : slug))}
-          renderDetail={(slug) => {
-            const m = members.find((x) => x.slug === slug);
-            return m ? <AgentDetail member={m} onOpenRecord={onOpenCrew} /> : null;
-          }}
-        />
-      </Region>
-
-      {/* `NothingYet`, the BARE half, and the roster above is why. This is a
-          standing note sitting beside a full region rather than a branch standing
-          in for the pane, and the retired `.sp-empty` it replaces drew no box at
-          all -- `NothingHere` would add one and read as a second region with no
-          heading. */}
-      <NothingYet>
-        A new tool asks for permission the moment it is first needed, inside the run. Every tool
-        boundary across the whole crew at once lives on the boundary, not here.
-      </NothingYet>
-    </>
-  );
-}
-
-/**
- * ── WHAT THIS AGENT IS, INLINE ────────────────────────────────────────────────
- * Founder: "when I click on a particular agent, let's say I'm clicking on Verify, what
- * is Verify all about? It needs to show there itself ... what is a system prompt, and
- * what are the activities that are involved in that? That needs to be inline after
- * clicking." And on the old shape: "where is the patience for a human?"
- *
- * ── THERE IS NO SYSTEM PROMPT COLUMN, SO NONE IS DRAWN ────────────────────────
- * He asked for the system prompt. Nothing in this product stores a per-agent prompt a
- * person may edit, and rendering an empty box labelled "System prompt" would be a
- * control that writes nowhere -- the exact defect this repo has paid for nine times.
- *
- * What DOES exist is the thing a prompt would have said, and it is better than a
- * prompt because the driver actually runs on it: `stationCrew` carries each role's
- * `job` (what this one is asked to do, in its own terms) and `file` (what it must hand
- * on). That is the brief, it is real, and it is what briefs the agent at run time.
- *
- * ── THE FOUR BLOCKS ARE THE FOUR QUESTIONS, IN ORDER ──────────────────────────
- * What it is asked to do · what it may do without you · what it can actually touch ·
- * whether it has been any good at it. His complaint about the old two loose panels was
- * that they were "all like a card, but it needs to be really even and have a proper
- * structure": one grid, one row shape, one label style, every block the same.
- */
-/**
- * What the roster actually holds, which is NOT uniformly a CrewMember.
- *
- * Agent rows are written lazily, so the roster is the catalog with stored rows merged
- * onto it: an agent nobody has governed yet has a name and a default arc and no row at
- * all. Typing this prop as CrewMember would have been a lie the compiler happily
- * accepted for the stored half and crashed on for the other.
- *
- * The optional fields are exactly the ones that only exist once a row does, and the
- * panel says so in words rather than drawing an empty section.
- */
-type RosterEntry = {
-  slug: string;
-  name: string;
-  enabled: boolean;
-  arc: CrewMember["arc"];
-  /** What this one is waiting on a person for. A gate action, so it is never hidden. */
-  asking?: CrewMember["asking"];
-  arcIsDefault?: boolean;
-  tools?: CrewMember["tools"];
-  trust?: CrewMember["trust"];
-  noToolsEnabled?: boolean;
-};
-
-/**
- * A figure inside a sentence, in the SANS face.
- *
- * ── THE REASON WRITTEN HERE WAS FALSE, AND IS CORRECTED 2026-08-21 ──────────
- * It said "the retired shell primitive `Num` was the reflex here and the ratchet
- * refused it: new code may not carry a retired component, and Meridian has no
- * Figure of its own yet." Both halves are wrong. This file's `Num` comes from
- * `meridian/surface-parts` and always did, it is rendered twelve times on this
- * surface, and that module exports `Figure` as well.
- *
- * What is actually different, and is the only thing that justifies a second
- * component: `Num` is MONO, for a figure read as data down a column. These sit
- * inside a track-record sentence read left to right, where a monospace numeral
- * breaks the line's rhythm. Tabular numerals so a count that ticks does not
- * reflow the words around it.
- *
- * If a Meridian home for "a figure inside prose" is ever added, this is its
- * caller and it should move there.
- */
-function Fig({ children }: { children: ReactNode }) {
-  return (
-    <span className="font-medium text-mrd-ink" style={{ fontVariantNumeric: "tabular-nums" }}>
-      {children}
-    </span>
-  );
-}
-
-function AgentDetail({
-  member,
-  onOpenRecord,
-}: {
-  member: RosterEntry;
-  /** Opens this agent's full record, deep-linked to the agent being read. */
-  onOpenRecord: (slug: string) => void;
-}) {
-  const entry = catalogEntry(member.slug);
-  const role = AGENT_STATION_ORDER.flatMap((st) => stationCrew(st)).find(
-    (r) => r.slug === member.slug,
-  );
-  /* No filter: `resolvedMode` is documented as "what resolveToolMode returns today,
-     floors included", so every row here is a thing this agent can genuinely reach, and
-     the mode beside it is the truth about how. There is no off state to exclude. */
-  const tools = member.tools ?? null;
-  const asking = member.asking?.length ?? 0;
-  const trust = member.trust;
-
-  /* Named Facet, not Row: this file imports Meridian's `Row` and renders it further
-     down, so a local `Row` would shadow it and read as that component to every human
-     and every scanner. (This comment used to say the import was the RETIRED `Row`
-     from shell/primitives. It was already Meridian's before the port; the shadowing
-     is the real reason and it is unchanged.) */
-  const Facet = ({ label, children }: { label: string; children: ReactNode }) => (
-    <div className="flex flex-col gap-1 pt-2.5 first:pt-0">
-      <div className="text-mrd-micro font-medium tracking-[0.08em] text-mrd-mute uppercase">
-        {label}
-      </div>
-      <div className="leading-mrd-prose text-mrd-prose text-mrd-body">{children}</div>
-    </div>
-  );
-
-  return (
-    <div
-      className="mt-1 flex flex-col rounded-mrd-card border border-mrd-edge bg-mrd-sheet p-3.5"
-      style={{
-        boxShadow: "var(--mrd-shadow-card)",
-        gap: "var(--mrd-s4)",
-        animation: "mrd-fade-up var(--mrd-d-enter) var(--mrd-ease) both",
-      }}
-    >
-      <Facet label={`What ${member.name} is asked to do`}>
-        {role?.job ?? entry?.blurb ?? "No brief is filed for this one yet."}
-        {role?.file ? (
-          <>
-            {" "}
-            It hands on <span className="text-mrd-ink">{role.file}</span>, which is what the next
-            station reads.
-          </>
-        ) : entry?.conductor ? (
-          <> It runs the loop itself rather than working one station of it.</>
-        ) : null}
-      </Facet>
-
-      <Facet label="What it may do without you">
-        {(member.arcIsDefault ?? true) ? (
-          <>
-            {ARC_CHOICE[member.arc]}. This is our default, not a rule you set, so it is yours to
-            change.
-          </>
-        ) : (
-          <>{ARC_CHOICE[member.arc]}. You set this.</>
-        )}
-      </Facet>
-
-      <Facet
-        label={
-          tools && tools.length > 0 ? `What it can touch (${tools.length})` : "What it can touch"
-        }
-      >
-        {tools === null ? (
-          /* No stored row, so there is no tool policy to read. Saying that is the whole
-             truth; an empty list here would read as "may touch nothing", which is the
-             opposite of what an ungoverned agent on the default arc is doing. */
-          `Nothing is stored for ${member.name} yet. It arrives with the first mission that needs it, already running on the default above.`
-        ) : member.noToolsEnabled ? (
-          "No tools are switched on for this workspace at all, so nobody here can touch anything yet."
-        ) : tools.length === 0 ? (
-          `${member.name} has no tools it may use, so it can read and reason but cannot act.`
-        ) : (
-          <span className="flex flex-wrap gap-1.5 pt-0.5">
-            {tools.map((t) => (
-              <span
-                key={t.toolName}
-                className="flex items-center gap-1.5 rounded-full border border-mrd-line bg-mrd-sink px-2 py-1 text-mrd-data"
-              >
-                <span className="text-mrd-ink">{t.label}</span>
-                <span className="text-mrd-mute">{MODE_CHOICE[t.resolvedMode]}</span>
-              </span>
-            ))}
-          </span>
-        )}
-      </Facet>
-
-      <Facet label="What it has learned">
-        {/*
-         * ── THIS FACET EXISTS BECAUSE I HAD ORPHANED IT ───────────────────────────
-         * Founder: "you have eliminated all the sections that were underneath ... I do
-         * not want you to eliminate any of the features without thinking twice ... you
-         * should not be removing anything or making a feature homeless."
-         *
-         * He is right, and the panel was worse than he could see. It answered four
-         * questions and had ZERO actions -- no button, no link. So removing the Open
-         * Crew door left a reader able to READ an agent from Settings and unable to
-         * change one thing about it, or to reach the place that can. My own commit
-         * message claimed the tweak path was "reached from the agent you are already
-         * reading". It was not. I wrote the intent and did not build it.
-         *
-         * What the agent's record owns and this pane does not: its lessons, its run
-         * history, the tool boundary you can actually edit, and its requests for more
-         * room. Lessons are named here rather than fetched, because inventing a second
-         * read of them would duplicate the record rather than point at it -- and a
-         * duplicate is the one thing he did say may be removed.
-         */}
-        Every verdict that came back on {member.name}'s work is written against the call that caused
-        it, on its record. That is what re-ranks its next run.
-      </Facet>
-
-      <Facet label="Track record">
-        {/*
-         * The honest form of a score. `samples` is how much this is standing on, and
-         * with nothing to stand on the number is not reported at all -- a track record
-         * built from zero runs is the claim this repo is least allowed to make.
-         */}
-        {!trust || trust.samples === 0 ? (
-          `${member.name} has not finished anything here yet, so there is nothing to judge it on.`
-        ) : (
-          <>
-            <Fig>{trust.missionsCompleted}</Fig> of <Fig>{trust.missionsTotal}</Fig> missions
-            finished
-            {trust.outcomesTotal > 0 ? (
-              <>
-                , and <Fig>{trust.outcomesValidated}</Fig> of <Fig>{trust.outcomesTotal}</Fig> calls
-                held up afterwards
-              </>
-            ) : null}
-            .
-            {trust.suggestedArc !== member.arc ? (
-              <>
-                {" "}
-                On that record it could run at{" "}
-                <span className="text-mrd-ink">{ARC_CHOICE[trust.suggestedArc].toLowerCase()}</span>
-                .
-              </>
-            ) : null}
-          </>
-        )}
-      </Facet>
-      {/*
-       * ONE DOOR, AT THE FOOT, DEEP-LINKED TO THE AGENT BEING READ.
-       *
-       * Not the general "Open Crew" escape hatch that used to sit at the top of the
-       * list -- that was the three-click complaint. This opens THIS agent, and it is
-       * labelled with what is actually behind it rather than with the page's name, so
-       * nothing that lives there is homeless and nobody has to guess.
-       */}
-      <div className="flex flex-wrap items-center gap-2 border-t border-mrd-line pt-2.5">
-        {asking > 0 && (
-          /* A person is required. The one place `you` is spent in this panel, and it
-             leads straight to the thing that is waiting. */
-          <button
-            type="button"
-            onClick={() => onOpenRecord(member.slug)}
-            className="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-mrd-data font-medium transition-colors"
-            style={{ color: "var(--mrd-you)", background: "var(--mrd-select)" }}
-          >
-            <span
-              aria-hidden
-              className="size-1.5 rounded-full"
-              style={{ background: "var(--mrd-you)" }}
-            />
-            {asking === 1
-              ? `${member.name} is asking for more room`
-              : `${member.name} is asking for more room on ${asking} tools`}
-          </button>
-        )}
-        <Action onClick={() => onOpenRecord(member.slug)}>
-          Change what {member.name} may touch, and read its history
-        </Action>
-      </div>
-    </div>
-  );
-}
 
 function ModelsSection() {
   const qc = useQueryClient();
@@ -3713,140 +3207,6 @@ function CreditsSection() {
           mode="topup"
         />
       ) : null}
-    </>
-  );
-}
-
-/**
- * THE ONE SCREEN THAT ANSWERS "what can these agents do without asking me".
- *
- * Extracted from the settings route so it can hold a branch of its own. It
- * mounts five panels, each with its own read, and when the session dies they
- * ALL fail -- so the pane was drawing the same sentence five times over, which
- * is the wall U-043 removed from Guardrails and U-052 from Brain arriving here
- * by a third route.
- *
- * A DEAD SESSION IS A PAGE-LEVEL FACT. If it ended, none of the five reads can
- * succeed until the reader signs in, so five panels saying so separately tell
- * them nothing the first one did. It reads the SAME `["boundary", workspaceId]`
- * key BoundaryControls uses, so this costs no request and cannot disagree with
- * the panel it is standing in front of.
- *
- * Scoped to the ended session and nothing else: a genuine mixture, where the
- * boundary reads and the guardrails do not, still gets per-panel honesty --
- * there the panels disagree and which half is real is exactly what the reader
- * needs.
- */
-function BoundaryPane() {
-  const navigate = useNavigate();
-  const { activeWorkspaceId } = useWorkspace();
-  const fBoundary = useServerFn(getBoundary);
-  const b = useQuery({
-    queryKey: ["boundary", activeWorkspaceId],
-    queryFn: () => fBoundary(),
-  });
-  if (endedSessionFor(b.error)) {
-    return (
-      <SessionEnded title="What they may do without asking" error={b.error}>
-        Nothing about what your agents may do has changed while you were away.
-      </SessionEnded>
-    );
-  }
-  return (
-    <>
-      {/*
-       * THE BOUNDARY NOW LIVES WHERE ITS NAME IS, 2026-08-27.
-       *
-       * This pane used to render ControlsPanel alone and its own comment
-       * said the quiet part out loud: "the boundary has one home and this
-       * is not it". So the settings section titled for what agents may do
-       * did not contain the controls that decide what agents may do.
-       * Those are updateToolMode, setWorkspaceAutonomyPolicy and
-       * setWorkspaceSpendPolicy, and all three live in BoundaryControls,
-       * which was only reachable at /engine-room?room=safety.
-       *
-       * A person asking the single question an enterprise buyer asks
-       * ("what can these agents do without asking me?") arrived at a page
-       * named for that question, read a description of the answer, and
-       * had to leave to change it. That is the defect the founder called
-       * out, and it is the reason 13,299 lines across four routes felt
-       * like it did not do its job.
-       *
-       * MOUNTED, NOT MOVED. BoundaryControls is unchanged and still
-       * renders at its old address, so nothing breaks and no redirect
-       * flips: ~108 production references reach /engine-room and
-       * source-reading tests pin those chains, so the fold itself is S0's
-       * ruling (coordination/requests/S3/fold-boundary-four-into-one.md).
-       * This makes settings the real destination FIRST, so that when the
-       * ruling lands the fold is a redirect rather than a build.
-       *
-       * ORDER IS THE READING ORDER, and it is deliberate: what they may
-       * do, then what runs on a schedule, then the switch that stops all
-       * of it. The stop is last because it is the thing you reach for
-       * when the first two are wrong, not the thing you set first.
-       */}
-      <PageHeading
-        title="What they may do without asking"
-        /*
-         * THE LAST SENTENCE IS THE ONE HALF OF THE FOOTER'S OWN MANDATE LINE
-         * THAT HOLDS NO MATTER WHAT THE PANE ABOVE SAYS (P-17). "Working on
-         * its own" is a run-in-progress fact this page has no single run to
-         * report; "It will ask before it ships" is R-27, a platform floor
-         * true whatever the arc, whatever the ceiling, whatever the kill
-         * switch says -- so it is imported from footer-mode.ts rather than
-         * retyped, and this page is the one honest place to say it before
-         * any run is even open.
-         */
-        sub={`Every tool, the ceiling on a run, what routes itself, and the switch that stops all of it. ${WILL_ASK_BEFORE_IT_SHIPS}`}
-      />
-      {/* BoundaryControls owns the kill switch now (S0 ruling A-006
-                section 2): one editor, and it is the panel that edits every
-                other boundary. ControlsPanel below keeps a readout. */}
-      {/* The pane's own PageHeading is above; this panel's data-derived posture
-          sentence ("Your crew does N of M things without asking") renders at
-          region level rather than as a second page title. */}
-      <BoundaryControls headingShownElsewhere />
-      {/* Directly after the boundary, because a ceiling is the boundary
-          expressed in money. U-062 said this and put it three regions later,
-          behind ControlsPanel, so the page carried "The ceiling" and "What you
-          will not spend past" separated by the stop switch and the
-          auto-pipelines. All the limits read together now. */}
-      <BudgetsPanel controlsOnly />
-      <ControlsPanel controlsOnly onOpenQueue={() => navigate({ to: "/approvals" })} />
-      {/*
-       * THE REST OF WHAT "ALLOWED" MEANS, mounted 2026-08-27 so the fold
-       * S0 ruled in A-006 can remove a DOOR without removing a
-       * CAPABILITY.
-       *
-       * The Safety room has six views and this page held two of them. A
-       * redirect on top of that would have dropped the guardrail rules,
-       * the house rules and the background jobs -- which is the one thing
-       * the ruling forbids, and the quick version of this change.
-       *
-       * They belong here on their own merit rather than as fold luggage.
-       * The founder's question is "what can these agents do without
-       * asking me", and the honest answer has four parts: what they may
-       * DO (the boundary above), what they may SAY (guardrails), the
-       * standing rules they answer to (house rules), and what runs while
-       * nobody is watching (routines). Reading order follows that
-       * sentence.
-       *
-       * MOUNTED, NOT MOVED. Each still renders at its Engine Room
-       * address, so nothing breaks before the redirect lands.
-       *
-       * Incidents, the sixth view, is deliberately NOT here: it is a log
-       * of what already happened, and this page is what is allowed to
-       * happen next. It belongs under the record.
-       */}
-      {/* HOW MUCH THEY MAY SPEND WITHOUT ASKING, which is the same question as
-          which tools they may use without asking. Phase 2 of the fold S0 ruled
-          in A-006: the ceilings come across, while the log of what those
-          ceilings have already SAID stays with the record in the Engine Room.
-          Placed directly after the boundary because a ceiling is the boundary
-          expressed in money. */}
-      <GuardrailsPanel controlsOnly />
-      <HouseRulesPanel />
-      <RoutinesPanel />
     </>
   );
 }

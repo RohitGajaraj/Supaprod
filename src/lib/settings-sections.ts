@@ -8,26 +8,37 @@
  * browser, and so there is exactly ONE list of what Settings contains.
  *
  * ------------------------------------------------------------------------
- * 1. SEVEN GROUPS, NOT FOUR (P-23, A1 ruling 2026-09-02 22:25)
+ * 1. SIX GROUPS (P-23, A1 ruling 2026-09-02 22:25; Autonomy folded out
+ *    2026-09-09, fifth review)
  * ------------------------------------------------------------------------
  *
  * A1 read Lovable's own settings signed in (2026-08-05 19:35): one searchable
  * page, groups named for the boundary they set, the ones that change what the
  * AI does drawn as a switch with a sentence rather than a page of their own.
- * `searchSections` and the four-group model already answered "one search box"
- * - what did not exist was a group called **Autonomy**, so the mandate P-17
- * built (the ceiling, the kill switch, the tool-mode list) sat one level down
- * inside "Agents" rather than being the thing this surface leads with.
+ * `searchSections` and the four-group model already answered "one search box".
  *
- * The seven, in the order they render:
+ * The six, in the order they render:
  *
  *   You            profile - notifications - health (reports, draws no door)
- *   Autonomy       staff - autonomy - what they may do without asking
  *   Brief          the one editor for what every mission reads before it starts
  *   Connections    connections - ai - interop - everything outside this workspace
  *   Workspace      workspace - brand - products - memory (dead, no door)
  *   Usage          billing - credits - what this costs and what is left
  *   Security       data - what leaves, and the trail of what happened
+ *
+ * AUTONOMY IS GONE FROM THIS LIST, AND THAT IS THE POINT (2026-09-09).
+ * It held two sections, "Who works here" and "What they may do without
+ * asking", and Team answered both already: `/crew` IS the roster, and Team's
+ * own "The boundary" row opens the one set of tool-mode, ceiling and
+ * stop-switch editors. Two doors wrote the same rows and neither said so.
+ * The rail's claim is that the named Setup tier owns who works here and what
+ * they may do, and Settings owns the account, the workspace and the plumbing;
+ * a group called Autonomy inside Settings was that claim contradicted by this
+ * file. One question is answered in one place now, and the four retired
+ * addresses redirect to Team (`OFF_PAGE_SECTIONS`, below) rather than drawing
+ * a second door. The tagline the rail gives this surface - "Account,
+ * workspace, connections, keys, billing" - is true as written for the first
+ * time.
  *
  * BRIEF IS ITS OWN GROUP NOW, split out of `workspace`'s combined pane. It used
  * to sit beside people/invites/name under "About your company" because both
@@ -37,7 +48,7 @@
  * person asking "why does the crew keep writing the wrong thing" was one click
  * from a headline that also covers seats and slugs.
  *
- * `ai` MOVED FROM AGENTS TO CONNECTIONS, and this is A1's own reasoning kept
+ * `ai` MOVED FROM THE RETIRED AGENTS GROUP TO CONNECTIONS, and this is A1's own reasoning kept
  * beside the code that encodes it: "a provider key is a connection to what the
  * agents run on - one group for everything external." `interop` (outside
  * agents reading this workspace) sits beside it for the identical reason, so
@@ -52,36 +63,31 @@
  * not guessed at - see the Report for P-23 in A-QUEUE.md for the full audit.
  *
  * ------------------------------------------------------------------------
- * 2. WHAT LEADS, AND WHY IT IS NOT AUTONOMY
+ * 2. WHAT LEADS
  * ------------------------------------------------------------------------
  *
  * DEFAULT_SECTION is `profile`, unchanged by the regroup. A person lands on
  * `/settings` from the account menu, from `g s`, from a legacy redirect off
  * `/notifications`, and from a palette entry that says only "Settings" - none
- * of those is a request to be shown the governance surface, and a surface that
- * consequential should be somewhere you went on purpose. Autonomy loses
- * nothing: it is the second group, `?section=autonomy` still lands, and
- * `?section=crew` still lands there too.
+ * of those is a request to be shown a consequential pane, and somewhere that
+ * consequential should be somewhere you went on purpose.
  *
  * ------------------------------------------------------------------------
- * 3. THE ROUTING CONTRACT, UNCHANGED
+ * 3. THE ROUTING CONTRACT: EVERY ADDRESS STILL ANSWERS
  * ------------------------------------------------------------------------
  *
- * Every `SectionId` from before the regroup survives (plus the new `brief`),
- * every `?section=` value still resolves, and every legacy alias still lands.
- * Regrouping moves which HEADING a door sits under and nothing else.
- * `?section=plan` still lands on Billing, `?section=agents` still lands on the
- * Roster - and `?section=brief` now lands on the real Brief pane instead of
- * folding into Workspace, which is the alias becoming MORE correct rather than
- * breaking: a saved link that meant "take me to the brief" now does exactly
- * that instead of landing beside it.
+ * Every `?section=` value ever shipped still lands somewhere true. Sixteen
+ * resolve to a pane here; the four the Autonomy fold retired resolve to Team,
+ * through `OFF_PAGE_SECTIONS` and the route's `beforeLoad`, so a saved link
+ * arrives at the surface that now owns the answer instead of at a default.
+ * `?section=plan` still lands on Billing, and `?section=brief` lands on the
+ * real Brief pane instead of folding into Workspace, which is that alias
+ * becoming MORE correct rather than breaking.
  */
 
 export type SectionId =
   | "connections"
   | "ai"
-  | "staff"
-  | "autonomy"
   | "brief"
   | "workspace"
   | "brand"
@@ -98,7 +104,8 @@ export type SectionId =
   | "memory";
 
 /**
- * SEVEN GROUPS SINCE 2026-09-02 (P-23), up from four. `plan` was retired as a
+ * SIX GROUPS. Seven under P-23 (2026-09-02); Autonomy folded into Team on
+ * 2026-09-09, see the header §1. `plan` was retired as a
  * GROUP before that and its sections moved under `you`, which is where every
  * shipped settings surface this file already cites puts money: GitBook,
  * ClickUp and Toggl all keep billing beside the account rather than in a
@@ -112,8 +119,7 @@ export type SectionId =
  * `LEGACY_SECTION_MAP` below; they are gone as group ids because "Agents" and
  * "Data and access" no longer name real groups.
  */
-export type GroupId =
-  "you" | "autonomy" | "brief" | "connections" | "workspace" | "usage" | "security";
+export type GroupId = "you" | "brief" | "connections" | "workspace" | "usage" | "security";
 
 /**
  * A named block INSIDE a pane, which search can name and land on.
@@ -201,13 +207,12 @@ export type SettingsGroup = {
  * the slot that can afford one.
  *
  * ONE THING GETS ONE WORD, everywhere: a door and its own group heading never
- * repeat the same word (the roster door reads "Who works here" rather than
- * "Agents", because it sits inside the Autonomy group now and "Agents" would
- * be a heading naming its own neighbourhood).
+ * repeat the same word, which is why "Brief and voice" is two words rather
+ * than the bare "Brief" its group is already called.
  */
 export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
   /*
-   * ── WHY ACCOUNT LEADS, 2026-08-17 (STILL TRUE UNDER SEVEN GROUPS) ─────────
+   * ── WHY ACCOUNT LEADS, 2026-08-17 (STILL TRUE UNDER SIX GROUPS) ──────────
    * Founder, on the shipped rail: "don't you feel the profile section, which is
    * at the bottom today, should be at the top? Sequentially, what our user uses
    * should be there." `DEFAULT_SECTION` has been `profile` since 2026-08-10, so
@@ -216,10 +221,9 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
    * surface opens at the bottom of its own index.
    *
    * ── THE REST OF THE ORDER, BY HOW OFTEN A PERSON COMES FOR IT ─────────────
-   * Autonomy leads the rest (P-23, A3): it is the pane a security reviewer is
-   * walked through and the one this session's own founder conversations have
-   * returned to most. Brief sits beside it - what they may do, then what they
-   * read before doing it. Connections is "the group that grows: every new
+   * Brief leads the rest (2026-09-09): with Autonomy folded into Team, the
+   * standing instruction every mission starts by reading is the most
+   * consequential thing still set here. Connections is "the group that grows: every new
    * source, every new scope comes back here" (2026-08-17's own words, still
    * true). Workspace and Usage are the least frequent, consequential errands;
    * Security last, for the same reason Company was last under four groups:
@@ -267,55 +271,6 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
       },
     ],
   },
-  {
-    id: "autonomy",
-    label: "Autonomy",
-    desc: "Who works here, and what they may do without you.",
-    sections: [
-      /*
-       * WHO WORKS HERE LEADS (2026-08-17, unchanged by the regroup): a person
-       * arriving here wants to see the crew before they can have an opinion
-       * about anybody's rope.
-       */
-      {
-        id: "staff",
-        label: "Who works here",
-        keywords: ["agents", "crew", "roster", "who", "specialist"],
-      },
-      {
-        id: "autonomy",
-        label: "What they may do without asking",
-        keywords: [
-          "approval",
-          "approvals",
-          "approve",
-          "permission",
-          "kill switch",
-          "pause",
-          "stop",
-          "halt",
-          "autopilot",
-          "trust",
-          // The spend ceiling lives on this pane (setWorkspaceSpendPolicy).
-          "spend",
-          "budget",
-          "cap",
-          "ceiling",
-          "limit",
-          // Per-tool modes (updateToolMode).
-          "tool",
-          "tools",
-          // Auto-pipelines: what routes an event to an agent unasked.
-          "automation",
-          "automatic",
-          // This file's own header calls this "the pane a security reviewer is
-          // shown", and its contents are the safety contract for unattended work.
-          "security",
-          "safety",
-        ],
-      },
-    ],
-  },
   /*
    * SPLIT OUT OF `workspace` (P-23, 2026-09-02). It used to sit under "About
    * your company" beside people and invites because both are "things about the
@@ -333,8 +288,7 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
        * 2026-08-27 folded it into "About your company"; splitting it back out
        * restores the name along with the content. Kept two words rather than
        * the bare "Brief" so the door reads as a phrase distinct from its own
-       * group heading, the same rule "Who works here" already follows for
-       * Autonomy - and it happens to keep "co" unambiguous with "Connected
+       * group heading - and it happens to keep "co" unambiguous with "Connected
        * tools" too, which "Company brief" would not have.
        */
       {
@@ -420,9 +374,10 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
         /*
          * A word may point at one door only, which the routing guard enforces
          * as a forcing function on naming. Three of the obvious ones are
-         * already spoken for and rightly: "limit" is Autonomy's spend ceiling,
-         * "delete" is Your data's, and "app" is what Products calls the thing
-         * a customer ships. What is left is what actually distinguishes this
+         * already spoken for and rightly: "delete" is Your data's, "app" is
+         * what Products calls the thing a customer ships, and "limit" left
+         * this surface entirely with the Autonomy fold - it is Team's word
+         * now. What is left is what actually distinguishes this
          * door -- the host, the artefact, and the act.
          */
         keywords: ["deploy", "deno", "preview", "slot", "reclaim"],
@@ -545,7 +500,7 @@ export const NAV_GROUPS: readonly SettingsGroup[] = SETTINGS_GROUPS.map((g) => (
 /**
  * Every door, flattened in nav order. This is the roving-tabindex ring: index 0
  * is what Home reaches and the last entry is what End reaches - Security's one
- * door, `data`, under seven groups; it was `products` under four. Diagnostics
+ * door, `data`. Diagnostics
  * (`health`) can never be either end: it draws no door at all, so it is
  * unreachable by Home/End and only found by search or by typing its address.
  */
@@ -556,13 +511,10 @@ export const NAV_DOOR_IDS: readonly SectionId[] = NAV_GROUPS.flatMap((g) =>
 /**
  * Where a bare `/settings` (no `?section=`) lands.
  *
- * `profile` and NOT `autonomy`, and the reason is worth carrying beside the
- * value rather than only in header §2: a bare `/settings` is an address people
- * ARRIVE at rather than one they ask for, and Autonomy is the governance pane -
- * the safety contract a security reviewer is walked through. Somewhere that
- * consequential is a destination you choose. Autonomy keeps the second slot in
- * the nav (the first door of the second group), so it is one Down-arrow past
- * Home rather than buried.
+ * `profile`, and the reason is worth carrying beside the value rather than
+ * only in header §2: a bare `/settings` is an address people ARRIVE at rather
+ * than one they ask for - the account menu, `g s`, the /notifications
+ * redirect - so it opens on the pane nobody has to be warned about.
  */
 export const DEFAULT_SECTION: SectionId = "profile";
 
@@ -572,14 +524,16 @@ export const DEFAULT_SECTION: SectionId = "profile";
  *   plan     -> billing     (the account menu's "Plan and billing" item and the
  *                            signup checkout redirect both target this; they
  *                            must land on Plan, never on the default)
- *   agents   -> staff       (the retired Agents group id; saved links still send it)
  *   you      -> profile     (the retired You group id from BEFORE it was reused
  *                            as a real group id, 2026-08-05 - the two never
  *                            collide, this key is only ever read as a section)
- *   crew     -> autonomy    (the retired Agents group id)
  *   reach    -> connections (the retired Data and access group id)
- * `brief`, `autonomy`, `connections` and `workspace` are deliberately NOT
- * mapped here (P-23): each is now BOTH a live `GroupId` and a real
+ *
+ * `agents`, `staff`, `crew` and `autonomy` LEFT THIS MAP on 2026-09-09 (fifth
+ * review) because they no longer name a pane on this surface at all. They are
+ * in `OFF_PAGE_SECTIONS` below, which sends them to Team.
+ * `brief`, `connections` and `workspace` are deliberately NOT
+ * mapped here (P-23): each is BOTH a live `GroupId` and a real
  * `SectionId` sharing the same string, so `?section=<that group>` resolves
  * straight through `isSectionId` without needing an alias - `brief` in
  * particular used to fold into `workspace`, and now landing on the real Brief
@@ -594,12 +548,41 @@ export const DEFAULT_SECTION: SectionId = "profile";
 export const LEGACY_SECTION_MAP: Readonly<Record<string, SectionId>> = {
   calendar: "connections",
   plan: "billing",
-  agents: "staff",
   you: "profile",
-  crew: "autonomy",
   reach: "connections",
   usage: "billing",
   security: "data",
+};
+
+/**
+ * `?section=` VALUES THAT NO LONGER NAME A PANE HERE, AND WHERE THEY GO INSTEAD.
+ *
+ * FIFTH REVIEW, 2026-09-09. Settings drew a group called Autonomy holding
+ * "Who works here" and "What they may do without asking". Team already owned
+ * both: `/crew` is the roster, and its own "The boundary" row is the one set
+ * of tool-mode, ceiling and stop-switch editors. So a person setting an
+ * agent's rope met two doors that wrote the same rows and nothing on either
+ * said so, and the rail's own claim - Team owns who works here and their
+ * limits, Settings owns the account and the plumbing - was contradicted by
+ * Settings' contents.
+ *
+ * The group is gone. These four addresses are not: every saved link, every
+ * old bookmark and the paused-workspace banner still have to land somewhere
+ * true, and a redirect is what keeps them working without drawing a second
+ * door. `agents`/`staff` go to the roster; `crew`/`autonomy` go to the
+ * boundary, because that is the pane they used to open.
+ *
+ * A REDIRECT RATHER THAN A `SectionId`, deliberately: mapping them back into
+ * `LEGACY_SECTION_MAP` would need a pane on this surface to point at, which is
+ * exactly the second door being removed.
+ */
+export const OFF_PAGE_SECTIONS: Readonly<
+  Record<string, { to: "/crew"; search: { tab?: "boundary" } }>
+> = {
+  agents: { to: "/crew", search: {} },
+  staff: { to: "/crew", search: {} },
+  crew: { to: "/crew", search: { tab: "boundary" } },
+  autonomy: { to: "/crew", search: { tab: "boundary" } },
 };
 
 function isSectionId(raw: string): raw is SectionId {

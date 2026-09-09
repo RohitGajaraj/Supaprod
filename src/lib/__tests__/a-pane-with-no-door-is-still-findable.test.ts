@@ -63,11 +63,20 @@ describe("a pane with no door is still findable", () => {
     expect(notDoors.length).toBeGreaterThan(0);
   });
 
-  it("the boundary pane answers the words for what it now contains", () => {
-    // U-026 mounted the tool modes, the spend ceiling, the auto-pipelines and
-    // the stop switch here. Each of these missed before that was reflected.
-    for (const word of ["spend", "budget", "cap", "limit", "stop", "tool", "approve"]) {
-      expect(searchSections(word)).toContain("autonomy");
-    }
-  });
+  /*
+   * THE BOUNDARY'S SEVEN WORDS MOVED WITH THE PANE, 2026-09-09 (fifth review).
+   *
+   * An `it` here read `searchSections(word)` for "spend", "budget", "cap",
+   * "limit", "stop", "tool" and "approve" and expected "autonomy". That
+   * section is Team's now, so `searchSections` -- which reads the settings
+   * groups and nothing else -- cannot answer for it and asserting that it
+   * still does would be asserting the fold did not happen.
+   *
+   * The claim it was making is not dropped, it is re-homed: the same seven
+   * words are asserted against the real search in `spine/find-anything.test.ts`
+   * ("the boundary's own words reach Team"), where they now have to reach
+   * `/crew`. Deleting a guard because its subject moved and not following it
+   * is how a capability goes quiet, so the pointer is written here rather than
+   * left to be noticed.
+   */
 });
