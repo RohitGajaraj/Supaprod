@@ -9,6 +9,8 @@
    "test is not defined" and its pin never ran (found while landing the fourth
    review, 2026-09-09). */
 import { describe, expect, it, test } from "bun:test";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { heroCopy } from "./Hero";
 
 const base = {
@@ -305,5 +307,42 @@ describe("the line under a calls headline", () => {
     });
     expect(c.title).toBe("1 run has gone quiet.");
     expect(c.line).toContain("1 run has stopped");
+  });
+});
+
+/*
+ * ── A CONTROL'S LABEL IS ONE PHRASE AND NEVER BREAKS ──────────────────────
+ *
+ * SEEN ON THE SERVED ENTRY, 2026-09-10, measured with
+ * `getClientRects().length` rather than by eye: the hero's door "Open Inbox"
+ * occupied TWO line boxes, with "Open" ending one line and "Inbox" starting
+ * the next.
+ *
+ * A two-word control split across lines stops reading as a control. The eye
+ * takes "...2 runs have stopped. Open" as the end of a sentence and "Inbox" as
+ * the start of another, and this door sits in the largest paragraph on the
+ * landing page.
+ *
+ * A SWEEP OF EVERY `a` AND `button` ON THE ENTRY found exactly one broken
+ * label, so this is pinned rather than generalised into a lint nobody asked
+ * for. If a second appears, that is the moment it becomes a rule in the
+ * contract rather than a guard on one file.
+ */
+describe("the hero's door", () => {
+  const SRC = readFileSync(join(import.meta.dir, "Hero.tsx"), "utf8");
+
+  it("never breaks its own label across lines", () => {
+    const link = SRC.match(/<Link\s+to=\{copy\.door\.to\}[\s\S]*?className="([^"]*)"/);
+    expect(link, "the hero door moved; re-point this test").not.toBeNull();
+    expect(link![1]).toContain("whitespace-nowrap");
+  });
+
+  it("still lets the sentence around it wrap", () => {
+    // The paragraph must keep wrapping wherever it likes; only the thing a
+    // person presses is held together. `nowrap` on the <p> would push the
+    // whole line off a narrow screen.
+    const para = SRC.match(/<p className="max-w-\[var\(--mrd-measure-page\)\][^"]*"/);
+    expect(para, "the hero paragraph moved; re-point this test").not.toBeNull();
+    expect(para![0]).not.toContain("whitespace-nowrap");
   });
 });

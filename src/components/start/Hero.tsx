@@ -306,9 +306,25 @@ export function Hero({ copy }: { copy: HeroCopy }) {
         {copy.door ? (
           <>
             {" "}
+            {/*
+             * ── A CONTROL'S LABEL IS ONE PHRASE AND NEVER BREAKS ──────────
+             *
+             * SEEN ON THE SERVED ENTRY, 2026-09-10: "Open Inbox" occupied TWO
+             * line boxes, with "Open" ending one line and "Inbox" starting the
+             * next. Measured with `getClientRects().length`, not by eye.
+             *
+             * A two-word door split across lines stops reading as a control at
+             * all -- the eye takes "...2 runs have stopped. Open" as the end of
+             * a sentence and "Inbox" as the start of another. This door sits in
+             * the largest paragraph on the landing page, so it is the worst
+             * place in the product for that to happen.
+             *
+             * `nowrap` on the LABEL only. The paragraph still wraps wherever it
+             * likes; what cannot break is the thing a person is meant to press.
+             */}
             <Link
               to={copy.door.to}
-              className="rounded-mrd-xs text-mrd-body underline decoration-mrd-line decoration-dotted underline-offset-[3px] transition-colors hover:text-mrd-ink hover:decoration-mrd-edge hover:decoration-solid"
+              className="whitespace-nowrap rounded-mrd-xs text-mrd-body underline decoration-mrd-line decoration-dotted underline-offset-[3px] transition-colors hover:text-mrd-ink hover:decoration-mrd-edge hover:decoration-solid"
               style={{ transitionDuration: "var(--mrd-d-press)" }}
             >
               {copy.door.label}
