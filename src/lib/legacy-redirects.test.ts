@@ -1,18 +1,24 @@
+/**
+ * FIFTH REVIEW, 2026-09-09. Three of the five tests here iterated
+ * `LEGACY_REDIRECTS`, and that map is gone: P-10 deleted every route its thirty
+ * keys named, so it documented thirty doors none of which existed and pointed
+ * two of them at `/today`, itself deleted in the same commit. The tests passed
+ * the whole time, because they only checked the map against itself.
+ *
+ * What survives is what the two lists are actually for: they are the canon
+ * `nav-model.test.ts` and `palette-catalog.test.ts` read to answer "is this a
+ * real destination", so their size and their disjointness are the properties
+ * worth holding.
+ */
 import { describe, expect, it } from "bun:test";
-import { CANONICAL_PATHS, DOOR_INTERNAL_PATHS, LEGACY_REDIRECTS } from "./legacy-redirects";
+import { CANONICAL_PATHS, DOOR_INTERNAL_PATHS } from "./legacy-redirects";
 
-const ALLOWED_TARGETS = new Set<string>([...CANONICAL_PATHS, ...DOOR_INTERNAL_PATHS]);
-
-describe("legacy-redirects", () => {
-  it("every redirect target is canonical or door-internal, never another legacy key", () => {
-    for (const [from, target] of Object.entries(LEGACY_REDIRECTS)) {
-      expect(ALLOWED_TARGETS.has(target.to)).toBe(true);
-      expect(Object.hasOwn(LEGACY_REDIRECTS, target.to)).toBe(false);
-      expect(target.to).not.toBe(from);
-    }
-  });
-
-  it("has exactly eight canonical paths, one per primary destination still standing (Option B 2026-07-13, twelve since Approvals and Threads got doors 2026-08-24; eleven, ten, nine, then eight since P-14 deleted /decide, /plan, /design and /build, A-QUEUE.md, R-34)", () => {
+describe("the route canon", () => {
+  it("has exactly eight canonical paths, one per primary destination still standing", () => {
+    // Twelve since Approvals and Threads got doors 2026-08-24; eleven, ten,
+    // nine, then eight since P-14 deleted /decide, /plan, /design and /build
+    // (A-QUEUE.md, R-34). Still eight on 2026-09-09: /today left and /start,
+    // the signed-in home it was standing in for, took its place.
     expect(CANONICAL_PATHS.length).toBe(8);
     expect(new Set(CANONICAL_PATHS).size).toBe(8);
   });
@@ -22,22 +28,5 @@ describe("legacy-redirects", () => {
       (DOOR_INTERNAL_PATHS as readonly string[]).includes(p),
     );
     expect(overlap).toEqual([]);
-  });
-
-  it("no legacy key is also a canonical path (nothing redirects a real destination away)", () => {
-    for (const key of Object.keys(LEGACY_REDIRECTS)) {
-      expect((CANONICAL_PATHS as readonly string[]).includes(key)).toBe(false);
-    }
-  });
-
-  it("search params, where present, are non-empty plain string maps", () => {
-    for (const target of Object.values(LEGACY_REDIRECTS)) {
-      if (target.search) {
-        expect(Object.keys(target.search).length).toBeGreaterThan(0);
-        for (const v of Object.values(target.search)) {
-          expect(typeof v).toBe("string");
-        }
-      }
-    }
   });
 });

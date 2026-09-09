@@ -2,11 +2,12 @@ import { createFileRoute } from "@tanstack/react-router";
 import { searchFlag } from "@/lib/search-flag";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useRouter } from "@tanstack/react-router";
 import * as React from "react";
 
 import "../styles/workbench.css";
-import { PageHeading } from "@/components/meridian/surface-parts";
+import { PageHeading, ReadFailed, NothingHere, Action } from "@/components/meridian/surface-parts";
+import { SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
 import { SessionEnded, endedSessionFor } from "@/components/system/SessionEnded";
 import { StatusChip } from "@/components/meridian/StatusChip";
 import { TrackRunLeft, TrackPaneRight, useCopyRunSummary } from "@/components/track/TrackRun";
@@ -107,20 +108,53 @@ export const Route = createFileRoute("/_authenticated/track/$trackId")({
   }),
   component: TrackPage,
   head: () => ({ meta: [{ title: "Run · Supaprod" }] }),
-  errorComponent: ({ error }) => {
-    console.error("[Track] route crashed:", error);
-    return (
-      <div className="mrd-workbench">
-        <header className="mrd-workbench-header">
-          <PageHeading
-            title="This run did not load."
-            sub="Reload the page. Nothing about the run itself is lost -- every step writes its own row as it goes."
-          />
-        </header>
-      </div>
-    );
-  },
+  errorComponent: TrackCrashed,
 });
+
+/**
+ * THE CRASH STATE, WITH THE CONTROL IT WAS ASKING FOR (fifth review, 2026-09-09).
+ *
+ * It used to render a heading whose sub said "Reload the page." and nothing
+ * else: an instruction with no button, on the surface the product is judged on.
+ * Findings gives the same state an `Action` and Outcomes gives it `ReadFailed
+ * onRetry={reset}`; this is that, on the third page.
+ *
+ * BOTH HALVES OF THE RETRY, because __root.tsx already worked this out and says
+ * either alone recovers nothing: `router.invalidate()` re-runs the loaders,
+ * `reset()` clears the boundary. And `error` is passed rather than only logged,
+ * so a crash that is really a dead session gets the "Sign in" door `wayOut`
+ * hands out instead of a retry that can never succeed.
+ *
+ * A named component because it holds a hook.
+ */
+function TrackCrashed({ error, reset }: { error: Error; reset: () => void }) {
+  console.error("[Track] route crashed:", error);
+  const router = useRouter();
+  return (
+    <div className="mrd-workbench">
+      <header className="mrd-workbench-header">
+        <PageHeading
+          title="This run did not load."
+          sub="Nothing about the run itself is lost -- every step writes its own row as it goes."
+        />
+      </header>
+      {/* A plain second child, not `.mrd-workbench-pane`: the grid's second row
+          is `minmax(0,1fr)` and wants filling, and `ReadFailed` already draws
+          its own frame. A pane around it would be a border inside a border. */}
+      <div className="min-h-0 overflow-y-auto">
+        <ReadFailed
+          error={error}
+          onRetry={() => {
+            void router.invalidate();
+            reset();
+          }}
+        >
+          This run did not load, so nothing below it is the run.
+        </ReadFailed>
+      </div>
+    </div>
+  );
+}
 
 /**
  * ── THE HEADER IS THE PERSON'S SENTENCE AND ONE STATUS CHIP ───────────────
@@ -477,6 +511,52 @@ function TrackPage() {
     );
   }
 
+  /*
+   * SETTLED WITH NO ROW (fifth review, 2026-09-09), and it must be a return
+   * rather than a heading.
+   *
+   * `getTrack` reads with `maybeSingle()` and answers null for a stale address,
+   * a mistyped id, or a run in a workspace RLS will not show this person. The
+   * header said "That work could not be found." and then mounted both panes on
+   * the same id underneath it: the Now card settled on "Reading this run." and
+   * stayed there, and the artifact pane printed the same sentence again in the
+   * failed-read mood. Two surfaces contradicting the header about one id, and
+   * `RunFooter` renders only with a track, so the page had no door on it at
+   * all.
+   *
+   * Said once, with a way onward, and the panes stay unmounted so nothing
+   * beneath claims to be reading a run that is not there. It sits AFTER the
+   * dead-session return because a dead session is the more specific fact and
+   * has its own door.
+   */
+  if (trackQ.isSuccess && track === null) {
+    return (
+      /* No `data-page-composer` here, unlike the run itself below: that
+         attribute stands the ask dock down because the page carries its own
+         composer, and this one carries none. Taking the dock away would leave
+         the reader with no way to ask anything at all. */
+      <div className="mrd-workbench">
+        <header className="mrd-workbench-header">
+          <PageHeading
+            title="That work could not be found."
+            sub="The address may be out of date, or the work belongs to another workspace. Nothing you were working on is affected."
+          />
+        </header>
+        <div className="min-h-0 overflow-y-auto">
+          <NothingHere
+            action={
+              <Action variant="primary" onClick={() => navigate({ to: SIGNED_IN_HOME })}>
+                Open your runs
+              </Action>
+            }
+          >
+            Every run you can open is on Home.
+          </NothingHere>
+        </div>
+      </div>
+    );
+  }
+
   return (
     /*
      * THE WORKBENCH, NOT SURFACE: a document column with a metadata sidebar is
@@ -541,22 +621,20 @@ function TrackPage() {
              * sitting there.
              *
              * Same family as the approvals heading that called a failed read an
-             * empty queue. Three states now, and they are three different
-             * things: still reading, could not read, and genuinely absent.
+             * empty queue. Three states, and they are three different things:
+             * still reading, could not read, and genuinely absent.
+             *
+             * FIFTH REVIEW, 2026-09-09: the third leg moved out of this ternary
+             * and into its own early return above, because a missing run has
+             * nothing to draw beneath it and needed a door. Two legs left, and
+             * the point that survives is the one this comment was written for:
+             * a failed read is not a missing run.
              */
-            title={
-              trackQ.isLoading
-                ? "This piece of work"
-                : trackQ.isError
-                  ? "This run could not be read."
-                  : "That work could not be found."
-            }
+            title={trackQ.isLoading ? "This piece of work" : "This run could not be read."}
             sub={
               trackQ.isLoading
                 ? "Reading the run."
-                : trackQ.isError
-                  ? "The run itself is untouched and still whatever it was a moment ago. This screen just could not read it."
-                  : "The address may be out of date, or the work belongs to another workspace. Nothing you were working on is affected."
+                : "The run itself is untouched and still whatever it was a moment ago. This screen just could not read it."
             }
           />
         )}

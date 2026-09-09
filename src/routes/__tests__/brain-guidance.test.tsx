@@ -2,8 +2,9 @@
  * Brain's guidance honesty, guarded.
  *
  * THE DEFECT THIS EXISTS TO KILL, found 2026-08-05. Brain's own headline on the
- * live demo workspace read "49 calls and 8 learnings are on the record, and none
- * has re-scored a call yet". Every word true, and both clauses about the size of
+ * live demo workspace read "49 decisions and 8 learnings are on the record, and
+ * none has re-scored a decision yet". Every word true, and both clauses about the
+ * size of
  * a pile, on the one surface whose entire claim is that the record LEARNS AND
  * GUIDES rather than stores. Meanwhile the page was already fetching the proof
  * that it guides (694 of 846 things learned had been read back by a run, across
@@ -100,9 +101,13 @@ const PASS_TONE = "text-mrd-pass";
 const FAIL_TONE = "text-mrd-fail";
 
 describe("Brain headline: guidance outranks the manifest", () => {
-  it("still leads with a re-scored call, which is the strongest claim there is", () => {
+  it("still leads with a re-scored decision, which is the strongest claim there is", () => {
+    // FIFTH REVIEW, 2026-09-09: the sentence is re-pinned on the noun the record
+    // itself uses. Intent unchanged -- a re-score still outranks every other
+    // rung -- but "call" was the queue's word for what waits on a person, and
+    // this counts graded decision rows.
     const head = recordHeadline(summary({ rescoreCount: 4 }), recall(), 49, 8, false);
-    expect(head).toBe("Real outcomes have re-scored 4 calls.");
+    expect(head).toBe("Real outcomes have re-scored 4 decisions.");
   });
 
   it("says the crew read the record back rather than counting the pile", () => {
@@ -111,7 +116,9 @@ describe("Brain headline: guidance outranks the manifest", () => {
     const head = recordHeadline(summary(), recall(), 49, 8, false);
     expect(head).toBe("The crew has read this record before acting.");
     expect(head).not.toMatch(/on the record/);
-    expect(head).not.toMatch(/\d+ calls and/);
+    // Re-pinned with the noun (fifth review, 2026-09-09): a guard on the retired
+    // spelling would pass vacuously and stop guarding the manifest fallback.
+    expect(head).not.toMatch(/\d+ decisions and/);
   });
 
   /**
@@ -153,7 +160,7 @@ describe("Brain headline: guidance outranks the manifest", () => {
       false,
     );
     expect(head).toBe(
-      "49 calls and 8 learnings are on the record, and none has re-scored a call yet.",
+      "49 decisions and 8 learnings are on the record, and none has re-scored a decision yet.",
     );
   });
 
@@ -309,7 +316,7 @@ describe("Brain guidance: the re-score admission", () => {
     // the headline stops saying it.
     const lines = guidanceLines({ recall: recall(), rescoreCount: 0, recallSaidBelow: false });
     const line = lineByKey(lines, "rescored")!;
-    expect(text(line.lead)).toBe("No outcome has moved a call's priority yet.");
+    expect(text(line.lead)).toBe("No outcome has moved a decision's priority yet.");
     expect(text(line.sub)).toMatch(/^Record what a shipped bet actually did/);
     expect(line.door).toBe("outcomes");
   });
@@ -331,13 +338,13 @@ describe("Brain headline: the forecast rung", () => {
   it("leads with what came true once a forecast has been graded", () => {
     const head = recordHeadline(summary(), recall(), 49, 8, false, forecast());
     expect(head).toBe("12 of 15 graded forecasts came true lately.");
-    // It outranks being read back but never the re-scored call.
+    // It outranks being read back but never the re-scored decision.
     expect(head).not.toBe("The crew has read this record before acting.");
   });
 
-  it("still steps aside for the re-scored call, which leads the ladder", () => {
+  it("still steps aside for the re-scored decision, which leads the ladder", () => {
     const head = recordHeadline(summary({ rescoreCount: 2 }), recall(), 49, 8, false, forecast());
-    expect(head).toBe("Real outcomes have re-scored 2 calls.");
+    expect(head).toBe("Real outcomes have re-scored 2 decisions.");
   });
 
   it("steps down to the recall claim on a miss, and lets guidance carry the miss", () => {

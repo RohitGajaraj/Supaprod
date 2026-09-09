@@ -152,7 +152,7 @@
  * THE GUIDANCE PASS, 2026-08-05. THE SURFACE WAS PROVING STORAGE.
  *
  * The founder read the live demo workspace's own headline back to the page:
- * "49 calls and 8 learnings are on the record, and none has re-scored a call
+ * "49 decisions and 8 learnings are on the record, and none has re-scored a decision
  * yet." Every word of that is true and it is still the wrong sentence, because
  * BOTH of its clauses are about the size of a pile. The product's claim is that
  * the record learns and GUIDES. That headline concedes the opposite.
@@ -176,7 +176,7 @@
  *
  * NOTHING IS LOST TO THE MOVE, which is the ratchet. The call, learning and doc
  * counts were already the second line, as Doors. The one clause that leaves the
- * head is "and none has re-scored a call yet", and it does not evaporate: it
+ * head is "and none has re-scored a decision yet", and it does not evaporate: it
  * becomes a line of its own in the new region, next to the mechanism it is
  * about and next to what makes it move, which is where an admission belongs.
  *
@@ -696,7 +696,7 @@ export const Route = createFileRoute("/_authenticated/outcomes")({
 });
 
 /**
- * The first line says what the record DID, not what it holds. "N calls are on
+ * The first line says what the record DID, not what it holds. "N decisions are on
  * the record" is the banned framing exactly: a manifest of storage. The size of
  * the record is real and useful, so it moves to the second line, where a size
  * belongs.
@@ -712,18 +712,24 @@ export const Route = createFileRoute("/_authenticated/outcomes")({
  * pulled into a run's system prompt, so every one of them is a moment the crew
  * read the record before it acted. That is the product's claim, stated in the
  * one place a person always reads, and until this rung existed every workspace
- * that had not yet re-scored a call landed on the manifest no matter how hard
+ * that had not yet re-scored a decision landed on the manifest no matter how hard
  * its record was working.
  *
  * SCOPES ARE NEVER MIXED IN ONE SENTENCE. The recall counts are owner-scoped
- * (agent_memory RLS is auth.uid() = user_id) and the calls and learnings below
+ * (agent_memory RLS is auth.uid() = user_id) and the decisions and learnings below
  * are workspace-scoped, which is why they live in different sentences and never
  * in one clause. brain-standing.functions.ts states the same rule at the read.
  */
+/* FIFTH REVIEW, 2026-09-09. This head used to say "call" for the thing it
+ * counts, and a call is the thing WAITING on a person (the hero says "3 calls
+ * are waiting for you"). What this counts is the decisions table -- a graded
+ * record entry -- which `moat-vis.ts` has always spelled "decision". One noun
+ * per thing: the parameter is renamed with the sentences so the code stops
+ * saying the wrong word too. */
 export function recordHeadline(
   summary: CompoundingSummary | null,
   recall: RecallRecord | null,
-  calls: number | null,
+  decisions: number | null,
   learnings: number | null,
   loading: boolean,
   /** The graded-forecast summary for this workspace; absent or null while the
@@ -733,8 +739,8 @@ export function recordHeadline(
   const rescored = summary?.rescoreCount ?? 0;
   if (rescored > 0) {
     return rescored === 1
-      ? "A real outcome has re-scored one call."
-      : `Real outcomes have re-scored ${rescored} calls.`;
+      ? "A real outcome has re-scored one decision."
+      : `Real outcomes have re-scored ${rescored} decisions.`;
   }
   /**
    * THE FORECAST RUNG, ADDED 2026-08-24. Between the re-scored call and the
@@ -787,18 +793,18 @@ export function recordHeadline(
   if (recall && recall.memoriesReached > 0) {
     return "The crew has read this record before acting.";
   }
-  if (calls === null && learnings === null) {
+  if (decisions === null && learnings === null) {
     return loading ? "Reading the record." : "The record did not load.";
   }
   const clauses: string[] = [];
-  if (calls) clauses.push(calls === 1 ? "one call" : `${calls} calls`);
+  if (decisions) clauses.push(decisions === 1 ? "one decision" : `${decisions} decisions`);
   if (learnings) clauses.push(learnings === 1 ? "one learning" : `${learnings} learnings`);
   if (clauses.length === 0) {
     // "Nothing is on the record yet" is a claim about the whole record, so it
     // needs BOTH halves read. With one of them still null the pile is not known
     // to be empty, only unmeasured, and the page admits the read instead of
     // asserting an empty workspace it never confirmed.
-    if (calls === null || learnings === null)
+    if (decisions === null || learnings === null)
       return loading ? "Reading the record." : "The record did not load.";
     return "Nothing is on the record yet.";
   }
@@ -831,7 +837,7 @@ export function recordHeadline(
    * contributes no clause and never a zero") applied to the tail as well.
    */
   const tail = learnings
-    ? "and none has re-scored a call yet."
+    ? "and none has re-scored a decision yet."
     : learnings === 0
       ? "and nothing has come back yet."
       : null;
@@ -1006,7 +1012,7 @@ export function guidanceLines(args: {
   if (rescoreCount === 0) {
     out.push({
       key: "rescored",
-      lead: "No outcome has moved a call's priority yet.",
+      lead: "No outcome has moved a decision's priority yet.",
       sub: "Record what a shipped bet actually did, and the ranking it came from moves with it.",
       door: "outcomes",
     });
@@ -1245,7 +1251,7 @@ function MemoryPage() {
    * Measured in production before the fix: 5 users belong to more than one
    * workspace, 4 of them to a seeded demo workspace, and one REAL account saw 21
    * learnings of which 5 were demo. The headline directly above this read --
-   * "Real outcomes have re-scored N calls" -- was inflated by roughly a quarter
+   * "Real outcomes have re-scored N decisions" -- was inflated by roughly a quarter
    * with fiction, on a live account, sitting above a sub whose counts were
    * correctly scoped. Two scopes in one paragraph, with nothing marking which was
    * which.
@@ -1515,8 +1521,8 @@ function MemoryPage() {
   // says, because a manifest is not a claim. Every clause is a count that
   // loaded, so a failed read contributes no clause and never a zero.
   //
-  // EVERY CLAUSE THAT HAS A TAB IS A DOOR TO IT. Calls, learnings and docs each
-  // name a table that one of the five tabs directly below renders, and all
+  // EVERY CLAUSE THAT HAS A TAB IS A DOOR TO IT. Decisions, learnings and docs
+  // each name a table that one of the five tabs directly below renders, and all
   // three were plain spans: the page counted them at you and then asked you to
   // work out which door held them. Three counts, three tabs, no new
   // destinations invented. "Last added" keeps no door, because a date is not a
@@ -1524,8 +1530,12 @@ function MemoryPage() {
   const sizeClauses: ReactNode[] = [];
   if (counts && counts.decisions > 0) {
     sizeClauses.push(
-      <Door key="calls" title="Open the decisions" onClick={() => setTab("decisions")}>
-        <Figure>{counts.decisions}</Figure> {counts.decisions === 1 ? "call" : "calls"}
+      /* FIFTH REVIEW, 2026-09-09. The door said "12 calls", its title said
+         "Open the decisions" and the tab it opens is labelled Decisions: one
+         number wearing two nouns inside one control. The noun that stays is
+         the one the tab and the table already use. */
+      <Door key="decisions" title="Open the decisions" onClick={() => setTab("decisions")}>
+        <Figure>{counts.decisions}</Figure> {counts.decisions === 1 ? "decision" : "decisions"}
       </Door>,
     );
   }
@@ -1573,7 +1583,7 @@ function MemoryPage() {
    * ONE CAUSE, ONE STATEMENT.
    *
    * Rendered signed in with a dead backend, this page said the same thing five
-   * times: the head, the size line, the standing rules, the map, and the calls
+   * times: the head, the size line, the standing rules, the map, and the decisions
    * -- each an honest sentence about its own failed read, four of them carrying
    * a "Try again", and after the transport fix two of them carrying the SAME
    * "Your session ended" sentence one above the other.
@@ -1650,7 +1660,7 @@ function MemoryPage() {
         {/*
          * THE PAGE'S OWN NAME, ADDED FOR P-14a. `RecordHead` below has always
          * carried this page's ONLY title, and it is computed -- "Real outcomes
-         * have re-scored 3 calls.", "Brain" while loading, "The record did not
+         * have re-scored 3 decisions.", "Brain" while loading, "The record did not
          * load." on failure -- which means the page had no FIXED name at all
          * outside the browser tab. `?section=memory` and every settings pane
          * already gives a person a static identity to arrive at; this one did
@@ -1687,7 +1697,7 @@ function MemoryPage() {
           here" and "we could not find out" are different facts.
 
           AND IT NAMES WHICH HALF DIED. Two reads feed the head: getBrainStatus
-          carries the calls and the docs, getCompanyBrainStats carries what has
+          carries the decisions and the docs, getCompanyBrainStats carries what has
           come back. Losing one of them is the common case and it used to draw
           nothing at all, which left the reader with a head that had quietly
           stopped counting one half without saying so. A banner that says "the
@@ -1703,7 +1713,7 @@ function MemoryPage() {
             {brain.isError && stats.isError
               ? "The size of the record did not load. Everything it holds is still behind the five doors below."
               : brain.isError
-                ? "The count of calls and docs did not load, so the line above leaves them out. Both are still behind the doors below."
+                ? "The count of decisions and docs did not load, so the line above leaves them out. Both are still behind the doors below."
                 : "The count of what has come back did not load, so the line above leaves it out. Every outcome is still behind the Outcomes door below."}
           </ReadFailedLine>
         ) : null}
@@ -1809,9 +1819,9 @@ function MemoryPage() {
               <span className="mt-mrd-4 block">
                 Worked through: you capture &ldquo;three trials asked for SSO this week&rdquo;. That
                 becomes a bet, the bet becomes a spec, the spec ships, and on Learn you press{" "}
-                <b>Record it</b> to say how it landed. From that one pass this page holds a call you
-                can search, an outcome with the calls that led to it, a map with the thread drawn
-                between them, and a rule the crew reads before it acts next time.
+                <b>Record it</b> to say how it landed. From that one pass this page holds a decision
+                you can search, an outcome with the decisions that led to it, a map with the thread
+                drawn between them, and a rule the crew reads before it acts next time.
               </span>
             </NothingYet>
           </Region>
@@ -1927,7 +1937,7 @@ function MemoryPage() {
               >
                 Nothing on the record is linked to anything else yet. The first thread is drawn the
                 moment one piece of work comes from another: a signal becomes a bet, a bet becomes a
-                spec, an outcome comes back on a call you shipped.
+                spec, an outcome comes back on a decision you shipped.
               </NothingYet>
             ) : null}
 
@@ -2152,7 +2162,7 @@ function MemoryPage() {
                         <CtxRow
                           name={
                             <>
-                              <Num>{ledger.beliefsRevised}</Num> calls later replaced
+                              <Num>{ledger.beliefsRevised}</Num> decisions later replaced
                             </>
                           }
                           sub="you changed your mind on evidence"

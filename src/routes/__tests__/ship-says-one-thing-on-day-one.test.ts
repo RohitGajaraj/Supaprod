@@ -110,17 +110,19 @@ describe("what it says instead", () => {
     expect(has("Promoting is always a person")).toBe(true);
   });
 
-  it("hands over two doors, one primary, the way Learn does", () => {
-    // P-14 (A-QUEUE.md, R-34): /build and /plan are both deleted, so both
-    // doors this test originally pinned as DISTINCT destinations now land on
-    // the same page (Start carries the live block and specs in flight
-    // together). Still two Action buttons, still one primary, worth keeping
-    // that shape even though the destination collapsed -- the copy still
-    // frames two different questions ("what is being built" / "the specs"),
-    // and this page is itself blocked for deletion behind P-14b, so a
-    // redesign of the buttons themselves is out of this sweep's scope.
+  it("hands over one door, and it is the one that keeps its promise", () => {
+    // P-14 (A-QUEUE.md, R-34) deleted /build and /plan, so the two doors this
+    // test once pinned as DISTINCT destinations both landed on the home. It
+    // kept pinning the pair anyway because "this page is itself blocked for
+    // deletion behind P-14b, so a redesign of the buttons is out of scope".
+    // P-14b landed on 2026-09-09 (this block now lives in ShipRecord, mounted
+    // on Outcomes' artifacts tab), so the deferral expired and the fifth
+    // review closed it: two labels promising two things and landing on one
+    // page is a contradiction, and the home has nothing on it called a spec.
+    // Same intent as before -- the empty state must hand over a real door --
+    // pinned now on the door that survives rather than on the pair.
     expect(has("See what is being built")).toBe(true);
-    expect(has("Open the specs")).toBe(true);
+    expect(has("Open the specs")).toBe(false);
     expect(has("navigate({ to: SIGNED_IN_HOME })")).toBe(true);
   });
 

@@ -1303,7 +1303,10 @@ export function DiscoverSurface({
         verb: "You kept it",
         consequence: (
           <>
-            {title} is now a ranked bet on Decide, carrying <Num>{carried}</Num> signal
+            {/* FIFTH REVIEW, 2026-09-09: the receipt named Decide, which is not
+                a place any more (/decide redirects). It says where the bet
+                actually is now, in the words the home uses for that region. */}
+            {title} is now in your ranked bets on Home, carrying <Num>{carried}</Num> signal
             {plural(carried)} of evidence. The Critic scores it next.
           </>
         ),
@@ -2712,8 +2715,11 @@ export function DiscoverSurface({
             /* P-14 (A-QUEUE.md ruling, R-34): /decide is deleted -- the
                ranked queue's home is Start's "Or start one of these" (top
                three by ICE) and Find anything › Findings. */
+            /* FIFTH REVIEW, 2026-09-09: the title said "Open Start" and the rail
+               has said Home since 2026-09-08. A door names the word the shell
+               uses, not the route it posts to. */
             onClick={() => navigate({ to: "/start", search: {} })}
-            title="Open Start"
+            title="Open Home"
             className="rounded-mrd-xs transition-colors hover:text-mrd-ink"
           >
             {promotedCount > 0 ? (

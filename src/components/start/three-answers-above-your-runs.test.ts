@@ -220,11 +220,13 @@ describe("what the record learned this week", () => {
   it("uses a window, and says so in its own words", () => {
     expect(learnedAnswer(3)).toMatchObject({
       read: "answered",
-      line: "3 calls came back this week and the record was re-scored.",
+      // FIFTH REVIEW, 2026-09-09: same claim, the record's own noun. "Call" is
+      // reserved for what waits on a person; this counts graded decision rows.
+      line: "3 decisions came back this week and the record was re-scored.",
       door: { label: "Read them", to: "/outcomes" },
     });
     expect(learnedAnswer(1)).toMatchObject({
-      line: "1 call came back this week and the record was re-scored.",
+      line: "1 decision came back this week and the record was re-scored.",
     });
   });
 });

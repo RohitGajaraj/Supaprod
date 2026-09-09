@@ -308,16 +308,18 @@ export function GraphRecordRegions({
                     <div key={d.key} style={{ marginLeft: 20 }}>
                       <Row
                         tight
-                        lead={d.title || "Untitled call"}
+                        lead={d.title || "Untitled decision"}
                         sub={
                           d.direct
-                            ? "the outcome names this call directly"
+                            ? "the outcome names this decision directly"
                             : `${d.hops} steps upstream`
                         }
                         onClick={() => recentre(d.key)}
                         action={
                           nodeDoor(...splitKey(d.key)) ? (
-                            <Door title="Open this call" onClick={() => openRecord(d.key)}>
+                            /* FIFTH REVIEW, 2026-09-09: one noun per thing. A
+                               call waits on a person; this opens a decision. */
+                            <Door title="Open this decision" onClick={() => openRecord(d.key)}>
                               Open
                             </Door>
                           ) : undefined

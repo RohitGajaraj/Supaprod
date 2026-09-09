@@ -112,7 +112,7 @@ export type ReleasedItem = { title: string; url: string; releasedAt: string };
  * clock to keep in step with the first.
  *
  * Ahead of `learnedAnswer` in `homeAnswers`' own order: a release is a
- * bigger fact than a re-scored call, and "ahead of re-scored calls" is the
+ * bigger fact than a re-scored decision, and "ahead of re-scored decisions" is the
  * packet's own ordering rule.
  *
  * `zone`/`nowIso` (P-130, A-QUEUE.md): the time is read through the
@@ -154,17 +154,20 @@ function answeredRelease(releases: readonly ReleasedItem[], zone: string, nowIso
 /**
  * WHAT THE RECORD LEARNED THIS WEEK.
  *
- * Calls whose forecast came back and was graded in the last seven days. Seven
+ * Decisions whose forecast came back and was graded in the last seven days.
+ * FIFTH REVIEW, 2026-09-09: "call" is the thing WAITING on a person, and the
+ * hero one region above says exactly that. This counts graded decision rows,
+ * so it says decision. Seven
  * days is a WINDOW rather than a memory, and that is right here in a way it is
  * not above: this answers "what changed lately", not "what have you missed", so
  * it does not need the person's last visit and must not claim to.
  */
 export function learnedAnswer(count: number | null): Answer {
   if (count === null) return UNREAD;
-  if (count === 0) return { read: "answered-empty", line: "No call came back this week." };
+  if (count === 0) return { read: "answered-empty", line: "No decision came back this week." };
   return {
     read: "answered",
-    line: `${count} ${count === 1 ? "call" : "calls"} came back this week and the record was re-scored.`,
+    line: `${count} ${count === 1 ? "decision" : "decisions"} came back this week and the record was re-scored.`,
     door: { label: "Read them", to: "/outcomes" },
   };
 }

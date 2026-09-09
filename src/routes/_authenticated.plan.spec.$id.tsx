@@ -880,13 +880,23 @@ function SpecEditorPage() {
       // shows, so its list is stale the moment this lands.
       void qc.invalidateQueries({ queryKey: ["design-work"] });
       if (next === "design") {
-        // P-14 (A-QUEUE.md, R-34): /design is deleted, and its own ruling
-        // names no single addressable replacement for "go draw this spec" --
-        // the drawing's new homes are each run's artifact pane and Find
-        // anything's prototype group, neither reachable by a URL a click can
-        // aim at from here. Falls back to Start; flagged as a real gap this
-        // sweep cannot close, not papered over as a working door.
-        void navigate({ to: SIGNED_IN_HOME });
+        /*
+         * P-14 (A-QUEUE.md, R-34): /design is deleted, and its own ruling names
+         * no single addressable replacement for "go draw this spec".
+         *
+         * FIFTH REVIEW, 2026-09-09. What this did instead was leave the page:
+         * a person chose a route for a spec and landed on the home, where no
+         * row says a drawing was requested or which spec it was for. The
+         * write is real (`chooseDesignRoute` files a `design_requested` stage
+         * event), so the honest move is to stay where the click happened and
+         * show it. The "This spec was handed to Design" Line below renders
+         * from the data set one line above, and the receipt says the same
+         * thing in the place every other act on this page reports itself.
+         */
+        commit(
+          "You handed it to Design",
+          "A drawing was requested. It is on this spec's stage record, and Design lists it.",
+        );
         return;
       }
       /**
@@ -2381,7 +2391,23 @@ function SpecEditorPage() {
                         // this spec's stage record, and writing `design_requested`
                         // here would put the trail out of order to repeat what
                         // it already says (see `designIsDoneAndApproved`).
-                        void navigate({ to: SIGNED_IN_HOME });
+                        //
+                        // FIFTH REVIEW, 2026-09-09: it went to the home doing
+                        // nothing at all. The drawing IS addressable since P-24
+                        // (`/track/$trackId?artifact=<prd id>` opens this spec's
+                        // artifact on the run), and this page already resolves
+                        // the run through `raisedBy`. Continue goes where the
+                        // work is, and falls back to the home only when no run
+                        // holds this spec.
+                        if (raisedBy) {
+                          void navigate({
+                            to: "/track/$trackId",
+                            params: { trackId: raisedBy.id },
+                            search: { artifact: id },
+                          });
+                        } else {
+                          void navigate({ to: SIGNED_IN_HOME });
+                        }
                       } else {
                         chooseRoute.mutate(route);
                       }
@@ -2771,7 +2797,9 @@ function SpecEditorPage() {
                         bet, 34 point at a `committed` one and 4 at a `discovery`
                         one, so it is the majority rendering. */}
                       {sourceBet.status ? (
-                        <> · its state on Decide is {statusLabel(sourceBet.status)}</>
+                        /* FIFTH REVIEW, 2026-09-09: the state is the bet's own,
+                           and Decide is not a place a reader can go. */
+                        <> · its state is {statusLabel(sourceBet.status)}</>
                       ) : null}
                     </>
                   }
@@ -2782,7 +2810,10 @@ function SpecEditorPage() {
                     on the ranking, not the bet" honesty still applies. */}
                   <Door
                     onClick={() => void navigate({ to: SIGNED_IN_HOME })}
-                    title="Open Start, where this bet sits in the ranking"
+                    /* FIFTH REVIEW, 2026-09-09: Home, not Start. The rail row was
+                       renamed on 2026-09-08 and a tooltip is the one place a
+                       retired word survives longest. */
+                    title="Open Home, where this bet sits in the ranking"
                   >
                     Open the ranking
                   </Door>

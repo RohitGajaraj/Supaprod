@@ -16,7 +16,8 @@
  *   `row`    the destination opens THIS artifact. Five kinds have one (P-14,
  *            A-QUEUE.md: `mission` moved to list when /runs/$missionId went).
  *   `list`   the destination is the right surface but cannot address the row, so
- *            the label says "the queue" and not "this bet". Four kinds.
+ *            the label names the LIST and not the row: "the ranked bets", never
+ *            "this bet". Four kinds.
  *   absent   the product genuinely has nowhere to send you. Named in the table
  *            with the reason rather than quietly aimed at something adjacent.
  *
@@ -45,7 +46,10 @@ export type NodeDoor = {
 const DOORS: Record<string, (id: string) => NodeDoor> = {
   // Brain's own two drills. Both are real per-row detail views on this surface.
   decision: (id) => ({
-    label: "Open this call",
+    // FIFTH REVIEW, 2026-09-09: "call" is the queue's word for what waits on a
+    // person. A graded record entry is a decision, which is what the tab this
+    // opens is called.
+    label: "Open this decision",
     tier: "row",
     to: "/outcomes",
     search: { tab: "decisions", decision: id },
@@ -86,14 +90,17 @@ const DOORS: Record<string, (id: string) => NodeDoor> = {
    * LIST TIER, and the label says so. Discover's focus resolver matches a signal
    * or a ranked cluster; an opportunity id matches neither and resolves to null,
    * so pointing `focus` at one would put the reader on whichever bet happened to
-   * rank first with nothing explaining why. The queue is the honest destination.
+   * rank first with nothing explaining why.
+   *
+   * FIFTH REVIEW, 2026-09-09. This read "Open the queue" and posted to
+   * `/arriving?tab=queue`, whose own `beforeLoad` throws a redirect to the home
+   * for exactly that key: the reader pressed a button naming a surface that
+   * left the product on 2026-07-13 and arrived somewhere with no queue on it.
+   * The redirect stays for legacy links; the door stops going through it and
+   * names what the destination actually calls this region ("Ranked bets", the
+   * home's own aria-label). Same shape as `mission` and `task` above.
    */
-  opportunity: () => ({
-    label: "Open the queue",
-    tier: "list",
-    to: "/arriving",
-    search: { tab: "queue" },
-  }),
+  opportunity: () => ({ label: "Open the ranked bets", tier: "list", to: "/start" }),
   task: () => ({ label: "Open the tasks", tier: "list", to: "/start" }),
   // P-14b (A-QUEUE.md, 2026-09-09): /ship is a redirect and the record it
   // drew is Outcomes' artifacts tab (`ship/ShipRecord.tsx`). Addressed with

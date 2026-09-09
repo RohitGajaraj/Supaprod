@@ -359,9 +359,15 @@ export function LearnRecord() {
             ) : null}
           </>
         ) : (outcomes?.total ?? 0) === 0 ? (
-          /* A new workspace gets a door, not a paragraph: Ship is where work
-             becomes gradeable, Start is where the specs in flight live. Both
-             are `Action`, neither is `Approve`: nothing here is held. */
+          /* A new workspace gets a door, not a paragraph: the artifacts tab is
+             where work becomes gradeable. `Action`, never `Approve`: nothing
+             here is held.
+
+             FIFTH REVIEW, 2026-09-09: the second door said "Open the specs"
+             and landed on the home, which has nothing called a spec on it (a
+             spec is a run's Plan-station artifact and opens from the run).
+             A label that promises a place the destination does not have is a
+             dead end with a button on it, so it is gone. */
           <>
             <Quiet
               says="Nothing has shipped yet, so there is nothing to grade."
@@ -378,7 +384,6 @@ export function LearnRecord() {
               >
                 See what is waiting to go out
               </Action>
-              <Action onClick={() => navigate({ to: "/start" })}>Open the specs</Action>
             </Actions>
           </>
         ) : (outcomes?.validated ?? 0) === 0 ? (

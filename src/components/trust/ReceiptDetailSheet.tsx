@@ -190,8 +190,10 @@ export function ReceiptDetail({
     if (e.kind === "prd") return () => navigate({ to: "/plan/spec/$id", params: { id: e.id } });
     // P-14 (A-QUEUE.md, R-35): same fix as sourceGo above, same reason.
     if (e.kind === "mission") return () => navigate({ to: SIGNED_IN_HOME });
-    if (e.kind === "opportunity")
-      return () => navigate({ to: "/arriving", search: { tab: "queue" } as never });
+    // FIFTH REVIEW, 2026-09-09: `/arriving?tab=queue` throws a redirect to the
+    // home in its own beforeLoad, so this row went to the home through a bounce
+    // that named a surface retired on 2026-07-13. Same destination, said once.
+    if (e.kind === "opportunity") return () => navigate({ to: SIGNED_IN_HOME });
     return null;
   };
 

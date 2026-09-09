@@ -2718,13 +2718,19 @@ export function ShipRecord() {
             this station is held pending a click on either: the accent means
             a person is REQUIRED, and a door to Build is an offer.
             P-14 (A-QUEUE.md, R-34): /build and /plan are both deleted --
-            the live block and work in flight are both Start's rows now,
-            so both buttons land there. */}
+            the live block and work in flight are both the home's rows now.
+
+            FIFTH REVIEW, 2026-09-09: there were two buttons here and both
+            navigated to the same page under different promises. The second
+            named a kind of artifact the home does not carry -- a spec is a
+            run's Plan-station artifact and opens from the run's artifact pane
+            -- so it is gone. One door, one destination, one promise. The
+            guard is in ship-says-one-thing-on-day-one.test.ts and it asserts
+            that label's absence, so do not name it again in this file. */}
           <Actions>
             <Action variant="primary" onClick={() => navigate({ to: SIGNED_IN_HOME })}>
               See what is being built
             </Action>
-            <Action onClick={() => navigate({ to: SIGNED_IN_HOME })}>Open the specs</Action>
           </Actions>
 
           {/* WHAT THE THING BEING WAITED FOR LOOKS LIKE, drawn rather than

@@ -59,11 +59,19 @@ export const CATALOG: CatalogEntry[] = [
     kind: "SPEC",
     run: { to: "/start", search: {} },
   },
+  /*
+   * FIFTH REVIEW, 2026-09-09: this pointed at /today, whose route P-10 deleted
+   * on 2026-09-02. It kept passing the "run.to is a real route" guard only
+   * because the route canon it checks against still listed /today; the canon
+   * was corrected in the same pass and this entry was one of four the guard
+   * then caught. A call is the thing waiting on a person, and the queue of them
+   * is Approvals.
+   */
   {
     id: "answer-call",
     pitch: "Answer the waiting call",
     kind: "CALL",
-    run: { to: "/today" },
+    run: { to: "/approvals" },
   },
   /*
    * P-14 (A-QUEUE.md ruling, R-34): /build is deleted -- "there are no
@@ -111,11 +119,15 @@ export const CATALOG: CatalogEntry[] = [
     pitch: "Verify the audit trail integrity fingerprint",
     run: { to: "/engine-room", search: { room: "record" } },
   },
-  {
-    id: "open-calendar",
-    pitch: "Open your meetings and calendar",
-    run: { to: "/today" },
-  },
+  /*
+   * "Open your meetings and calendar" was removed on 2026-09-09 (fifth review)
+   * rather than repointed. It sent people to /today, deleted by P-10, and the
+   * meetings themselves went with that page's PM Desk -- outcomes.tsx's own
+   * note records that the calendar TAB folded into Decisions while "calendar's
+   * meetings themselves moved to Today's PM Desk". There is no surface left to
+   * open, and a catalog entry naming a capability the product does not have is
+   * worse than a missing one.
+   */
   {
     id: "memory-graph",
     pitch: "Explore the knowledge graph",

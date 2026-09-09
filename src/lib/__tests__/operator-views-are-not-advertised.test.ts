@@ -14,10 +14,14 @@
  *
  * WHAT THIS FILE PROTECTS, and why each half matters:
  *
- *   1. The addresses still ANSWER. `/evals` redirects to `?view=suites`, and the
- *      calibration panel's own rows link into it. Marking a view as operator
- *      must never strand a saved link — a door that is not advertised still
- *      opens.
+ *   1. The addresses still ANSWER. `?view=suites` and `?view=prompts` on
+ *      /engine-room resolve, and the calibration panel's own rows link into
+ *      them. Marking a view as operator must never strand a saved link — a door
+ *      that is not advertised still opens. (The `/evals` stub this used to name
+ *      was deleted by P-10 on 2026-09-02 along with the other 48 redirect-only
+ *      routes, and the fifth review dropped the assertion that read it out of
+ *      a map documenting doors that no longer exist. The property it was
+ *      guarding is the one directly below it, which reads the live view list.)
  *   2. The tabs are NOT DRAWN. That is the whole point of the change, and it is
  *      the half that silently reverts: a later edit that maps the full list
  *      instead of the drawn one puts the suite editor straight back beside the
@@ -27,7 +31,6 @@
  */
 import { describe, it, expect } from "bun:test";
 import { ROOM_TAB_META, drawnRoomTabs, type RoomKey } from "@/lib/engine-room-glance";
-import { LEGACY_REDIRECTS } from "@/lib/legacy-redirects";
 
 const OPERATOR_VIEWS = ["suites", "prompts"] as const;
 
@@ -47,14 +50,6 @@ describe("engineering tooling is reachable but not advertised", () => {
     for (const id of OPERATOR_VIEWS) {
       expect(ROOM_TAB_META.quality.some((t) => t.id === id)).toBe(true);
     }
-  });
-
-  it("the /evals legacy redirect still points at a view that exists", () => {
-    const evals = LEGACY_REDIRECTS["/evals"];
-    expect(evals).toBeDefined();
-    const view = (evals!.search as { view?: string } | undefined)?.view;
-    expect(view).toBe("suites");
-    expect(ROOM_TAB_META.quality.some((t) => t.id === view)).toBe(true);
   });
 
   it("no tab is drawn for them while you are reading the score", () => {
