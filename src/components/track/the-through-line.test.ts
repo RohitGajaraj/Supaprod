@@ -291,3 +291,89 @@ describe("the driver's own work item is not the station's output", () => {
     expect(l?.did).toBe("started, and filed nothing");
   });
 });
+
+/**
+ * "FILED" IS THE WEAKEST VERB AVAILABLE FOR A DECISION.
+ *
+ * On `6cc7a010` the story read `Decide filed "Reschedule installer visit from
+ * order page"` and the decision was to WAIT. The title names the subject and
+ * says nothing about the direction, so a person reading that run's story could
+ * not know the loop had decided against it -- while Plan, Design and Build then
+ * filed a spec, a prototype and a code change underneath.
+ *
+ * `decisions.call` records the direction as of 2026-09-10 and reaches this line
+ * through `ARTIFACT_SOURCE.decision.also`.
+ */
+describe("a decision's line says which way the call went", () => {
+  const decided = (call: unknown) =>
+    throughLine({
+      stops: [
+        {
+          station: "decide",
+          items: [
+            {
+              kind: "decision",
+              artifactId: "d-1",
+              title: "Reschedule installer visit from order page",
+              missing: false,
+              fields: call === undefined ? {} : { call },
+            },
+          ],
+        },
+      ],
+      standing: "decide",
+    })[0];
+
+  it("says it chose not to build, when that is what the record says", () => {
+    expect(decided("do-not-build")?.did).toBe(
+      'chose not to build "Reschedule installer visit from order page"',
+    );
+  });
+
+  it("and that it chose to build", () => {
+    expect(decided("build")?.did).toBe(
+      'chose to build "Reschedule installer visit from order page"',
+    );
+  });
+
+  it("KEEPS 'filed' when nobody recorded a direction", () => {
+    /*
+     * The load-bearing half. 33 of 61 agent decisions carry no direction,
+     * because it was never recorded before the column existed, and "nobody
+     * wrote one down" is not "they decided to build". A story that guessed
+     * would invent the one fact the column was added to stop being invented.
+     */
+    expect(decided(null)?.did).toBe('filed "Reschedule installer visit from order page"');
+    expect(decided(undefined)?.did).toBe('filed "Reschedule installer visit from order page"');
+  });
+
+  it("and on a value this build does not know", () => {
+    // The column is text with a CHECK, not a type, and a newer deploy can write
+    // a third word. Falling back to "filed" says less and stays true.
+    expect(decided("maybe")?.did).toBe('filed "Reschedule installer visit from order page"');
+    expect(decided("BUILD")?.did).toBe('filed "Reschedule installer visit from order page"');
+  });
+
+  it("and never on a kind that is not a decision", () => {
+    // `call` on a prototype would be a column that does not exist; if one ever
+    // arrives, it is not this sentence's business.
+    const l = throughLine({
+      stops: [
+        {
+          station: "design",
+          items: [
+            {
+              kind: "prototype",
+              artifactId: "p-1",
+              title: "Reschedule from the order page",
+              missing: false,
+              fields: { call: "do-not-build" },
+            },
+          ],
+        },
+      ],
+      standing: "design",
+    })[0];
+    expect(l?.did).toBe('filed "Reschedule from the order page"');
+  });
+});

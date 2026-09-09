@@ -170,7 +170,38 @@ function didClause(items: LineItem[]): string | null {
      the products only. */
   const titled = made.filter((i) => i.title && i.title.trim());
   if (made.length === 1 && titled.length === 1) {
-    return `filed "${titled[0]!.title!.trim()}"`;
+    const one = titled[0]!;
+    /*
+     * ── "FILED" IS THE WEAKEST VERB AVAILABLE FOR A DECISION ───────────────
+     *
+     * On `6cc7a010` this line read:
+     *
+     *   Decide filed "Reschedule installer visit from order page"
+     *
+     * and the decision was to WAIT. The title names the subject and says
+     * nothing about the direction, so a person reading the story of that run
+     * had no way to know the loop had decided against it -- while Plan, Design
+     * and Build then filed a spec, a prototype and a code change underneath.
+     *
+     * `decisions.call` records the direction as of 2026-09-10 (Lane 3), and it
+     * reaches this line through `ARTIFACT_SOURCE.decision.also`. So the verb
+     * carries it: "chose to build" or "chose not to build", which is the same
+     * length as "filed" and is the fact the sentence was missing.
+     *
+     * NULL KEEPS "FILED", and that is the load-bearing half. 33 of 61 agent
+     * decisions carry no direction because it was never recorded before the
+     * column existed, and "nobody wrote one down" is not "they decided to
+     * build". A story that guessed would invent the one fact the column was
+     * added to stop being invented.
+     */
+    const call = one.kind === "decision" ? one.fields?.call : null;
+    const verb =
+      call === "do-not-build"
+        ? "chose not to build"
+        : call === "build"
+          ? "chose to build"
+          : "filed";
+    return `${verb} "${one.title!.trim()}"`;
   }
   /* Counted over what it MADE, so a mission alongside a prototype does not read
      as "filed 3 prototypes and 1 run" -- the same wrong verb in a count instead
