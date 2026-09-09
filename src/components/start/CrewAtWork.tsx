@@ -23,7 +23,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { AgentPresence } from "@/components/meridian/AgentPresence";
-import { ReadFailedLine } from "@/components/meridian/surface-parts";
+import { Eyebrow, ReadFailedLine } from "@/components/meridian/surface-parts";
 import { AGENT_STATIONS, agentDisplayName, type AgentStation } from "@/lib/agent-vocabulary";
 import { STALL_MINUTES } from "@/lib/loop-health.functions";
 import { runningNowKey } from "@/lib/query-keys";
@@ -133,7 +133,7 @@ export function CrewAtWork({
         aria-label="Working now"
         className={`flex flex-col gap-mrd-2 ${className}`}
       >
-        <span className="mrd-eyebrow">Working now</span>
+        <Eyebrow>Working now</Eyebrow>
         <ReadFailedLine error={q.error} onRetry={() => void q.refetch()}>
           Cannot see who is working.
         </ReadFailedLine>
@@ -147,7 +147,7 @@ export function CrewAtWork({
       aria-label="Working now"
       className={`flex flex-col gap-mrd-2 ${className}`}
     >
-      <span className="mrd-eyebrow">Working now</span>
+      <Eyebrow>Working now</Eyebrow>
       <ul className="flex flex-col gap-mrd-1">
         {seats.map((s) => {
           const { doing, quiet } = seatLine(s, Date.now());

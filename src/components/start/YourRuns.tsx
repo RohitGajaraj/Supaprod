@@ -25,7 +25,7 @@ import { useNavigate } from "@tanstack/react-router";
 
 import { Journey, JOURNEY_ROW_WIDTH, type JourneyKey } from "@/components/meridian/Journey";
 import { ROW_GAP, Row } from "@/components/meridian/rows";
-import { Action, Chevron, ReadFailedLine, SectionHead } from "@/components/meridian/surface-parts";
+import { Action, Chevron, Eyebrow, ReadFailedLine } from "@/components/meridian/surface-parts";
 import { StatusChip } from "@/components/meridian/StatusChip";
 import { RecordTag } from "@/components/meridian/RecordsTable";
 import { SlowRead } from "@/components/shell/SlowRead";
@@ -302,7 +302,15 @@ export function YourRuns({
       className={`flex flex-col gap-mrd-2 font-mrd ${className}`}
       aria-label="Your runs"
     >
-      <SectionHead>Your runs</SectionHead>
+      {/* ONE WAY TO NAME A BLOCK ON THIS PAGE (craft pass, 2026-09-09). This
+          was the home's only `SectionHead`, which draws a hairline seam across
+          the column, while its two labelled neighbours drew a bare eyebrow:
+          one job, two weights. The seam divides a page into sections, and the
+          home is one flowing column whose movements are now separated by the
+          spacing ramp, so the rule that does that work is doing it twice. The
+          seam stays where sections genuinely need separating, which is the
+          dense operator surfaces. */}
+      <Eyebrow>Your runs</Eyebrow>
       {/* Not a live region: the rows carry a clock that changes every second
           while a seat works, and a live list read a timestamp aloud once a
           second (third review, 2026-09-08). The state sentences announce. */}

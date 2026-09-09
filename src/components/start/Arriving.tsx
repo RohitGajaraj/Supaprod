@@ -41,7 +41,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useNavigate } from "@tanstack/react-router";
 
-import { Door } from "@/components/meridian/surface-parts";
+import { Door, Eyebrow } from "@/components/meridian/surface-parts";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { getSenseCoverage, getThemePromotionCounts } from "@/lib/discovery.functions";
 
@@ -178,7 +178,7 @@ export function Arriving({ door = true }: { door?: boolean } = {}) {
       className="flex flex-wrap items-baseline gap-mrd-3 font-mrd"
       aria-label="Findings"
     >
-      <span className="mrd-eyebrow">Findings</span>
+      <Eyebrow>Findings</Eyebrow>
       <span className="text-mrd-base text-mrd-mute">{line}</span>
       {/* "/discover" -> "/arriving" (P-14a, 2026-09-02). The door is the
           caller's to withhold: on the home the arriving answer one line up

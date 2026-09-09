@@ -19,9 +19,12 @@
  * composer focused. Sources connect later, from Sources; nothing is gated on
  * a connection.
  *
- * Everything it writes already had a writer: `seedWorkspaceForTrack` (the
- * workspace, the product row, the marked sample rows), `renameWorkspace`,
- * `upsertBriefItem`, `completeOnboarding`. No new server function.
+ * Everything it writes has ONE writer now: `openFirstRun`, which runs the seed,
+ * the two names, the positioning brief and the completion on the request's own
+ * client (Lane 3, fourth review). The screen presses once. It used to press
+ * seven times, each paying its own auth hop, and this paragraph named the four
+ * functions that press replaced for a day after three of them were deleted:
+ * prose outliving its code, caught by the lane that removed them.
  */
 import * as React from "react";
 import { useNavigate } from "@tanstack/react-router";
