@@ -62,6 +62,34 @@ describe("the shell says one number, the queue's, with the track gates as the fl
   });
 });
 
+/**
+ * `listGatesOnTracks`'s OWN body, bounded by the next top-level export.
+ *
+ * ── THE SLICE USED TO RUN PAST THE FUNCTION, AND IT WAS FOUND BY ACCIDENT ──
+ * It ended at the first `"\n  });"` after the declaration. This function does
+ * not end that way -- it is wrapped in `withStartReaderTiming`, so it closes
+ * `\n  }),\n);` -- and the search therefore ran on into whatever LATER function
+ * happened to close that way. On 2026-09-10 an unrelated comment eight hundred
+ * lines below used the word "within" and failed a guard about this query's date
+ * filters.
+ *
+ * The assertions below are unchanged. Only the region they read is corrected to
+ * the function they name, which is the difference between fixing an instrument
+ * and widening a baseline.
+ */
+function gatesBody(): string {
+  const start = TRACK_SRC.indexOf("export const listGatesOnTracks");
+  expect(start, "listGatesOnTracks moved; re-point this test").toBeGreaterThan(-1);
+  const next = TRACK_SRC.indexOf("\nexport ", start + 1);
+  const body = TRACK_SRC.slice(start, next === -1 ? TRACK_SRC.length : next);
+  /* THE MIRROR ON THE SLICE ITSELF. Every assertion here but one passes by
+     finding nothing, so a bound that collapsed to a few characters would report
+     a clean read of an empty string. */
+  expect(body.length).toBeGreaterThan(400);
+  expect(body).toContain("spine_tracks");
+  return body;
+}
+
 describe(
   "the zero case must never say nothing is waiting while gates are pending " +
     "(A1 ruling, 2026-09-03, on P-14's Board.tsx deletion -- the 2026-08-31 " +
@@ -75,10 +103,7 @@ describe(
       // pending or it is not, and nothing about how long ago the track last
       // moved changes that. Pinning the absence of any date/time filter on
       // this query is what stops that lesson being paid for a third time.
-      const start = TRACK_SRC.indexOf("export const listGatesOnTracks");
-      expect(start).toBeGreaterThan(-1);
-      const end = TRACK_SRC.indexOf("\n  });", start);
-      const body = TRACK_SRC.slice(start, end === -1 ? start + 3000 : end);
+      const body = gatesBody();
       expect(body).not.toContain("gte(");
       expect(body).not.toContain("lte(");
       expect(body).not.toContain("within");
@@ -86,10 +111,7 @@ describe(
     });
 
     it("a track is only ever excluded by its own status, never by staleness", () => {
-      const start = TRACK_SRC.indexOf("export const listGatesOnTracks");
-      const end = TRACK_SRC.indexOf("\n  });", start);
-      const body = TRACK_SRC.slice(start, end === -1 ? start + 3000 : end);
-      expect(body).toContain('.eq("status", "open")');
+      expect(gatesBody()).toContain('.eq("status", "open")');
     });
 
     it("the bar's own sentence never omits the count while gates are pending", () => {
