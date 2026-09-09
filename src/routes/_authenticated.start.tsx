@@ -50,6 +50,7 @@ import { HomeAnswers } from "@/components/start/HomeAnswers";
 import { WhetherItWorked } from "@/components/start/WhetherItWorked";
 import { BetStillOpen } from "@/components/start/BetStillOpen";
 import { theBetStillOpen } from "@/components/start/the-bet-still-open";
+import { whatThisDoesForYou } from "@/components/start/what-this-does-for-you";
 import { whetherItWorked } from "@/components/start/whether-it-worked";
 import { getApprovalsQueue } from "@/lib/approvals-queue.functions";
 import { APPROVALS_QUEUE_PREFIX } from "@/lib/query-keys";
@@ -541,6 +542,16 @@ function StartLanding() {
    * answers already issue. It returns null whenever `closed` is present, so
    * the two are never both on screen -- a result outranks a promise.
    */
+  /*
+   * THE ENTRY'S ONE SENTENCE ABOUT ITSELF, and it is keyed on the same read
+   * `WhetherItWorked` is, so the two can never both draw: the moment a loop
+   * has closed, that region says this better with real evidence in it.
+   */
+  const theMessage = whatThisDoesForYou({
+    hasClosedLoop: homeReads.isSuccess ? homeReads.data.closed !== null : false,
+    unknown: !homeReads.isSuccess,
+  });
+
   const betOpen = theBetStillOpen({
     openBet: homeReads.isSuccess ? homeReads.data.openBet : null,
     closed: homeReads.isSuccess ? homeReads.data.closed : null,
@@ -629,6 +640,87 @@ function StartLanding() {
        does not render carries no margin, so a movement that is absent costs
        nothing. */
     <div className="mx-auto flex w-full max-w-[62rem] flex-col gap-mrd-6 px-mrd-5 pt-mrd-7 pb-mrd-8">
+      {/* THE ONE SENTENCE ABOUT THE PRODUCT ITSELF, until this workspace has
+          watched a loop close. See `what-this-does-for-you.ts`: it names a
+          mechanism rather than a category, every clause of it points at
+          something drawn directly below, and it stands down for good the
+          moment `WhetherItWorked` can say the same thing with this
+          workspace's own evidence in it. */}
+      {theMessage ? (
+        <p className="max-w-[var(--mrd-measure-region)] text-mrd-base leading-mrd-prose text-mrd-mute">
+          {theMessage}
+        </p>
+      ) : null}
+
+      {/*
+       * ── THE JOURNEY IS THE ENTRY, AND IT USED TO BE THE EIGHTH REGION ────
+       *
+       * The founder on this page: *"a user lands on home and it is not
+       * appealing, carries no message, shows no journey."*
+       *
+       * MEASURED ON THE SERVED HOME, 2026-09-10. The road -- the seven
+       * stations, this product's entire model, the one drawing that answers
+       * "where is my work" -- rendered **eighth**, at 113px, below the hero,
+       * the composer, the three answers, the evidence, the arriving line and
+       * the crew. A person had to scroll past six regions of their own backlog
+       * to reach the picture that explains what any of it is.
+       *
+       * *"Shows no journey"* was not a complaint about the drawing. The
+       * drawing is good. It was a complaint about where it was.
+       *
+       * SO IT LEADS, and everything after it is detail about what it shows.
+       * The page now reads: what this does · where it all stands · what needs
+       * you · say the next thing · what came of the last one · your list.
+       * Message, journey, ask, act, evidence, detail.
+       *
+       * AND THE COMPOSER BELOW IT IS BETTER OFF, not a casualty. The road
+       * already switches to `route` mode while a sentence is being written, so
+       * a person typing now watches the path change directly ABOVE the box
+       * they are typing in, rather than forty pixels below where they were
+       * looking.
+       */}
+      {roadMode ? (
+        <JourneyMap
+          /*
+           * ── WHILE A SENTENCE IS BEING WRITTEN, THE ROAD IS ABOUT IT ───────
+           *
+           * Measured before this existed: changing the shape picker moved the
+           * sentence beside it and moved NOTHING on the road below, so the one
+           * drawing that could show the path a piece of work is about to take
+           * was being described in prose forty pixels above it.
+           *
+           * `sentence.trim()` is the trigger and it is the honest one. An
+           * empty composer is a person reading their work, and the map is what
+           * they want. A composer with words in it is a person deciding what
+           * happens next, and the road is dead space to them until it answers
+           * that.
+           *
+           * IT REPLACES THE MAP RATHER THAN SITTING BESIDE IT. Two roads on
+           * one screen is the ambiguity this was nearly not built over; one
+           * road that says which question it is answering is not.
+           */
+          mode={roadMode === "map" && sentence.trim() ? "route" : roadMode}
+          stations={
+            roadMode === "map" && sentence.trim()
+              ? routeStations(suggestRoute(pickedShape, null).waived.map((w) => w.station))
+              : roadMode === "map"
+                ? map
+                : promiseStations()
+          }
+          selected={station}
+          onSelect={(key) => {
+            setStation(key);
+            /* The list the press filtered is usually below the fold: bring it
+               up, so the press is seen to do something. */
+            if (key) {
+              document
+                .querySelector("[data-your-runs]")
+                ?.scrollIntoView({ block: "start", behavior: "smooth" });
+            }
+          }}
+        />
+      ) : null}
+
       {/* THE HERO WAITS FOR ITS NAME (Lane 1, 2026-09-08). Seen live: "What
           should your product do next?" for a beat before the workspace
           resolved, then "What should Prism do next?". A headline that
@@ -769,48 +861,6 @@ function StartLanding() {
       <Arriving door={!sinceYouLooked.some((a) => "to" in a.door && a.door.to === "/arriving")} />
 
       <CrewAtWork workspaceId={activeWorkspaceId ?? null} onOpen={openRun} className="mt-mrd-5" />
-
-      {roadMode ? (
-        <JourneyMap
-          /*
-           * ── WHILE A SENTENCE IS BEING WRITTEN, THE ROAD IS ABOUT IT ───────
-           *
-           * Measured before this existed: changing the shape picker moved the
-           * sentence beside it and moved NOTHING on the road below, so the one
-           * drawing that could show the path a piece of work is about to take
-           * was being described in prose forty pixels above it.
-           *
-           * `sentence.trim()` is the trigger and it is the honest one. An
-           * empty composer is a person reading their work, and the map is what
-           * they want. A composer with words in it is a person deciding what
-           * happens next, and the road is dead space to them until it answers
-           * that.
-           *
-           * IT REPLACES THE MAP RATHER THAN SITTING BESIDE IT. Two roads on
-           * one screen is the ambiguity this was nearly not built over; one
-           * road that says which question it is answering is not.
-           */
-          mode={roadMode === "map" && sentence.trim() ? "route" : roadMode}
-          stations={
-            roadMode === "map" && sentence.trim()
-              ? routeStations(suggestRoute(pickedShape, null).waived.map((w) => w.station))
-              : roadMode === "map"
-                ? map
-                : promiseStations()
-          }
-          selected={station}
-          onSelect={(key) => {
-            setStation(key);
-            /* The list the press filtered is usually below the fold: bring it
-               up, so the press is seen to do something. */
-            if (key) {
-              document
-                .querySelector("[data-your-runs]")
-                ?.scrollIntoView({ block: "start", behavior: "smooth" });
-            }
-          }}
-        />
-      ) : null}
 
       {/*
        * THIS WORKSPACE'S OWN RANKED BETS, when it has any. A bet starts on
