@@ -2053,3 +2053,61 @@ limit resets and the nine finished finders replay from cache.
 `ArtifactPane.tsx:3993` already prefers the standing station only `standingHasItems`, and falls back
 to the newest station that filed something, with a 2026-09-08 comment recording the header/pane
 disagreement that produced the rule. **Recorded so nobody re-derives the same wrong hunch.**
+
+### Lane 2 · addendum, 2026-09-09 afternoon · the craft pass, verified in full
+
+**Pushed through `e36a5d3bd`.** The craft workflow's verify phase was cut short by a subagent
+session limit in the morning; it was **resumed after the limit reset and completed 44/44 with zero
+errors**. Final score: **40 raised, 19 reproduced by a skeptic, 21 refuted.** Three of the nineteen
+were already fixed by me while it ran, which the re-run verifiers correctly marked stale.
+
+**Resuming a cut-short workflow is cheap and was worth it.** Nine of the twelve fixes below came
+from findings that the first run reported as "refuted" only because their verifier had errored.
+`Workflow({scriptPath, resumeFromRunId})` replayed every finished agent from cache and re-ran only
+the failures. **A finding whose verifier errored is UNVERIFIED, not refuted** - the script's
+`.filter()` cannot tell them apart, so read the failures list before believing a refuted count.
+
+#### Landed
+
+- **A selected proof row lost its selection under the pointer.** `hover:bg-mrd-hover` and
+  `bg-mrd-lift` both set `background-color`, and Tailwind emits hover variants last, so hovering the
+  **currently open** row replaced its selection tint - at the moment a person is checking they have
+  the right one. The chip forty lines below already had it right.
+- **Whole English sentences in JetBrains Mono**, twice in `TrackConsent`. Exactly the defect `Num`'s
+  docstring exists to stop. The face moved to the figure; the keycap numerals stayed mono.
+- **The gate's answer went dead-grey and said nothing** while the decision flew: no `aria-busy`, no
+  label change. The decline button beside it is disabled and deliberately **not** `aria-busy`, since
+  that press only opens a form.
+- **Three headings that did not out-rank what they headed** (13/500 over 12.5/500; 12.5/500 over
+  12/400; 11.5px caps under a 10px eyebrow). Two now use `mrd-subtitle`; the third stopped
+  hand-rolling `mrd-eyebrow` a pixel and a half too large.
+- **An inset focus ring that never applied.** Three controls declared
+  `focus-visible:outline-offset-[-2px]` and drew OUTSET, because
+  `[data-mrd][data-mrd] :focus-visible { outline-offset: 1px }` is a deliberate specificity bump and
+  those elements carry `data-mrd` themselves. `mrd-focus-inset` is specified higher again and wins.
+- **A new turn flashed instead of arriving.** The transcript marked a row seen after **0ms**, so the
+  next render (the 500ms poll, a ticker, a hover) removed the `animation` style mid-flight. Held for
+  `ENTER_MS` now, and the guard COMPARES that constant against `--mrd-d-enter` rather than trusting
+  it.
+- **`62ch` rendering three widths**, and a **block declaring two font sizes** (earlier commits).
+
+#### With Lane 1, measured and sent
+
+`html[data-motion="off"]` stops animations but **no transitions**, so the in-product motion switch is
+weaker than the OS one · 21 transitions at three speeds, none on `--mrd-ease`, closable in two lines
+of Meridian defaults · the live seat's halo runs 2.9x its own declared opacity because
+`mrd-attention` sets opacity rather than scaling it · `Prose markdown` applies no measure at all ·
+`.mrd-focus` is named by ten elements and **is not defined** (a no-op, not a missing ring, because
+the descendant selector already rings everything) · and the run's `<h1>` is 20px while the route's
+failure titles are 25px, so **the largest type on that route is reserved for its failure states** -
+sent with my counter-argument that run titles are long sentences and 25px would shout on every
+visit.
+
+#### Named, not taken
+
+- **`FactLabel` and `CtxHead` spell one label role two ways** on the trace page
+  (`text-mrd-tiny font-medium` against `mrd-eyebrow`). Swapping adds uppercase and tracking, which is
+  a visible change on a grid that sits **behind a closed fold** - it wants a look at the render, not
+  a blind type change.
+- **The prototype card's 6px block rhythm** against every sibling's 10px (`ArtifactPane`, near
+  :1786). Same reason: small, and worth seeing before moving.
