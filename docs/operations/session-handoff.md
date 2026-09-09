@@ -2802,3 +2802,79 @@ carried their change and one that did not.** The only reliable check is grepping
 asset for the thing you shipped. An id that does not change when the content does is a claim with
 nothing behind it, which is the day's whole subject wearing a deployment's clothes.
 
+
+
+## Lane 2 · 2026-09-09 night · the funnel, and the one law that explains the week
+
+**Read this first if you are the next Lane 2 session.** The defects below are individually small
+and the pattern behind them is not.
+
+### The law, which is the session's real output
+
+**A defect that exists only BETWEEN elements is invisible to any gate that examines one element.**
+(S1's phrasing, from my finding.) Every guard in this repo asserts about a thing; none can ask
+"and is this the same as its neighbour". Six instances tonight, every one found by reading a served
+page and none by 15,000 tests:
+
+| what a person saw | each element was |
+|---|---|
+| one run said "3 prototypes" four times | correct |
+| a chip and its headline said "Stopped" 8px apart, on five registers | correct |
+| the Inbox printed the Approve **button's label** as the record of a finished act | correct |
+| four trace rows read "signals.list · 0 results" while the model narrated four searches | correct |
+| the loading state said "reading" five times, from five regions | correct |
+| my own door repeated the quote above it verbatim | correct |
+
+The guard shape that catches these is a **census over a collection**, not an assertion about a row.
+Three exist now and all three have already earned their keep: the tally census (nine emitters, not
+the four we counted by eye; three of them emitting into nothing), the register census (twelve Now
+registers), and the surface registry — which failed **my own** new file before I had thought about
+where it belonged. Build the fourth as a census, not as a rule.
+
+### The funnel, all 121 tracks this product has ever made
+
+| station | standing here | open | abandoned | done |
+|---|---|---|---|---|
+| Discover | **82** | 45 | 37 | 0 |
+| Decide | 9 | 8 | 1 | 0 |
+| Plan | 3 | 1 | 2 | 0 |
+| Design | 11 | 9 | 2 | 0 |
+| Build | 4 | 3 | 1 | 0 |
+| Ship | 4 | 2 | 2 | 0 |
+| Learn | 8 | 6 | 0 | 2 |
+
+**Two thirds of everything ever run is standing at station one. One track has ever shipped. Two
+have ever reached a learning.** The loop completes about 1.7% of the time. 59 of 121 did attach a
+finding, so runs DO start from evidence — it arrives by agent runs writing signals, not by the
+"Connect a source" path (0 of 23 workspaces have ever had a scout target; 1,524 signals exist).
+
+S1 built the entry's response to this (`WhetherItWorked`'s sibling: the soonest forecast not yet
+due). The run screen's response is `nowhere-to-look-yet.ts` plus the peer count — a stuck run now
+says what is missing, offers the door, and says how many others are standing in the same place,
+because one stuck run is a shrug and five is a setting worth changing.
+
+### Two traps that cost real time, both about instruments
+
+1. **A cast fixture covers the WRONG branch and reports green.** `{id, kind, title} as
+   ApprovalQueueItem` made the compiler stop asking, so every assertion ran a fallback production
+   never reaches while the live branch printed a button label as a completed judgement.
+2. **Three instruments lied in the direction of the story they fit**, in one night: S1's `curl`
+   check (no cookies, different edge response), their "123 round trips" (the answer was bytes), and
+   my scout-target count (I counted the feature, not the thing). The number that fits is the one
+   that stops getting checked. Every one was caught by another lane's measurement, not by its
+   owner's.
+
+### What is open on this lane, in the order I would take it
+
+1. **The run screen's finish state is half-done.** The verdict now reaches the Now card, but a
+   finished run still cannot say *what changed and what it was worth* — territory 2 — beyond a PR
+   link and a forecast. `run-tally.ts` has the material.
+2. **`what-it-produced.ts` is quarantined**, not kept: re-point
+   `the-row-and-the-strip-agree-on-what-was-produced` at a live emitter so it can leave the tree.
+   The live emitters do not share one convention, so this has a decision in it.
+3. **Layer 2 is the least examined surface in my territory.** I read layer 1 and layer 3 closely
+   tonight and only glanced at the artifact pane.
+4. **Nothing on this lane has been verified on a screen since the fold.** The dev server runs
+   without `SUPABASE_SERVICE_ROLE_KEY` — the founder holds no direct Supabase credential, by design
+   — so no authenticated route renders locally. **Record this as a fact, not a discovery: two lanes
+   have now burned time on it.** The only verification path is a Lovable deploy, which S1 presses.
