@@ -1890,3 +1890,74 @@ words, where the toggle carries two consents and only the Boundary bar keeps the
 true words; putting promotion behind its own consent is a product call and wants the founder); the
 first-run press still unread live; P-130b's client half; F-207.
 
+
+### Lane 2 · addendum, 2026-09-09 midday · the states audit, and three more places the answer was already on the wire
+
+**Everything below is pushed.** Landing order on `main`: `fdb5bcefe`, `e7f673b68` (the refrain and
+the hold card), `d10dddaee` (the version fold and the trace page), `d3db452ec` (Ask's route shape),
+`05c70b3e5` (the capped read and the swallowed errors), `9655e5d2d` (trace rows), `2810c2523` (six
+controls). Read live and confirmed on `4ba81796` and `bd4d15c4`.
+
+**THE PATTERN, PROVEN FOUR TIMES TODAY.** On this product the defect is almost never "the data is
+missing". It is **"the data is there, in English, and the surface draws its container"**:
+
+| Where | What was on screen | What was in the row |
+|---|---|---|
+| The transcript | `Filed nothing. Engineer, 25.0s.` × 6 | `agent_runs.output`: "This repository contains only the checkout module for Relay…" |
+| The version fold | `prototype · 4 versions` | `prototypes.description`, identical on 3 of the 4 |
+| The trace page | `{"thought":"I need to review the standing…` | a paragraph of reasoning, and a `reason` for the next tool |
+| Ask's hand-over | every sentence a seven-station run | the sentence itself, which says what kind of work it is |
+
+**Every one was found by reading a rendered page, and none by a gate.** Before adding a read, check
+whether the answer is already on the wire; three of the four needed no new query at all, and
+`fields.description` had been returned by `getTrackArtifacts` all along with no consumer anywhere.
+
+#### The states audit
+
+Four lenses (empty/first, loading/long-running, error/interrupted, dense/partial) over the run
+screen and its depth panes, one skeptic per finding against HEAD: **26 raised, 23 confirmed, 3
+refuted.** Its full output is at
+`/private/tmp/claude-501/.../tasks/wehticsse.output` (JSON; `result.confirmed`), and the run is
+`wf_ba557e66-46e` if it needs resuming. **17 of the 23 are closed.** What is left, by name:
+
+1. **The road still draws seven `pending` stops when the artifacts read fails.** With that read now
+   throwing, `artifactsQ.data` is undefined and `journeyStations` maps that to all-pending, so a
+   finished run can still read as one that never started. The pane beside it now says the record did
+   not come back, which is the half a person acts on. The road's own honest state needs a
+   `JourneyState` that means "not read", which is a component Lane 1 owns.
+2. **`LiveStation` says "Nothing called yet." while the tool-call read is still out or has failed**
+   (`LiveStation.tsx:124`). Same class as everything closed above, one component along.
+3. **The Now card can name the live seat and then describe a tool call a different, already-finished
+   seat made** (`LiveWork.tsx:32`).
+4. **Tool calls are capped at the 200 newest for the WHOLE TRACK**, so a turn whose calls fell
+   outside the window renders as a turn that called nothing (`TrackActivity.tsx:511`, `:524`). The
+   turn cap is fixed and disclosed; this one is not, and it is the harder of the two because the
+   window is per-track while the display is per-turn.
+5. **The footer's clock and bill are summed over the capped turns** (`run-tally.ts:235`) and printed
+   as the run's totals. Now that the window is the NEWEST 200 this understates a long run rather
+   than describing its first day, which is better and still not right.
+6. **A folded run of repeated turns collapses N turns into one row with no way into any of them**
+   (`TrackActivity.tsx:1790`) - no expand, no tool calls, no trace link.
+
+#### Observations true nowhere else
+
+- **A structural guard that counts three-word runs finds copies, not paraphrases.** "will not be
+  tried again without you" and "Nothing more will be tried here on its own" share no significant
+  run, so the restatement guard passed on that pair the whole time.
+- **`*_preview` columns are TRUNCATED JSON, so `JSON.parse` throws on nearly every row of a busy
+  trace.** That is why the trace page rendered raw strings: the obvious implementation fails exactly
+  where the data is richest. `what-the-model-said.ts` scans field by field instead, and its test
+  asserts `JSON.parse(CLIPPED)` throws so the reason it exists cannot quietly stop being true.
+- **A capped read on a run must take the NEWEST rows**, and this file got it wrong twice.
+  `a-capped-read-takes-the-newest.test.ts` now watches both queries, mutation-proved.
+- **A required prop with no null in its type is how an invention gets written at a call site**: the
+  caller holds a null, the type refuses it, and the fallback goes where no reviewer meets the rule
+  it breaks (`CallContext.where`, `?? "This workspace"`).
+- **A word list may not choose a shape that waives Decide.** `interface-change` waives the forecast,
+  so a false positive costs the moat silently; the derivation in `shape-of-the-work.ts` refuses to
+  pick it at all and the home's picker, where a person says it out loud, still can.
+- **The decision pane is already at the bar and should not be "fixed".** Three rejected alternatives
+  with the reason each was rejected, the forecast, the horizon, and "This was recorded as a single
+  number, so it can say right or wrong and not how far off."
+- **The prototype pane really does render the prototype** (an iframe of the actual design). I
+  recorded the opposite this morning from a screenshot taken before scrolling; it was wrong.
