@@ -213,6 +213,23 @@ Measured after: `--mrd-fail-chip` is L 0.32 against lift's 0.215 on the dark gro
 in greyscale where the two rings alone were 1.11:1**, and better than the 1.24:1 the `stopped` fill
 was accepted at.
 
+> **CORRECTED THE SAME EVENING, AND THE CORRECTION IS THE USEFUL PART.** The `stopped` half draws:
+> that state is reachable at full size and was verified on the served build. **The `failed` half
+> draws nowhere.** `p.fill` is read only on the non-row branch, and no producer reaches it in that
+> state: the home's road maps only OPEN runs and `failed` requires `abandoned`; the home's run rows
+> emit `failed` but take `p.ink` at row size; the run screen's road never emits it. So a token was
+> changed, a ledger row written and a ruling published about a paint nothing reads.
+>
+> **This is the third instance in one day of "verified correct, rendered nowhere", across three
+> layers**: a data field, a design token and a database function. Verifying a change proves it is
+> correct, never that anything renders it. **Ask what draws this before measuring whether it is
+> right** — see the note under the counts ruling, which says the same thing about reads.
+>
+> The fill is kept and labelled rather than reverted, which is this repo's pattern for an unreachable
+> thing. And the row is NOT the same problem: three solid dots at 1.055:1 in greyscale, but a row
+> carries its state in a control and a sentence beside the dot, so it passes law 5 on structure, which
+> is what that test asks. A 6px mark should not be asked to carry a five-way distinction.
+
 **A row of controls counts and acts; prose only counts.** When a control on the same screen already
 carries the breakdown, the sentence above it must not repeat it. Found on the Inbox (Lane 2,
 2026-09-09): the heading read "20 design gates, 12 assumption challenges, 9 decisions, 4 house

@@ -220,6 +220,35 @@ const PAINT: Record<JourneyState, Paint> = {
    * MEASURED AFTER: fail-chip is L 0.32 against lift's 0.215 on the dark
    * ground, about 1.48:1 in greyscale where the two rings alone were 1.11:1,
    * and better than the 1.24:1 the `stopped` fill was accepted at.
+   *
+   * ── AND IT DRAWS NOWHERE TODAY, WHICH IS STATED RATHER THAN QUIETLY TRUE ──
+   * Found hours later, chasing a request to have the hue looked at. `p.fill` is
+   * read only on the `size !== "row"` branch below, and NOTHING reaches that
+   * branch in this state:
+   *
+   *   - The home's full-size road is built by `journeyMap`, which filters to
+   *     `status === "open"` BEFORE calling `standingState`, and `standingState`
+   *     returns `failed` only for `status === "abandoned"`. So the road cannot
+   *     emit it, and that WEIGHT entry has never been read.
+   *   - The home's run rows do emit it, and at `size === "row"` the node's
+   *     colour is `rowFill`, which falls through to `p.ink`. This fill is not
+   *     consulted.
+   *   - The run screen's road never emits it either, measured on production.
+   *
+   * THE FILL IS KEPT AND LABELLED rather than reverted, which is this repo's
+   * own pattern for an unreachable thing: it is correct the moment anything
+   * draws a failed station at full size, and deleting it would leave the next
+   * author to re-derive the choice with the reasoning gone. What was wrong was
+   * claiming an improvement a person could see. Nobody can, yet.
+   *
+   * THE ROW IS NOT THE SAME PROBLEM, and that is why this is not simply moved
+   * there. At row size every current node is a solid dot in its own ink, so
+   * held, stopped and failed sit at L 0.76, 0.74 and 0.68: 1.055:1 between the
+   * closest pair. But a row is not carrying its state alone. `YourRuns` draws a
+   * control naming the state ("Why it stopped") and a sentence beside it, so
+   * the row survives law 5's test on structure, which is what that test asks.
+   * The 6px dot is a supporting mark, and a five-way status distinction is not
+   * something 6px should be asked to carry.
    */
   failed: { ring: "var(--mrd-fail)", ink: "var(--mrd-fail)", fill: "var(--mrd-fail-chip)" },
   waived: { ring: "var(--mrd-line)", ink: "var(--mrd-faint)", fill: "transparent", dashed: true },
