@@ -29,7 +29,7 @@
  * carries, and an instruction the first press teaches.
  */
 import { describe, expect, it } from "bun:test";
-import { captionFor } from "./JourneyMap";
+import { captionFor, routeStations } from "./JourneyMap";
 import type { JourneyStation } from "@/components/meridian/Journey";
 
 const at = (key: string, state: string, count: number): JourneyStation =>
@@ -174,5 +174,78 @@ describe("a filtered station with nothing on it", () => {
       const cap = captionFor({ mode: "map", stations: A1, selected: key as never });
       expect({ key, cap }).toEqual({ key, cap: null });
     }
+  });
+});
+
+/*
+ * ── THE ROAD SHOWS THE ROUTE A SENTENCE WILL TAKE ─────────────────────────
+ *
+ * MEASURED ON THE SERVED HOME, 2026-09-10: changing the composer's shape
+ * picker moved the sentence beside it and moved NOTHING on the road below. The
+ * one drawing that could show the path a piece of work is about to take was
+ * describing it in prose, forty pixels above a seven-station picture of
+ * exactly that model. That is "the stations do not form a flow" at the moment
+ * a person is choosing.
+ *
+ * I stopped once, on the grounds that overlaying a hypothetical on a map of
+ * real work leaves a reader unable to tell them apart. Lane 2's answer is
+ * better: the discriminator is not map-versus-preview, it is HAS THIS RUN
+ * STARTED. While a sentence is being written there is no work on that track,
+ * so there is nothing to confuse it with -- and `promise` mode already draws a
+ * road with nothing standing on it, so this is not a new idea, it is that one
+ * a level down.
+ */
+describe("the route a sentence will take", () => {
+  it("marks every skipped station, and leaves the rest to be walked", () => {
+    /*
+     * THE KEYS ARE THE DRIVER'S, NOT THE LABELS. Plan's key is `define`, and
+     * my first version of this wrote `plan` and failed -- the test being wrong
+     * rather than the code, which is exactly why the assertion lists all seven
+     * states positionally instead of trusting a name.
+     */
+    const skipped = ["sense", "decide", "define", "design"];
+    const road = routeStations(skipped);
+    expect(road.map((s) => s.state)).toEqual([
+      "waived",
+      "waived",
+      "waived",
+      "waived",
+      "pending",
+      "pending",
+      "pending",
+    ]);
+  });
+
+  it("draws all seven as pending when the route skips nothing", () => {
+    expect(routeStations([]).every((s) => s.state === "pending")).toBe(true);
+    expect(routeStations([]).length).toBe(7);
+  });
+
+  it("carries NO counts, because nothing is standing on it yet", () => {
+    /*
+     * A zero here would be the absence-dressed-as-a-measurement this file was
+     * already repaired for once, and it would also make the empty stops
+     * pressable filters over a list of runs that has nothing to do with them.
+     */
+    for (const s of routeStations(["sense"])) {
+      expect({ key: s.key, count: s.count }).toEqual({ key: s.key, count: undefined });
+    }
+  });
+
+  it("says what the drawing is, because the road has changed subject", () => {
+    // A drawing that changes meaning without saying so is the ambiguity the
+    // whole objection was about. It does NOT repeat the picker's sentence,
+    // which already names the entry and the skips in words just above.
+    expect(captionFor({ mode: "route", stations: routeStations(["sense"]), selected: null })).toBe(
+      "The road this sentence will take. Your work returns when you clear it.",
+    );
+  });
+
+  it("still answers as a map the moment the sentence is gone", () => {
+    // The mirror: the preview must not survive its trigger, or a person who
+    // clears the composer is left looking at a road about nothing.
+    expect(captionFor({ mode: "map", stations: A1, selected: null })).toBe(
+      "Design has stopped, and will not move without you.",
+    );
   });
 });

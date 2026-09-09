@@ -14,7 +14,8 @@ import { ExampleJobs, type ExampleJob } from "@/components/start/ExampleJobs";
 import { YourRuns } from "@/components/start/YourRuns";
 import { Arriving } from "@/components/start/Arriving";
 import { Hero, heroCopy } from "@/components/start/Hero";
-import { JourneyMap, promiseStations } from "@/components/start/JourneyMap";
+import { JourneyMap, promiseStations, routeStations } from "@/components/start/JourneyMap";
+import { suggestRoute } from "@/lib/spine/route";
 import { CrewAtWork, quietFor, workingSeats } from "@/components/start/CrewAtWork";
 import { StarterRuns } from "@/components/start/StarterRuns";
 import { presenceColour } from "@/components/meridian/AgentPresence";
@@ -766,8 +767,32 @@ function StartLanding() {
 
       {roadMode ? (
         <JourneyMap
-          mode={roadMode}
-          stations={roadMode === "map" ? map : promiseStations()}
+          /*
+           * ── WHILE A SENTENCE IS BEING WRITTEN, THE ROAD IS ABOUT IT ───────
+           *
+           * Measured before this existed: changing the shape picker moved the
+           * sentence beside it and moved NOTHING on the road below, so the one
+           * drawing that could show the path a piece of work is about to take
+           * was being described in prose forty pixels above it.
+           *
+           * `sentence.trim()` is the trigger and it is the honest one. An
+           * empty composer is a person reading their work, and the map is what
+           * they want. A composer with words in it is a person deciding what
+           * happens next, and the road is dead space to them until it answers
+           * that.
+           *
+           * IT REPLACES THE MAP RATHER THAN SITTING BESIDE IT. Two roads on
+           * one screen is the ambiguity this was nearly not built over; one
+           * road that says which question it is answering is not.
+           */
+          mode={roadMode === "map" && sentence.trim() ? "route" : roadMode}
+          stations={
+            roadMode === "map" && sentence.trim()
+              ? routeStations(suggestRoute(pickedShape, null).waived.map((w) => w.station))
+              : roadMode === "map"
+                ? map
+                : promiseStations()
+          }
           selected={station}
           onSelect={(key) => {
             setStation(key);

@@ -30,6 +30,56 @@ export function promiseStations(): JourneyStation[] {
   return JOURNEY_ORDER.map((key) => ({ key, state: "pending", outcome: JOURNEY_PRODUCES[key] }));
 }
 
+/**
+ * ── THE ROUTE A SENTENCE WILL TAKE, DRAWN WHILE IT IS BEING WRITTEN ───────
+ *
+ * MEASURED ON THE SERVED HOME, 2026-09-10: changing the composer's shape
+ * picker moved the sentence beside it and moved NOTHING on the road below.
+ * So the one place in the product that could SHOW the path a piece of work is
+ * about to take was describing it in prose, forty pixels above a seven-station
+ * drawing of exactly that model. **That is the founder's "the stations do not
+ * form a flow" at the moment a person is choosing.**
+ *
+ * ── THE OBJECTION, AND WHY IT DOES NOT HOLD ──────────────────────────────
+ * I stopped once, on the grounds that the road in `map` mode shows WHERE YOUR
+ * WORK STANDS, so overlaying a hypothetical would leave a reader unable to
+ * tell their work from a preview. Lane 2's answer is better and I took it: the
+ * discriminator is not map-versus-preview, it is **has this run started**.
+ * While a sentence is being written there is no work on that track, so there
+ * is nothing to confuse it with, and the moment it starts the map takes over
+ * because then there IS work and the map is worth more.
+ *
+ * It is also not a new mode. `promise` already draws a road with nothing
+ * standing on it, for the account that has never pressed Enter. A
+ * composed-but-unstarted route is that same case one level down.
+ *
+ * WHAT IT REFUSES: a preview beside a live map on one screen. That is the
+ * version the objection was right about, and it is why this REPLACES the map
+ * for as long as a sentence is being written rather than sitting next to it.
+ *
+ * `waived` is the state the skipped stops wear -- the one paint in the table
+ * that already means "the route goes past this" and carries the dashed ring
+ * that says so without colour.
+ */
+/** What the road is ABOUT, per mode. Named once so the section, the list and
+ *  a screen reader cannot drift. */
+const ROAD_NAME: Record<"promise" | "map" | "route", string> = {
+  promise: "The road every run travels",
+  map: "Where your work stands",
+  route: "The road this sentence will take",
+};
+
+export function routeStations(waivedKeys: readonly string[]): JourneyStation[] {
+  const skipped = new Set(waivedKeys);
+  return JOURNEY_ORDER.map((key) => ({
+    key,
+    state: skipped.has(key) ? "waived" : "pending",
+    outcome: JOURNEY_PRODUCES[key],
+    /* NO COUNTS. Nothing is standing here yet, and a zero would be the
+       absence-dressed-as-a-measurement this file was already repaired for. */
+  }));
+}
+
 /*
  * ── THE ONE THING THE ROAD'S COLOUR CANNOT SAY ───────────────────────────
  *
@@ -72,7 +122,7 @@ export function captionFor({
   stations,
   selected,
 }: {
-  mode: "promise" | "map";
+  mode: "promise" | "map" | "route";
   stations: readonly JourneyStation[];
   selected?: JourneyKey | null;
 }): string | null {
@@ -81,6 +131,19 @@ export function captionFor({
   const stoppedHere = stations
     .filter((s) => s.state === "stopped" && (s.count ?? 0) > 0)
     .map((s) => AGENT_STATIONS[s.key].name);
+  if (mode === "route") {
+    /*
+     * THE ROAD HAS CHANGED SUBJECT, SO IT SAYS SO. It was a map of the
+     * person's work a keystroke ago and is now the shape of the sentence they
+     * are writing. A drawing that changes meaning without saying it is the
+     * ambiguity the whole objection was about, and one line removes it.
+     *
+     * It does NOT repeat the picker's sentence, which already names the entry
+     * and the skipped stations in words 40px above. This says what the DRAWING
+     * is, which is the one thing the sentence cannot.
+     */
+    return "The road this sentence will take. Your work returns when you clear it.";
+  }
   return mode === "promise"
     ? null
     : /*
@@ -119,7 +182,7 @@ export function JourneyMap({
   selected,
   onSelect,
 }: {
-  mode: "promise" | "map";
+  mode: "promise" | "map" | "route";
   stations: readonly JourneyStation[];
   selected?: JourneyKey | null;
   onSelect?: (key: JourneyKey | null) => void;
@@ -145,7 +208,11 @@ export function JourneyMap({
          is a new line and the composer says "Press Start it" (fourth review,
          2026-09-09). Section and list share one name, as map mode already
          does. */
-      aria-label={mode === "promise" ? "The road every run travels" : "Where your work stands"}
+      /* THE NAME FOLLOWS THE SUBJECT. A screen reader is told what the road is
+         ABOUT, and in `route` mode it is about a sentence that has not started
+         rather than about work that has. Three subjects, three names, and none
+         of them says "journey map". */
+      aria-label={ROAD_NAME[mode]}
       className="flex flex-col gap-mrd-4 rounded-mrd-pane bg-mrd-sheet px-mrd-5 pt-mrd-5 pb-mrd-4"
     >
       <Journey
@@ -155,9 +222,12 @@ export function JourneyMap({
         onSelect={
           mode === "map" && onSelect ? (key) => onSelect(selected === key ? null : key) : undefined
         }
-        label={mode === "promise" ? "The road every run travels" : "Where your work stands"}
+        label={ROAD_NAME[mode]}
         selects="filter"
-        promise={mode === "promise"}
+        /* `promise` draws the outcome each stop hands on. A route preview
+           wants that too: the point of seeing the shape is seeing what each
+           step will produce, which is exactly what the promise road says. */
+        promise={mode !== "map"}
       />
       {/* THE WAY BACK OUTLIVES THE SENTENCE. `caption` is null when a selected
           station has emptied, because the list below already says so -- but the
