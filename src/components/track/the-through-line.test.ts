@@ -226,3 +226,68 @@ describe("the story reaches the present, not just the last thing filed", () => {
     expect(lines[0]!.working).toBe(false);
   });
 });
+
+/**
+ * A MISSION IS SOMETHING A STATION STARTED, NOT SOMETHING IT PRODUCED.
+ *
+ * Read live on `6cc7a010`: the story said *"Build filed 'Homeowner can
+ * reschedule installer visit from order page'"* on a station that had refused
+ * six times and produced nothing. What Build had was one `mission` member, and
+ * `KIND_WORD` says what that is -- "opened by the driver so Build's own tool
+ * will run at all". Real membership, correctly recorded, and read under the verb
+ * of production it told a person the station had succeeded.
+ *
+ * It also puts the story back in step with the ROAD, which has always read a
+ * mission as a state rather than a product: `run-journey.ts` renders a mission
+ * at Build as "building".
+ */
+describe("the driver's own work item is not the station's output", () => {
+  const line = (items: LineStop["items"]) =>
+    throughLine({
+      stops: [{ station: "build", items }],
+      standing: "build",
+    })[0];
+
+  it("a station with only a mission started something and filed nothing", () => {
+    const l = line([
+      {
+        kind: "mission",
+        artifactId: "m-1",
+        title: "Homeowner can reschedule installer visit from order page",
+        missing: false,
+      },
+    ]);
+    expect(l?.did).toBe(
+      'started "Homeowner can reschedule installer visit from order page" and filed nothing',
+    );
+  });
+
+  it("and never takes the title slot from something the station made", () => {
+    const l = line([
+      {
+        kind: "prototype",
+        artifactId: "p-1",
+        title: "Reschedule from the order page",
+        missing: false,
+      },
+      { kind: "mission", artifactId: "m-1", title: "Homeowner can reschedule", missing: false },
+    ]);
+    expect(l?.did).toBe('filed "Reschedule from the order page"');
+  });
+
+  it("nor a place in the count beside what it made", () => {
+    const l = line([
+      { kind: "prototype", artifactId: "p-1", title: "One", missing: false },
+      { kind: "prototype", artifactId: "p-2", title: "Two", missing: false },
+      { kind: "mission", artifactId: "m-1", title: "Homeowner can reschedule", missing: false },
+    ]);
+    expect(l?.did).toBe("filed 2 prototypes");
+  });
+
+  it("but an untitled mission still says the station started", () => {
+    // Hiding it would leave the station with no line at all, and "it started
+    // and filed nothing" is the true and useful sentence.
+    const l = line([{ kind: "mission", artifactId: "m-1", title: null, missing: false }]);
+    expect(l?.did).toBe("started, and filed nothing");
+  });
+});

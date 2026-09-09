@@ -285,11 +285,35 @@ export function foldRepeats(rows: readonly ActivityRow[], floor = 3): Transcript
       }
       out.push({
         kind: "repeat",
-        /* THE FIRST TURN, not the last. Every later one is the same seat
-           re-reporting the same wall, and the first telling is the one written
-           before any of the re-trying coloured it -- the same rule
-           `theBlockerItAlreadyNamed` follows for the same reason. */
-        row: first,
+        /*
+         * ── THE REPRESENTATIVE TURN IS THE LAST, AND IT WAS THE FIRST FOR A DAY ────
+         * The argument for the first was: every later turn is the same seat
+         * re-reporting the same wall, so the first telling is the one written before
+         * any of the re-trying coloured it. That is true of a STATIC wall. It is false
+         * of a wall that is changing, and S1 read the difference on the served build
+         * within an hour:
+         *
+         *   before  09:30  "3 times, 09:10 to 09:30"  ...account credit balance (15)
+         *           11:00  "9 times, 09:40 to 11:00"  ...account credit balance (1)
+         *   after   11:00  "12 times, 09:10 to 11:00" ...account credit balance (15)
+         *
+         * **Stamped at the END of the span and quoting the START of it**, over a hold
+         * card still quoting (1), so one page carried one event with two balances and
+         * the card's number matched no row below it. And 15 draining to 1 is the only
+         * thing those twelve turns actually recorded happening -- the run spent the
+         * account while failing -- so quoting the first is the single choice that hides
+         * the only news in the group.
+         *
+         * The last is right on three counts and loses nothing on the fourth: it matches
+         * the stamp a reader is looking at, it is the current state where the text
+         * varies, it agrees with every other surface quoting the same group, and where
+         * the text does not vary it is the same sentence.
+         *
+         * It also puts the row's stamp, quote, tool calls and trace door on ONE
+         * turn. They were split -- `lastAt` for the clock, the first turn for
+         * everything else -- which is the same mismatch in three more places.
+         */
+        row: last,
         seats,
         count: n,
         firstAt: first.at,

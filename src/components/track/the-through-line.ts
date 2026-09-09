@@ -118,6 +118,33 @@ function realItems(stop: LineStop): LineItem[] {
 }
 
 /**
+ * A MISSION IS SOMETHING A STATION STARTED, NOT SOMETHING IT PRODUCED.
+ *
+ * ── READ LIVE ON `6cc7a010`, WHERE IT MADE THE STORY SAY THE OPPOSITE ──────
+ * The story block read:
+ *
+ *     Build filed "Homeowner can reschedule installer visit from order page"
+ *
+ * Build had refused six times -- "No repository is connected for this
+ * workspace" -- and produced nothing at all. What it had was one `mission`
+ * member, and `KIND_WORD` is explicit about what that is: *"Opened by the
+ * driver so Build's own tool will run at all. It is real membership, so it is
+ * said rather than hidden."*
+ *
+ * That comment is right that it should be SAID. What was wrong is the verb. A
+ * mission is the driver's own bookkeeping -- the work item it opens so a
+ * station can be dispatched at all -- and reporting it under "filed", the verb
+ * of production, told a person the station succeeded on the one line whose job
+ * is to say what each station did. The machinery's own record, read as output,
+ * which is the family this screen has been repaired for all week.
+ *
+ * So it keeps its place in a count and loses the title slot: a station whose
+ * only member is a mission has STARTED something and filed nothing, and that is
+ * a different sentence.
+ */
+const IS_BOOKKEEPING = (i: LineItem) => i.kind === "mission";
+
+/**
  * How a station's output reads as a clause.
  *
  * Counted by KIND rather than listed by title, because a station that filed ten
@@ -127,12 +154,31 @@ function realItems(stop: LineStop): LineItem[] {
  */
 function didClause(items: LineItem[]): string | null {
   if (items.length === 0) return null;
-  const titled = items.filter((i) => i.title && i.title.trim());
-  if (items.length === 1 && titled.length === 1) {
+  const made = items.filter((i) => !IS_BOOKKEEPING(i));
+
+  /* Nothing but the driver's own work item. Said, because it is real membership
+     and hiding it would leave the station with no line at all -- but said as
+     what it is. */
+  if (made.length === 0) {
+    const one = items.length === 1 ? items[0]! : null;
+    const title = one?.title?.trim();
+    return title ? `started "${title}" and filed nothing` : "started, and filed nothing";
+  }
+
+  /* The title slot is for something the station MADE. A mission alongside a
+     prototype must not win it, so the single-titled-thing rule is scored over
+     the products only. */
+  const titled = made.filter((i) => i.title && i.title.trim());
+  if (made.length === 1 && titled.length === 1) {
     return `filed "${titled[0]!.title!.trim()}"`;
   }
+  /* Counted over what it MADE, so a mission alongside a prototype does not read
+     as "filed 3 prototypes and 1 run" -- the same wrong verb in a count instead
+     of a title. This also puts the story back in step with the road, which has
+     always read a mission as a STATE rather than a product
+     (`run-journey.ts`: a mission at Build renders as "building"). */
   const byKind = new Map<string, number>();
-  for (const i of items) byKind.set(i.kind, (byKind.get(i.kind) ?? 0) + 1);
+  for (const i of made) byKind.set(i.kind, (byKind.get(i.kind) ?? 0) + 1);
   const parts = [...byKind.entries()].map(([kind, n]) => {
     const word = KIND_WORD[kind] ?? { one: kind, many: `${kind}s` };
     return `${n} ${n === 1 ? word.one : word.many}`;

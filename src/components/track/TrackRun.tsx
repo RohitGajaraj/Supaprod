@@ -1539,6 +1539,10 @@ export function TrackRunLeft({
         onLiveSeats={setLiveSeats}
         onSelect={onSelectArtifact}
         selected={selectedArtifactId}
+        /* The Now card above quotes the run's blocker. The section for THAT
+           station then says how often it was said and points up, rather than
+           printing the same distinctive sentence a scroll below the card. */
+        quotedAbove={blocker?.said ?? null}
       />
 
       <SteerComposer

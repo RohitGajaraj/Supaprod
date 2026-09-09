@@ -183,10 +183,36 @@ export function theBlockerItAlreadyNamed(turns: readonly BlockedTurn[]): Blocker
     stationName: best[0]!.stationName,
     seats,
     turns: best.length,
-    /* THE FIRST TURN'S WORDS, not the last. Every later turn is the same agent
-       re-reporting the same wall, and the first telling is the one written
-       before any of the re-trying coloured it. */
-    said: best[0]!.said!.trim(),
+    /*
+     * ── THE REPRESENTATIVE TURN IS THE LAST, AND IT WAS THE FIRST FOR A DAY ────
+     * The argument for the first was: every later turn is the same seat
+     * re-reporting the same wall, so the first telling is the one written before
+     * any of the re-trying coloured it. That is true of a STATIC wall. It is false
+     * of a wall that is changing, and S1 read the difference on the served build
+     * within an hour:
+     *
+     *   before  09:30  "3 times, 09:10 to 09:30"  ...account credit balance (15)
+     *           11:00  "9 times, 09:40 to 11:00"  ...account credit balance (1)
+     *   after   11:00  "12 times, 09:10 to 11:00" ...account credit balance (15)
+     *
+     * **Stamped at the END of the span and quoting the START of it**, over a hold
+     * card still quoting (1), so one page carried one event with two balances and
+     * the card's number matched no row below it. And 15 draining to 1 is the only
+     * thing those twelve turns actually recorded happening -- the run spent the
+     * account while failing -- so quoting the first is the single choice that hides
+     * the only news in the group.
+     *
+     * The last is right on three counts and loses nothing on the fourth: it matches
+     * the stamp a reader is looking at, it is the current state where the text
+     * varies, it agrees with every other surface quoting the same group, and where
+     * the text does not vary it is the same sentence.
+     *
+     * Here the card carries no stamp, so only the last two counts apply -- and
+     * the third is the one that matters most: this card sits above a transcript
+     * whose folded row quotes the same group, and a page that quotes one event
+     * two ways is worse than either way alone.
+     */
+    said: best[best.length - 1]!.said!.trim(),
     from: best[0]!.at,
     to: best[best.length - 1]!.at,
     halt: !best.some((t) => t.outcome === "partly"),

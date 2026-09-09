@@ -96,12 +96,30 @@ describe("the dump the fold was walking past", () => {
     expect(item.lastAt).toBe(6);
   });
 
-  it("keeps the FIRST telling, not the last", () => {
+  it("keeps the LAST telling, which is the one the stamp is from", () => {
     const item = foldRepeats(BUILD)[0]!;
     if (item.kind !== "repeat") throw new Error("not folded");
-    // Every later turn is the same seat re-reporting the same wall; the first
-    // is the one written before any of the re-trying coloured it.
-    expect(item.row.kind === "turn" && item.row.turn.said).toBe(NO_REPO_1);
+    /*
+     * THIS ASSERTED THE FIRST FOR A DAY AND THE FIRST WAS WRONG. S1 read the
+     * served build: the Design fold stamped 11:00, spanning 09:10 to 11:00, and
+     * quoted "account credit balance (15)" -- the 09:10 turn -- over a hold card
+     * quoting (1). One page, one event, two balances, and 15 draining to 1 is
+     * the only thing those twelve turns actually recorded happening.
+     *
+     * Stamped at the end of a span and quoting the start of it is the defect,
+     * and it is invisible in the code: the two numbers only collide once both
+     * are on a screen.
+     */
+    expect(item.row.kind === "turn" && item.row.turn.said).toBe(NO_REPO_3);
+    expect(item.lastAt).toBe(6);
+  });
+
+  it("and the stamp, the quote, the calls and the trace door are one turn", () => {
+    // They were split: `lastAt` for the clock and the first turn for everything
+    // else, which is the same mismatch in three more places.
+    const item = foldRepeats(BUILD)[0]!;
+    if (item.kind !== "repeat" || item.row.kind !== "turn") throw new Error("not folded");
+    expect(item.row.at).toBe(item.lastAt);
   });
 });
 

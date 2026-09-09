@@ -62,6 +62,13 @@ import { getTrackActivity, getTrackChain, getTrackToolCalls } from "@/lib/spine/
 import { countKinds, type Turn } from "@/lib/spine/activity";
 import { whatItKeepsSaying, refrainLead } from "@/lib/spine/what-it-keeps-saying";
 import { joinPlainly } from "@/lib/spine/attach";
+import {
+  whatThisStationKeptSaying,
+  saidTheSameThing,
+  sameClaim,
+  stationRefrainLead,
+  type StationRefrain,
+} from "@/components/spine/what-this-station-kept-saying";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { handoffLine, turnsAtStation, whatCameWith } from "@/components/spine/handed-over";
 import { carriedByMission, oncePerId } from "@/components/spine/what-a-mission-carries";
@@ -616,6 +623,7 @@ export function TrackActivity({
   onLiveSeats,
   onSelect,
   selected = null,
+  quotedAbove = null,
 }: {
   trackId: string;
   isRunning?: boolean;
@@ -626,6 +634,24 @@ export function TrackActivity({
    * invalidates, so a late row would still land.
    */
   settled?: boolean;
+  /**
+   * A sentence the surface ABOVE this one is already quoting, so the section
+   * that would otherwise quote it says only how often it was said.
+   *
+   * ── WHY A PROP AND NOT A LOOKUP ─────────────────────────────────────────
+   * The Now card quotes the run's blocker -- one station's words, chosen across
+   * the whole run -- and a section header quotes its own station's. On the
+   * station where those coincide the page carries one distinctive sentence
+   * twice, a scroll apart, which by the test S1 and I agreed is the
+   * stop-and-compare case rather than the confirming one.
+   *
+   * This component could read `useRefrain` and work it out, and that would be
+   * wrong: it would tie the transcript to a card it cannot see, and a transcript
+   * rendered on its own would then drop a quote nothing else was carrying. The
+   * caller knows what it drew. Null, the default, means nothing above is
+   * quoting anything and every section keeps its own words.
+   */
+  quotedAbove?: string | null;
   /**
    * QUEUE 71: tells the host whether a crew is genuinely here, so the WHOLE
    * pane can poll at visit speed. The sweep serves tracks with no local
@@ -1053,6 +1079,43 @@ export function TrackActivity({
    */
   const orderedRows = React.useMemo(() => [...rows].reverse(), [rows]);
   const sections = React.useMemo(() => transcriptSections(orderedRows), [orderedRows]);
+
+  /*
+   * ── WHAT EACH STATION KEPT SAYING, ONCE PER SECTION ──────────────────────
+   *
+   * The row fold (`foldRepeats`) collapses CONSECUTIVE turns, and on `6cc7a010`
+   * that caught the tidy half of the problem. Build's section is nine items --
+   * two turns, two handoffs, one turn, a check, three turns -- so only the last
+   * three folded, while six paragraphs saying "No repository is connected"
+   * stayed on the screen. The fold must not reach across a handoff, because a
+   * handoff is a distinct event with its own words and collapsing over it would
+   * put a span above rows that happened inside it.
+   *
+   * COUNTING ROWS WAS THE MISTAKE. Nine rows is fine. Nine paragraphs saying one
+   * thing is the dump, and that is true whether the rows carrying them are
+   * consecutive or not.
+   *
+   * So the section says it once at the top, and the rows it speaks for drop
+   * their prose and keep everything else -- clock, seat, outcome, tool calls,
+   * trace door. Chronology untouched, every row where it was.
+   *
+   * Keyed by `runId` rather than by section so `rowFor` can ask about one row
+   * without knowing which section drew it, which is the only thing that made
+   * this a small change rather than a re-shaping of the render.
+   */
+  const keptSaying = React.useMemo(() => {
+    const bySection = new Map<string, StationRefrain>();
+    const byRun = new Map<string, StationRefrain>();
+    for (const section of sections) {
+      const found = whatThisStationKeptSaying(
+        section.rows.flatMap((r) => (r.kind === "turn" ? [r.turn] : [])),
+      );
+      if (!found) continue;
+      bySection.set(section.key, found);
+      for (const runId of found.covers) byRun.set(runId, found);
+    }
+    return { bySection, byRun };
+  }, [sections]);
   const indexOf = React.useMemo(
     () => new Map(orderedRows.map((r, i) => [r.key, i] as const)),
     [orderedRows],
@@ -1499,8 +1562,18 @@ export function TrackActivity({
 
     /* Read once. It was called twice on the row below -- once to test
                and once to render -- and it now runs `humanizeText` over the
-               WHOLE output rather than over a 160-character slice. */
+               WHOLE output rather than over a 160-character slice.
+               
+               NULL WHEN THE SECTION HEADER IS ALREADY CARRYING THIS SENTENCE.
+               A turn OUTSIDE the group keeps its own words, always: on a station
+               where five of six turns hit one wall, the sixth is the one that
+               said something different and is exactly the row a person needs. */
     const said = saidLine(t.said);
+    /* One line instead of three when the header above is carrying this
+       sentence in full. Clamped, never removed: see `what-this-station-kept-
+       saying.ts` for the three measures that could not be trusted to decide
+       a row's words were safe to hide. */
+    const saidLines = saidTheSameThing(keptSaying.byRun.get(t.runId) ?? null, t.runId) ? 1 : 3;
 
     return (
       <li
@@ -1746,7 +1819,7 @@ export function TrackActivity({
                         the transcript's own density, deep enough to read a
                         thought, with `Reveal`'s own button for the rest.
                       */}
-                    <Reveal lines={3}>{said}</Reveal>
+                    <Reveal lines={saidLines}>{said}</Reveal>
                   </RunNote>
                 ) : null}
 
@@ -1801,15 +1874,21 @@ export function TrackActivity({
        * attributed and counted — so a reader who finds the claim untrue is
        * looking at the disagreement rather than at this file's opinion of it.
        */}
-      {refrain ? (
-        <RecordSpeaks
-          evidence={`${refrainLead(refrain)} Between ${clockOf(Date.parse(refrain.from))} and ${clockOf(
-            Date.parse(refrain.to),
-          )}.`}
-        >
-          &ldquo;{refrain.saying}&rdquo;
-        </RecordSpeaks>
-      ) : null}
+      {/*
+       * ── `RecordSpeaks` IS GONE, AND THE SECTIONS DO ITS JOB PER STATION ──
+       *
+       * It drew `whatItKeepsSaying` over the whole run: the refrain at the
+       * TAIL, which is one station's, printed above a column of every station.
+       * On `6cc7a010` that was Design's twelve credit halts, standing over a
+       * transcript whose Build section was the six repetitions that actually
+       * explained the run and which this could not reach.
+       *
+       * Every section now carries its own, in its own header, beside the turns
+       * that said it -- so the fact is not merely repeated in a better place,
+       * it is said for stations this never spoke for at all. What is lost is a
+       * summary at the top of the column, and a summary of one station is not
+       * a summary of a column.
+       */}
       {ranLine ? <p className="mrd-meta">{ranLine}</p> : null}
       {cappedLine ? <p className="mrd-meta">{cappedLine}</p> : null}
       {/* OUTSIDE the log, for the same reason `ranLine` is: it is a standing
@@ -1858,6 +1937,14 @@ export function TrackActivity({
             ) : null;
           const took = section.tookMs ? formatElapsed(section.tookMs / 1000) : null;
           const meta = [sectionMeta(section), took].filter(Boolean).join(" · ");
+          const sectionSaid = keptSaying.bySection.get(section.key) ?? null;
+          /* Compared on the CLAIM, not the string: the card and this header
+             both quote a real turn, and on a station whose seats each rephrase
+             the wall they can pick different turns. Two sentences making one
+             claim are one sentence for a reader. */
+          const alreadyQuoted = Boolean(
+            sectionSaid && quotedAbove && sameClaim(quotedAbove, sectionSaid.said),
+          );
           /* The seats live here, each as its own colour, readable closed. */
           const liveNames = [
             ...new Set(
@@ -1917,6 +2004,46 @@ export function TrackActivity({
                   {section.via && isOpen ? (
                     <span className="min-w-0 text-mrd-small text-mrd-mute">{section.via}</span>
                   ) : null}
+                  {/*
+                   * ── WHAT THE STATION KEPT SAYING, SAID ONCE ───────────────
+                   *
+                   * The sentence the rows below no longer each carry. It reads
+                   * whether the section is open or closed, deliberately: a
+                   * closed Build section that says only "Engineer, Review · 6
+                   * turns · 41.5s" is the stopwatch-over-a-black-box this
+                   * screen was rebuilt to stop, and on the measured run this
+                   * sentence is the only actionable thing on the page.
+                   *
+                   * Two lines rather than three. The row's own `Reveal` opens
+                   * to three because a reader who has opened a turn wants the
+                   * thought; a header is scanned, and the first two lines of
+                   * every one of these sentences carried the whole fact.
+                   *
+                   * QUOTED, because it is the seat's claim and not this
+                   * surface's. The record's verdict is unchanged and the rows
+                   * below still say they filed nothing.
+                   */}
+                  {sectionSaid ? (
+                    <span className="mt-1 flex min-w-0 flex-col gap-0.5">
+                      <span className="text-mrd-small text-mrd-mute">
+                        {/* The lead survives even when the quote goes: the
+                            section still has to say what happened here, and
+                            "said this 6 times" without the words is the count,
+                            which is what a header is for. */}
+                        {alreadyQuoted
+                          ? stationRefrainLead(sectionSaid, section.turns).replace(
+                              /:$/,
+                              ", and it is quoted above.",
+                            )
+                          : stationRefrainLead(sectionSaid, section.turns)}
+                      </span>
+                      {alreadyQuoted ? null : (
+                        <span className="min-w-0 leading-mrd-prose text-mrd-small text-mrd-body">
+                          <Reveal lines={2}>{`“${sectionSaid.said}”`}</Reveal>
+                        </span>
+                      )}
+                    </span>
+                  ) : null}
                 </span>
                 <Chevron open={isOpen} className="mt-[5px] shrink-0 text-mrd-mute" />
               </button>
@@ -1962,7 +2089,18 @@ export function TrackActivity({
                               {t.stopLine ? <RunNote>{t.stopLine}</RunNote> : null}
                               {saidLine(t.said) ? (
                                 <RunNote>
-                                  <Reveal lines={3}>{saidLine(t.said)}</Reveal>
+                                  <Reveal
+                                    lines={
+                                      saidTheSameThing(
+                                        keptSaying.byRun.get(t.runId) ?? null,
+                                        t.runId,
+                                      )
+                                        ? 1
+                                        : 3
+                                    }
+                                  >
+                                    {saidLine(t.said)}
+                                  </Reveal>
                                 </RunNote>
                               ) : null}
                               {/*
