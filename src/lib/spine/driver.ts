@@ -1520,8 +1520,28 @@ export const HOLD_LINE: Record<HoldReason, string> = {
   // Names the number, because "this is stuck" is what a person already knows by
   // the time they are reading it. The count is what tells them it was never one
   // bad run.
+  /*
+   * ── "RATHER THAN ANY SINGLE RUN" WAS AN ASSERTION, AND IT WAS FALSE ──────
+   * Removed 2026-09-09 (Lane 1, on Lane 2's live reading of `6cc7a010`).
+   *
+   * The sentence read "...has not moved on once. THAT IS THE LOOP RATHER THAN
+   * ANY SINGLE RUN, so nothing further will be spent on it until you look."
+   * Nothing derives that middle clause. It is here because looping usually
+   * means the shape rather than a cause, and usually is not always.
+   *
+   * On that run it was simply wrong. Build reported "No repository is connected
+   * for this workspace" six times across forty minutes; the loop answered by
+   * sending the work back to Plan and then Design, and the credit ran out
+   * there. The cause WAS a single external blocker, named in plain English in
+   * six rows, and this sentence ruled it out to the one person who could act.
+   *
+   * The count is the fact and it still carries: run many times, moved once
+   * never, so nothing more is spent until you look. That says the shape without
+   * ruling out the cause, which is what the design contract's law 10 asks of
+   * any claim ABOUT a fact: derive it, or do not make it.
+   */
   "going-in-circles":
-    "This station has been run many times over and the work has not moved on once. That is the loop rather than any single run, so nothing further will be spent on it until you look.",
+    "This station has been run many times over and the work has not moved on once, so nothing further will be spent on it until you look.",
   "tools-refused":
     "This station could not use a tool it needs, so nothing it filed would have been the work. That is the connection rather than the work, and retrying it would only spend more to be told the same. Reconnect it and start this work again.",
   /*

@@ -324,9 +324,42 @@ export function wayOut(
    * own header gives: the dead end was the absent next step, not the button.
    */
   shipStop: { line: string; actionable: boolean } | null = null,
+  /**
+   * ── A WAY OUT THE RUN HAS ALREADY PROVED DOES NOT WORK IS WORSE THAN NONE ──
+   *
+   * True when the run itself named an external blocker, from
+   * `theBlockerItAlreadyNamed` (Lane 2, 2026-09-09). Read live on `6cc7a010`:
+   * Build reported "No repository is connected for this workspace" SIX times
+   * across forty minutes, the loop's answer was to send the work back to Plan
+   * and then Design, twelve turns burned the remaining credit, and the hold
+   * landed as `going-in-circles`. So this file offered "Send it back a step so
+   * it starts from different ground" for a run whose loop WAS three send-backs,
+   * under a sentence saying the station cannot start at all.
+   *
+   * Neither line is wrong as written and that is the point: the template
+   * describes the shape truthfully and the door is right for a loop with no
+   * external blocker. They are both talking about the symptom while the cause
+   * sat in six rows of plain English no surface read.
+   *
+   * SO IT DEFERS RATHER THAN COMPETES. When the run has named its own blocker,
+   * that sentence is on screen directly above and it is the only actionable
+   * thing here: bind the repository. Offering a second door beside it that
+   * sends the work backwards is the product advising a move the record already
+   * shows produced this state, and law 11 says one cause gets one sentence at
+   * the level that owns it. The blocker owns it.
+   *
+   * IT SUPPRESSES THE SENTENCE, NEVER THE CONTROLS. `undo` and `handback` are
+   * still the right presses if a person decides to make one, which is this
+   * file's own header rule: the dead end was the absent next step, not the
+   * button.
+   */
+  blockerOnScreen: boolean = false,
 ): WayOut {
   if (shipStop?.actionable) {
     return { next: shipStop.line, onThisScreen: true };
+  }
+  if (blockerOnScreen) {
+    return { next: null, onThisScreen: true };
   }
   if (!hold) return NOTHING;
 

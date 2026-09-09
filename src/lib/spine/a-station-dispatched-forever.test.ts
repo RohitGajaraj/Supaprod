@@ -115,8 +115,32 @@ describe("the hold stops the loop paying, and says so", () => {
     expect(TERMINAL_HOLDS).toContain("going-in-circles");
   });
 
-  it("names the loop rather than the run", () => {
-    expect(HOLD_LINE["going-in-circles"]).toContain("That is the loop rather than any single run");
+  /*
+   * THIS TEST PINNED A CLAIM THAT TURNED OUT TO BE FALSE, and it is replaced
+   * rather than deleted so the next reader meets the reasoning.
+   *
+   * It asserted the line contains "That is the loop rather than any single
+   * run". That clause was never derived from anything; it was written because
+   * looping usually means the shape rather than a single cause. Read live on
+   * `6cc7a010` (Lane 2, 2026-09-09) it was simply wrong: Build reported "No
+   * repository is connected for this workspace" six times across forty minutes,
+   * the loop answered by sending the work backwards, and the credit ran out.
+   * The cause WAS a single external blocker, and this sentence ruled it out to
+   * the one person who could act on it.
+   *
+   * So the guard now pins what the line may claim rather than the words it
+   * used: the COUNT and the CONSEQUENCE, which are both derived, and no verdict
+   * on the cause, which is not. That is law 10 in the design contract, applied
+   * to the driver's own copy.
+   */
+  it("says the count and the consequence, and rules nothing out about the cause", () => {
+    const line = HOLD_LINE["going-in-circles"];
+    // The two facts the driver actually has.
+    expect(line).toContain("run many times over");
+    expect(line).toContain("nothing further will be spent");
+    // And no verdict on WHY, which it does not have.
+    expect(line).not.toContain("rather than any single run");
+    expect(line.toLowerCase()).not.toContain("that is the loop");
   });
 
   it("does not promise to try again", () => {
