@@ -141,7 +141,8 @@ export function didLine(stop: StopLike): string | null {
     }
     case "design": {
       const n = count(stop, "prototype");
-      return n > 0 ? `${plural(n, "drawing", "drawings")} filed.` : null;
+      /* The canon's noun, not a local swap. See what-it-made.ts. */
+      return n > 0 ? `${plural(n, "prototype", "prototypes")} filed.` : null;
     }
     case "build": {
       const n = count(stop, "mission") + count(stop, "changeset");

@@ -40,7 +40,7 @@ describe("Ship says where it released to, and only what was attached after", () 
       ],
     });
     expect(out?.lead).toBe("Released to production.");
-    expect(out?.quiet).toBe(`Alongside, 4 drawings of ${TITLE} and 1 decision.`);
+    expect(out?.quiet).toBe(`Alongside, 4 prototypes of ${TITLE} and 1 decision.`);
   });
 
   it("never says the confession, and never counts the context as Ship's filing", () => {
@@ -147,18 +147,18 @@ describe("Build says which pull request it opened", () => {
   });
 });
 
-describe("Design counts its drawings, folding what repeats", () => {
-  it("a plain count when every drawing is its own thing", () => {
+describe("Design counts its prototypes, folding what repeats", () => {
+  it("a plain count when every prototype is its own thing", () => {
     const out = whatItMade({
       station: "design",
       label: "Design",
       members: Array.from({ length: 8 }, (_, i) => m("prototype", `Screen ${i + 1}`)),
     });
-    expect(out?.lead).toBe("8 drawings.");
+    expect(out?.lead).toBe("8 prototypes.");
     expect(out?.quiet).toBeNull();
   });
 
-  it("one thing drawn four times is four drawings of that thing", () => {
+  it("one thing drawn four times is four prototypes of that thing", () => {
     const out = whatItMade({
       station: "design",
       label: "Design",
@@ -169,7 +169,7 @@ describe("Design counts its drawings, folding what repeats", () => {
         m("prototype", TITLE),
       ],
     });
-    expect(out?.lead).toBe(`4 drawings of ${TITLE}.`);
+    expect(out?.lead).toBe(`4 prototypes of ${TITLE}.`);
   });
 
   it("names each thing drawn more than once, ce846e9b's shape", () => {
@@ -184,7 +184,7 @@ describe("Design counts its drawings, folding what repeats", () => {
       ],
     });
     expect(out?.lead).toBe(
-      "10 drawings (4 of OTA Firmware Reboot Status Tile and 4 of Tile Differentiation).",
+      "10 prototypes (4 of OTA Firmware Reboot Status Tile and 4 of Tile Differentiation).",
     );
   });
 });
@@ -245,9 +245,9 @@ describe("the absences", () => {
       members: [m("prototype", TITLE), m("decision", "Go")],
     });
     expect(out?.lead).toBe("No release from Ship.");
-    // One drawing is not a fold, so its title is not named here: the row
+    // One prototype is not a fold, so its title is not named here: the row
     // beneath carries it.
-    expect(out?.quiet).toBe("Alongside, 1 drawing and 1 decision.");
+    expect(out?.quiet).toBe("Alongside, 1 prototype and 1 decision.");
   });
 
   it("says yet while a seat is working the stop", () => {

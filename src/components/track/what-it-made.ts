@@ -76,11 +76,27 @@ function prNumber(fields: Readonly<Record<string, unknown>> | undefined): number
   return null;
 }
 
-/** The map above this sentence says drawing; every other noun is `wordFor`'s. */
-function nounFor(kind: string, n: number): string {
-  if (kind === "prototype") return n === 1 ? "drawing" : "drawings";
-  return wordFor(kind, n);
-}
+/*
+ * ── THE OVERRIDE THAT SAID "DRAWING" IS GONE (Lane 1, 2026-09-09) ─────────
+ *
+ * It read `if (kind === "prototype") return "drawing"`, and three sibling files
+ * carried the same local swap. `KIND_WORD` in `lib/spine/attach.ts` is the
+ * canon and says prototype; nine call sites already read it, including the run
+ * screen's own What-happened list.
+ *
+ * So the two met on one screen. Caught live on 2026-09-09 on the served build:
+ * the road under Design read "10 drawings" and the story 250px to its right
+ * read "filed 10 prototypes", one object and two nouns in one glance.
+ *
+ * PROTOTYPE WINS, and not only because it is the canon. "Drawing" MISDESCRIBES
+ * the thing. The locked positioning calls it "an interactive prototype a person
+ * can click before anyone writes code" and rests a differentiator on it: their
+ * preview saves rework, ours prevents it. Calling that a drawing undersells the
+ * most distinctive artifact the loop files, and it is the founder's own outward
+ * word besides.
+ *
+ * Nothing to override now: every noun here is `wordFor`'s.
+ */
 
 /** Oldest first by the instant where every member carries one; filing order otherwise. */
 function newestOf<M extends MadeMember>(members: readonly M[]): M {
@@ -185,7 +201,7 @@ export function whatItMade(input: {
       if (ownKind) {
         const mine = of(ownKind);
         if (mine.length > 0) {
-          lead = `${foldedCount(mine, nounFor(ownKind, mine.length), prepFor(ownKind))}.`;
+          lead = `${foldedCount(mine, wordFor(ownKind, mine.length), prepFor(ownKind))}.`;
         }
       }
     }
@@ -210,7 +226,7 @@ export function whatItMade(input: {
     byKind.set(m.kind, [...(byKind.get(m.kind) ?? []), m]);
   }
   const alongside = [...byKind].map(([kind, ms]) =>
-    foldedCount(ms, nounFor(kind, ms.length), prepFor(kind)),
+    foldedCount(ms, wordFor(kind, ms.length), prepFor(kind)),
   );
 
   const quiet = [...extras];

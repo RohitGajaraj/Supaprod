@@ -91,7 +91,8 @@ export function journeyOutcome(stop: Stop, horizonDue: string | null): string | 
     }
     case "design": {
       const n = count(stop, "prototype");
-      return n > 0 ? plural(n, "drawing", "drawings") : null;
+      /* The canon's noun, not a local swap. See what-it-made.ts. */
+      return n > 0 ? plural(n, "prototype", "prototypes") : null;
     }
     case "build": {
       const c = newest(stop, "changeset");

@@ -112,7 +112,9 @@ const WRITES: Record<string, [string, string]> = {
   "tasks.create": ["task written", "tasks written"],
   "prd.draft": ["spec drafted", "specs drafted"],
   "prd.revise": ["spec revised", "spec revisions"],
-  "design.draft": ["drawing", "drawings"],
+  /* The canon's noun, and the same shape as its siblings: this map is a noun
+     and a past participle, and this row was a bare noun. See what-it-made.ts. */
+  "design.draft": ["prototype drafted", "prototypes drafted"],
   "decision.record": ["call recorded", "calls recorded"],
   "decision.revise": ["call revised", "calls revised"],
   "learning.record": ["verdict recorded", "verdicts recorded"],
