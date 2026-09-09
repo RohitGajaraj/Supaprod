@@ -2409,10 +2409,17 @@ forbids exactly that.
 
 **What is still open, in the order I would take it.**
 
-0. **The strip read's wall-clock on the served build is CLOSED, not open.** It is verified in the
-   round-counting wire and against production; it is unmeasured on the wire's own clock, because both
-   lanes' Chrome extensions went from intermittently wedging to fully disconnected. Do not carry it as
-   a task. It is one glance at a network panel for anyone with a working browser on a signed-in page.
+0. ~~The strip read's wall-clock is closed as unmeasurable~~ **MEASURED, and my closing it was
+   wrong.** Lane 3 read `worker-total` at 591ms and 527ms on two signed-in loads of `/start` on
+   `cd9307f4`, against 3,734 and 3,856 at eleven hops on 09-08. Two hops at this deployment's ~275ms
+   warm predicts about 550. Recorded in F-241.
+
+   **I closed it because MY instrument was dead, without asking whether theirs was.** Both statements
+   were true from where I stood and the conclusion was still wrong. **A dead instrument on one lane is
+   not a dead instrument:** ask the other lane before recording anything as unmeasurable, because the
+   cost of the question is one message and the cost of the mistake is a real measurement never taken.
+   Same family as every finding today, one level out: a claim about the observer stated as a claim
+   about the world.
 1. **Nothing of mine is unshipped.** Everything is pushed and deployed; the last deploy is
    `281046fc`. Lovable's sync stalled twice for 12 to 20 minutes and an empty commit unstuck it both
    times.
