@@ -11923,8 +11923,14 @@ blind spot is real: one live decision on `d1168015` carries `call = 'do-not-buil
 `status = 'approved'` and the old check could not see it. But of 9 tracks carrying a recorded
 refusal, 3 filed work afterwards and **all 3 carried `status = 'declined'`, which the old check
 could already see** -- two of them after the waive guard shipped (`13c1407d4`, 27 August). So the
-guard exists, could see those refusals, and did not stop them. That is **F-247, open and untraced,
-and a larger defect than the one closed.** The eleven are not explained. Verifying by exercising the
+guard exists, could see those refusals, and did not stop them. That was F-247, and **it traced to NOT A DEFECT within
+the hour: the guard works.** Both tracks recorded a refusal and then a later decision to build --
+`6817e386` eleven minutes afterwards, `2fdf93b6` by superseding the refusal outright -- and the
+guard reads the newest live decision, so it was right both times. **Correctly measured: of 29 tracks
+with a decision, 6 have a standing refusal as their newest live decision and ZERO filed building
+work after it.** My own count was wrong twice over: it compared against any refusal rather than the
+standing one, and it used the batch-written attachment time this lane had proved unreliable an hour
+earlier. The eleven are not explained, Verifying by exercising the
 record rather than by reading the diff is what caught this, an hour after the commit message said
 otherwise.
 
