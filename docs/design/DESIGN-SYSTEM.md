@@ -804,6 +804,38 @@ literal it was hunting, found zero call sites and passed on a file that still he
 the standing rule that catches all of it — **a guard nobody has watched fail is not evidence.** Break
 the code, watch the assertion go red, put it back.
 
+---
+
+**AND THE SECOND HALF, ADDED 2026-09-10: A GUARD MUST READ THE THING ITS NAME CLAIMS.** Stripping
+comments stops a guard reading the wrong TEXT. It does nothing about a guard reading the wrong
+QUESTION, and that failure is quieter, because the guard is green and its name says the claim holds.
+
+Three sightings in one night, all found by accident and none by a failing test:
+
+| The guard | What its name claims | What it actually read |
+| --- | --- | --- |
+| `one-state-one-sentence-one-door` | *"omits the clock rather than inventing one"* | the literal source line. It passed for a year while the sentence it produced read **"Waiting on you since 5 days"** |
+| `the-bar-counts-gates-on-open-tracks` | this query has no date filter | 800 lines of a LATER function, because it sliced to the first `"\n  });"` and that function does not end that way |
+| Lane 2's `agree-on-what-was-produced` | two surfaces agree on the count | the shared VOCABULARY. It was green while the two numbers disagreed |
+
+**The fix in every case is to run the code rather than read it.** `defaultLine` is exported and
+called; the gates guard is bounded to its own function; Lane 2's compares the numbers. Where a source
+read is genuinely the only option — an embed's existence, a control's position in a branch — **bound
+the slice to the thing you name, and put a mirror on the slice itself**: `expect(body.length)
+.toBeGreaterThan(400)` fails when the measurement breaks rather than when the code does.
+
+**The tell, and it is the same one every time: every assertion passes by finding NOTHING.** A guard
+built only from `not.toContain` and `toEqual([])` reports a clean bill of health on an empty string,
+a collapsed slice, a regex that stopped matching, or a walker that stopped descending. Pair it with
+one assertion that fails when the instrument breaks.
+
+**A GUARD WITH NO INSTANCE IS NOT WORTH SHIPPING EITHER**, which is the other end of the same rule.
+Lane 2 measured the cache-key class across 365 `useQuery` sites: six flagged, **zero real** — the
+flags were method names and a keyword a regex could not tell from values. They filed the class as
+currently empty and shipped the narrow guard over the one query that has ever had the defect instead.
+**A guard with a 100% false-positive rate teaches people to skip the line, and then it is there when
+a real one arrives.**
+
 ### 20. The review boundary is the change. The defect is at the destination.
 
 Added 2026-09-10, from four sightings in one night, three of them ours and one Lane 2's. It is kept
