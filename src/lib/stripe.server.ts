@@ -73,22 +73,25 @@ export function getStripeErrorMessage(error: unknown): string {
 }
 
 /**
- * `data.object` IS `any` ON PURPOSE, RE-EXAMINED 2026-09-01.
+ * `data.object` IS `unknown` ON PURPOSE, RE-EXAMINED 2026-09-09 (was `any`
+ * until then, for the same reason stated below).
  *
  * This function verifies the HMAC itself and then returns `JSON.parse(body)`
  * (see the last line). It does not call the Stripe SDK's `constructEvent`, so
  * what comes back is proven to have come from Stripe and proven nothing about
  * its shape. Declaring a Stripe SDK type here would be an assertion over
  * unvalidated JSON -- the return type would say "verified" about the one thing
- * that was not verified. The consumers in stripe-provider.server.ts narrow each
- * field with optional chaining and explicit guards, which is the honest place
- * for it. `type` is `string` for the same reason; only `id` is `unknown`,
- * because its absence was a real defect and it is narrowed where it is read.
+ * that was not verified. `unknown` makes that honest instead of `any` merely
+ * implying it: the consumers in stripe-provider.server.ts cast to their own
+ * local, narrow types and narrow each field with optional chaining and
+ * explicit guards, which is the honest place for it. `type` is `string` for
+ * the same reason; only `id` is `unknown`, because its absence was a real
+ * defect and it is narrowed where it is read.
  */
 export async function verifyWebhook(
   req: Request,
   env: StripeEnv,
-): Promise<{ type: string; data: { object: any } }> {
+): Promise<{ type: string; data: { object: unknown } }> {
   const signature = req.headers.get("stripe-signature");
   const body = await req.text();
   const secret =

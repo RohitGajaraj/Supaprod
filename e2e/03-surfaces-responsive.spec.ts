@@ -2,7 +2,7 @@
  * Phase 2 & 4: Responsive surface audit (tablet 768px, mobile 320px)
  * Verifies layout at breakpoints, checks bottom nav, rail visibility
  */
-import { test, expect, Page } from "@playwright/test";
+import { test, expect, Page, Cookie } from "@playwright/test";
 import { login, takeScreenshot, waitForShell } from "./helpers/auth";
 
 const KEY_SURFACES = [
@@ -72,7 +72,7 @@ async function checkTouchTargets(page: Page): Promise<{ element: string; size: s
 test.describe("Responsive Audit - Tablet 768px", () => {
   test.use({ viewport: { width: 768, height: 1024 } });
 
-  let authCookies: any;
+  let authCookies: Cookie[];
 
   test.beforeAll(async ({ browser }) => {
     const page = await browser.newPage();
@@ -107,7 +107,7 @@ test.describe("Responsive Audit - Tablet 768px", () => {
 test.describe("Responsive Audit - Mobile 320px", () => {
   test.use({ viewport: { width: 320, height: 667 } });
 
-  let authCookies: any;
+  let authCookies: Cookie[];
 
   test.beforeAll(async ({ browser }) => {
     const page = await browser.newPage();
@@ -183,7 +183,7 @@ test.describe("Responsive Audit - Mobile 320px", () => {
 test.describe("Responsive Breakpoint - 640px", () => {
   test.use({ viewport: { width: 640, height: 896 } });
 
-  let authCookies: any;
+  let authCookies: Cookie[];
 
   test.beforeAll(async ({ browser }) => {
     const page = await browser.newPage();

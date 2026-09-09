@@ -38,7 +38,6 @@ function loadEnvFile(): void {
 
 loadEnvFile();
 
-
 /**
  * A SPEC THAT NOBODY REVIEWED MUST NOT RUN.
  *
@@ -66,7 +65,10 @@ loadEnvFile();
 function unreviewedSpecs(): string[] {
   try {
     const tracked = new Set(
-      execFileSync("git", ["ls-files", "e2e"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] })
+      execFileSync("git", ["ls-files", "e2e"], {
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"],
+      })
         .split("\n")
         .filter(Boolean),
     );

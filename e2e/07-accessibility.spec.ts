@@ -2,7 +2,7 @@
  * Phase 7: Accessibility Testing
  * Keyboard navigation, focus traps, aria-labels, color contrast
  */
-import { test, expect, Page } from "@playwright/test";
+import { test, expect, Page, Cookie } from "@playwright/test";
 import { login, takeScreenshot, waitForShell } from "./helpers/auth";
 import { becomesVisible } from "./helpers/waits";
 
@@ -122,7 +122,7 @@ async function checkSemanticHTML(page: Page) {
 test.describe("Accessibility - Keyboard Navigation", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
 
-  let authCookies: any;
+  let authCookies: Cookie[];
 
   test.beforeAll(async ({ browser }) => {
     const page = await browser.newPage();
@@ -227,7 +227,7 @@ test.describe("Accessibility - Keyboard Navigation", () => {
 test.describe("Accessibility - Semantic HTML & ARIA", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
 
-  let authCookies: any;
+  let authCookies: Cookie[];
 
   test.beforeAll(async ({ browser }) => {
     const page = await browser.newPage();
@@ -313,7 +313,7 @@ test.describe("Accessibility - Semantic HTML & ARIA", () => {
 test.describe("Accessibility - Reduced Motion", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
 
-  let authCookies: any;
+  let authCookies: Cookie[];
 
   test.beforeAll(async ({ browser }) => {
     const page = await browser.newPage();

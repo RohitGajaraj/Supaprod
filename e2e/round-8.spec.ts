@@ -89,9 +89,9 @@ test.describe("Round 8: Autonomous End-to-End Execution", () => {
 
     // Wait for redirect to track page
     console.log("[ROUND 8] Waiting for track creation...");
-    await page.waitForURL(/\/track\/[a-z0-9\-]+/, { timeout: 30000 });
+    await page.waitForURL(/\/track\/[a-z0-9-]+/, { timeout: 30000 });
     const trackUrl = page.url();
-    const trackId = trackUrl.match(/\/track\/([a-z0-9\-]+)/)?.[1];
+    const trackId = trackUrl.match(/\/track\/([a-z0-9-]+)/)?.[1];
     console.log(`[ROUND 8] Track created: ${trackId}`);
     expect(trackId).toBeTruthy();
 

@@ -39,9 +39,56 @@ const LINE_ITEMS_TIMEOUT_MS = 10_000;
  * The verified Stripe event, as much of it as this file reads. `id` is typed
  * unknown rather than string on purpose: it is the field whose absence used to
  * be invisible, and narrowing it at the one place it is read is what makes a
- * malformed payload impossible to process by accident.
+ * malformed payload impossible to process by accident. `data.object` is
+ * `unknown` for the same reason -- see the comment above the event handlers.
  */
-type StripeEventEnvelope = { id?: unknown; type: string; data: { object: any } };
+type StripeEventEnvelope = { id?: unknown; type: string; data: { object: unknown } };
+
+/**
+ * The minimal shape each subscription handler reads off an unverified Stripe
+ * webhook payload. Mirrors `SubscriptionLike` in billing-webhook.ts (the type
+ * `buildSubscriptionUpsert` / `buildSubscriptionUpdate` already declare) so a
+ * cast to this type is structurally accepted wherever those expect it, without
+ * widening that module's export surface for one cast.
+ */
+type StripeSubscriptionPayload = {
+  id?: string;
+  customer?: string;
+  status?: string;
+  cancel_at_period_end?: boolean;
+  current_period_start?: number | null;
+  current_period_end?: number | null;
+  metadata?: { userId?: string } | null;
+  items?: {
+    data?: Array<{
+      price?: {
+        lookup_key?: string | null;
+        metadata?: { lovable_external_id?: string | null } | null;
+        id?: string | null;
+        product?: string;
+      } | null;
+      current_period_start?: number | null;
+      current_period_end?: number | null;
+    }>;
+  } | null;
+};
+
+/** The minimal shape `handleCheckoutCompleted` reads off a checkout.session payload. */
+type StripeCheckoutSessionPayload = {
+  id?: string;
+  mode?: string;
+  metadata?: { userId?: string; kind?: string } | null;
+  payment_intent?: string | null;
+  amount_total?: number | null;
+  currency?: string | null;
+};
+
+/** The minimal shape `handleChargeRefunded` reads off a charge payload. */
+type StripeChargePayload = {
+  id?: string;
+  payment_intent?: string | { id?: string } | null;
+  refunds?: { data?: Array<{ id?: string }> } | null;
+};
 
 function hasKeys(env: PaymentsEnv): boolean {
   const key =
@@ -135,32 +182,37 @@ export async function stripeCreateCheckout(input: CheckoutInput): Promise<Checko
 
 // --- Event handlers (moved verbatim from the webhook route) -----------------
 //
-// THE `any` ON EVERY PAYLOAD BELOW IS DELIBERATE AND WAS RE-EXAMINED ON
-// 2026-09-01, DURING THE SWEEP THAT TYPED THE REST OF src/lib. It stays for two
-// measured reasons.
+// EVERY PAYLOAD BELOW IS `unknown`, NOT `any`. First typed `any` and examined
+// on 2026-09-01, revisited 2026-09-09 to clear `@typescript-eslint/no-explicit-any`
+// -- the two reasons `any` was chosen still hold, but `unknown` satisfies both
+// without the escape hatch.
 //
 // 1. It is not a database boundary, and the database boundary here is already
 //    checked. `getServiceClient()` is `createClient<Database>`, so the tables
 //    and payloads these handlers write ARE type-checked today: renaming
 //    `.from("subscriptions")` to a table that does not exist produces 16 tsc
-//    errors in this file (measured, not assumed). Typing `sub` would not add a
-//    single check on anything that reaches Postgres.
+//    errors in this file (measured, not assumed). Neither `any` nor `unknown`
+//    adds a check on anything that reaches Postgres.
 //
 // 2. The shape genuinely is open at this point. `verifyWebhook` in
 //    stripe.server.ts does its own HMAC over the raw body and then returns a
 //    bare `JSON.parse(body)`; it never runs the Stripe SDK's `constructEvent`.
 //    The HMAC proves the payload came from Stripe, not that it has any
 //    particular shape, and Stripe versions its event schemas independently of
-//    this deployment. Annotating `sub` as `Stripe.Subscription` would assert a
-//    structure nothing verified, and would make the `sub.metadata?.userId` /
-//    `sub.items?.data?.[0]` guards below -- which are the checks actually doing
-//    the work -- look redundant to the next reader who might then delete them.
+//    this deployment. Annotating a payload as `Stripe.Subscription` would
+//    assert a structure nothing verified. `unknown` asserts nothing: every
+//    read below goes through a cast to a local, narrow type
+//    (`StripeSubscriptionPayload` and friends, declared above) that names
+//    exactly the fields this file uses -- the same guard the optional
+//    chaining here was already doing, now checked by the compiler instead of
+//    by convention, and no more honest a claim about the payload than `any` was.
 //
-// If this is ever revisited, the correct order is: validate the parsed body
-// against a schema first, then type the handlers from that schema. Typing them
-// without the validation would move the lie, not remove it.
+// If this is ever revisited, the correct order is still: validate the parsed
+// body against a schema first, then type the handlers from that schema. These
+// local payload types are a stopgap for that, not a replacement.
 
-async function handleSubscriptionCreated(sub: any, env: StripeEnv) {
+async function handleSubscriptionCreated(subPayload: unknown, env: StripeEnv) {
+  const sub = subPayload as StripeSubscriptionPayload;
   const userId = sub.metadata?.userId;
   if (!userId) {
     console.error("Webhook: subscription has no userId metadata", sub.id);
@@ -173,28 +225,30 @@ async function handleSubscriptionCreated(sub: any, env: StripeEnv) {
     .upsert(buildSubscriptionUpsert(sub, env, new Date().toISOString()), {
       onConflict: "stripe_subscription_id",
     });
-  await applyTierForUser(userId, priceId, sub.status);
-  await grantForSubscription(userId, priceId, sub.status);
+  await applyTierForUser(userId, priceId, sub.status ?? "");
+  await grantForSubscription(userId, priceId, sub.status ?? "");
 }
 
-async function handleSubscriptionUpdated(sub: any, env: StripeEnv) {
+async function handleSubscriptionUpdated(subPayload: unknown, env: StripeEnv) {
+  const sub = subPayload as StripeSubscriptionPayload;
   const priceId = resolvePriceLookup(sub.items?.data?.[0]);
 
   await getServiceClient()
     .from("subscriptions")
     .update(buildSubscriptionUpdate(sub, new Date().toISOString()))
-    .eq("stripe_subscription_id", sub.id)
+    .eq("stripe_subscription_id", sub.id ?? "")
     .eq("environment", env);
   const userId = sub.metadata?.userId;
-  if (userId) await applyTierForUser(userId, priceId, sub.status);
-  await grantForSubscription(userId, priceId, sub.status);
+  if (userId) await applyTierForUser(userId, priceId, sub.status ?? "");
+  await grantForSubscription(userId, priceId, sub.status ?? "");
 }
 
-async function handleSubscriptionDeleted(sub: any, env: StripeEnv) {
+async function handleSubscriptionDeleted(subPayload: unknown, env: StripeEnv) {
+  const sub = subPayload as StripeSubscriptionPayload;
   await getServiceClient()
     .from("subscriptions")
     .update({ status: "canceled", updated_at: new Date().toISOString() })
-    .eq("stripe_subscription_id", sub.id)
+    .eq("stripe_subscription_id", sub.id ?? "")
     .eq("environment", env);
   const userId = sub.metadata?.userId;
   const item = sub.items?.data?.[0];
@@ -202,9 +256,14 @@ async function handleSubscriptionDeleted(sub: any, env: StripeEnv) {
   if (userId && priceId) await applyTierForUser(userId, priceId, "canceled");
 }
 
-async function handleCheckoutCompleted(session: any, env: StripeEnv) {
+async function handleCheckoutCompleted(sessionPayload: unknown, env: StripeEnv) {
+  const session = sessionPayload as StripeCheckoutSessionPayload;
   if (!isTopupCheckout(session)) return;
   const userId = session.metadata?.userId;
+  // isTopupCheckout already required a truthy metadata.userId at runtime; this
+  // repeats the check so the type checker narrows userId to string too, same
+  // as the guard in handleSubscriptionCreated above.
+  if (!userId) return;
 
   /**
    * A REFUSED LOOKUP IS NOT AN EMPTY CART.
@@ -258,7 +317,10 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
 
   await applyTopupPurchase({
     userId,
-    sessionId: session.id,
+    // Every real checkout.session carries an id; the fallback only fires on a
+    // malformed payload and mirrors the `sub.status ?? ""` pattern above
+    // rather than asserting a value nothing here verified.
+    sessionId: session.id ?? "",
     paymentIntentId: session.payment_intent ?? null,
     credits,
     amountCents: session.amount_total ?? 0,
@@ -268,7 +330,7 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
   });
 }
 
-async function handleInvoicePaymentFailed(invoice: any, env: StripeEnv) {
+async function handleInvoicePaymentFailed(invoice: unknown, env: StripeEnv) {
   const subId = invoiceSubscriptionId(invoice);
   if (!subId) return;
   await getServiceClient()
@@ -278,7 +340,7 @@ async function handleInvoicePaymentFailed(invoice: any, env: StripeEnv) {
     .eq("environment", env);
 }
 
-async function handleInvoicePaymentSucceeded(invoice: any, env: StripeEnv) {
+async function handleInvoicePaymentSucceeded(invoice: unknown, env: StripeEnv) {
   const subId = invoiceSubscriptionId(invoice);
   if (!subId) return;
   const admin = getServiceClient() as unknown as SupabaseClient;
@@ -287,7 +349,10 @@ async function handleInvoicePaymentSucceeded(invoice: any, env: StripeEnv) {
     .update({ status: "active", updated_at: new Date().toISOString() })
     .eq("stripe_subscription_id", subId)
     .eq("environment", env);
-  if (!isRenewalInvoice(invoice)) return;
+  // isRenewalInvoice already declares the narrow shape it reads
+  // (`{ billing_reason?: string }`); this cast is the one place that shape
+  // meets the unverified payload, same as invoiceSubscriptionId's own `unknown`.
+  if (!isRenewalInvoice(invoice as { billing_reason?: string })) return;
   const { data: sub } = await admin
     .from("subscriptions")
     .select("user_id")
@@ -333,7 +398,8 @@ async function handleInvoicePaymentSucceeded(invoice: any, env: StripeEnv) {
  * Subscription-fee refunds deliberately do NOT claw the monthly allowance —
  * the subscription lifecycle events (cancel/downgrade) already govern that.
  */
-async function handleChargeRefunded(charge: any, _env: StripeEnv) {
+async function handleChargeRefunded(chargePayload: unknown, _env: StripeEnv) {
+  const charge = chargePayload as StripeChargePayload;
   const paymentIntentId: string | null =
     typeof charge.payment_intent === "string"
       ? charge.payment_intent

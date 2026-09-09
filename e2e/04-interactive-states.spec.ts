@@ -2,7 +2,7 @@
  * Phase 3: Interactive State Testing
  * Hover, focus, loading, error, empty, disabled states
  */
-import { test, expect, Page } from "@playwright/test";
+import { test, expect, Page, Cookie } from "@playwright/test";
 import { login, takeScreenshot, waitForShell } from "./helpers/auth";
 import { waitForStyleToSettle } from "./helpers/waits";
 
@@ -36,7 +36,7 @@ function parseOklchHue(value: string): number | null {
 test.describe("Interactive States - Today", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
 
-  let authCookies: any;
+  let authCookies: Cookie[];
 
   test.beforeAll(async ({ browser }) => {
     const page = await browser.newPage();
@@ -138,7 +138,7 @@ test.describe("Interactive States - Today", () => {
 test.describe("Interactive States - Build", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
 
-  let authCookies: any;
+  let authCookies: Cookie[];
 
   test.beforeAll(async ({ browser }) => {
     const page = await browser.newPage();
@@ -205,7 +205,7 @@ test.describe("Interactive States - Build", () => {
 test.describe("Interactive States - Discover", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
 
-  let authCookies: any;
+  let authCookies: Cookie[];
 
   test.beforeAll(async ({ browser }) => {
     const page = await browser.newPage();
@@ -252,7 +252,7 @@ test.describe("Interactive States - Discover", () => {
 test.describe("Focus Ring Compliance", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
 
-  let authCookies: any;
+  let authCookies: Cookie[];
 
   test.beforeAll(async ({ browser }) => {
     const page = await browser.newPage();

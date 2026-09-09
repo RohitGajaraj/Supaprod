@@ -2,7 +2,7 @@
  * Phase 8: Dark/Light Theme Verification
  * Token resolution in both themes, contrast, no hardcoded colors
  */
-import { test, expect, Page } from "@playwright/test";
+import { test, expect, Page, Cookie } from "@playwright/test";
 import { login, takeScreenshot, waitForShell } from "./helpers/auth";
 import { becomesVisible, readThemeMarker } from "./helpers/waits";
 
@@ -175,7 +175,7 @@ async function switchToLightTheme(page: Page): Promise<boolean> {
 test.describe("Theme Verification", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
 
-  let authCookies: any;
+  let authCookies: Cookie[];
 
   test.beforeAll(async ({ browser }) => {
     const page = await browser.newPage();

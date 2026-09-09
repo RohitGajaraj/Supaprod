@@ -2,7 +2,7 @@
  * Phase 6: Icon Audit
  * Sizing consistency, stroke weight, color role compliance
  */
-import { test, expect, Page } from "@playwright/test";
+import { test, expect, Page, Cookie } from "@playwright/test";
 import { login, takeScreenshot, waitForShell } from "./helpers/auth";
 
 async function auditIcons(page: Page) {
@@ -80,7 +80,7 @@ async function auditIcons(page: Page) {
 test.describe("Icon Audit", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
 
-  let authCookies: any;
+  let authCookies: Cookie[];
 
   test.beforeAll(async ({ browser }) => {
     const page = await browser.newPage();

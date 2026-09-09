@@ -2,7 +2,7 @@
  * Phase 5: Typography & Font Verification
  * Geist Sans, Mono, Pixel rendering, weights, line-heights
  */
-import { test, expect, Page } from "@playwright/test";
+import { test, expect, Page, Cookie } from "@playwright/test";
 import { login, takeScreenshot, waitForShell } from "./helpers/auth";
 
 async function getTypographyAudit(page: Page) {
@@ -87,7 +87,7 @@ async function getTypographyAudit(page: Page) {
 test.describe("Typography Verification", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
 
-  let authCookies: any;
+  let authCookies: Cookie[];
 
   test.beforeAll(async ({ browser }) => {
     const page = await browser.newPage();

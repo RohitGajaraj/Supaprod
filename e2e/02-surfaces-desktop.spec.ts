@@ -2,7 +2,7 @@
  * Phase 2: Visual Audit of 14 Surfaces at desktop (1280px)
  * Captures screenshots and verifies layout for each authenticated surface
  */
-import { test, expect, Page } from "@playwright/test";
+import { test, expect, Page, Cookie } from "@playwright/test";
 import { login, takeScreenshot, takeFullPageScreenshot, waitForShell } from "./helpers/auth";
 
 const SURFACES = [
@@ -127,7 +127,7 @@ async function getConsoleErrors(page: Page): Promise<string[]> {
 test.describe("Surface Audit - Desktop 1280px", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
 
-  let authCookies: any;
+  let authCookies: Cookie[];
 
   test.beforeAll(async ({ browser }) => {
     const page = await browser.newPage();

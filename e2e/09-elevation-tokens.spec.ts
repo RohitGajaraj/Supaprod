@@ -10,7 +10,7 @@
  * probing them for weeks and reporting 0/8 into a console.log. See
  * `checkElevationTokens` for the full note.
  */
-import { test, expect, Page } from "@playwright/test";
+import { test, expect, Page, Cookie } from "@playwright/test";
 import { login, takeScreenshot, waitForShell } from "./helpers/auth";
 
 async function checkElevationTokens(page: Page) {
@@ -97,7 +97,7 @@ async function checkElevationTokens(page: Page) {
 test.describe("Elevation & Shadow Token Compliance", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
 
-  let authCookies: any;
+  let authCookies: Cookie[];
 
   test.beforeAll(async ({ browser }) => {
     const page = await browser.newPage();
