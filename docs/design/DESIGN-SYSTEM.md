@@ -1153,6 +1153,56 @@ feel like a force-fitting one"*, and a glance must not make anyone work out what
 
 ---
 
+### 24. A door must open what it names — and a gate must not key on the field its own action clears
+
+Two rules, published together on 2026-09-10 because they were found the same night and they are the
+same mistake at two altitudes: **a thing that names its own effect, and cannot deliver it.**
+
+**THE DOOR.** Walked from `/outcomes` into a decision. The detail offered a control reading *"Open
+the mission"*, and it navigated to `/start`. `/runs/$missionId` was deleted, an approval carries a
+`mission_id` rather than a track id, and a previous pass made it fall back to Start *"rather than a
+dead link"*.
+
+**That chose the wrong failure.** A dead link tells a person it is broken. A link to the home page
+silently loses their place and looks like it worked — they press a control that names a destination,
+arrive somewhere else, and have to find their way back to the queue they were working through.
+
+| pending approvals | 21 |
+| --- | --- |
+| carrying a `mission_id`, so the control drew | 7 |
+| resolvable to a track | **0** |
+
+Cut, not relabelled: there was nothing true for it to say. **Where a door cannot open what it names,
+remove it rather than pointing it somewhere plausible** — a control that lands a person on a page
+they did not ask for spends their trust twice, once on the press and once on the way back.
+
+**A census cannot find this one**, and that is why it is a law rather than a test. The tree's every
+link target resolves — 50 routes, 23 bases, zero unknown. This door was a *live link to a real page*.
+Only walking it finds that.
+
+**THE GATE, which is Lane 3's and is sharper.** A repair released a stuck track by clearing its hold.
+The predicate deciding whether a track *may* be released reads:
+
+```ts
+if (!input.holdIsTerminal) return { release: false, why: "hold is not terminal" }
+```
+
+So a half-released track — hold cleared, everything else the wall wrote still set — is **outside the
+repair, because it no longer has the terminal hold that qualifies it**, and simultaneously outside the
+money exemption in `decideDrive`, which keys on the same field. One field carrying two jobs: the
+state, and the standing to change the state. Removing it removes the standing to remove it.
+
+**The rule: a gate must not key on the field its own action clears.** Where it must, the action
+clears every field the state is made of, atomically, so the half-state cannot exist.
+
+**And the tempting fix is the wrong one, twice.** Widening the gate to accept a track with no hold
+would catch the two broken rows and quietly admit every genuinely unheld track. *Loosening a
+repair's own gate to catch a state that a bug created* is the same move refused on the backoff ladder
+two hours earlier. Fix the writer, repair the rows by hand, and stop at two — **a third manual repair
+is fixing the data until the demo works**, and at that point nobody can say whether the code runs.
+
+---
+
 ## Open, measured, and deliberately not done tonight
 
 ### The address bar is the one surface still speaking the old vocabulary
