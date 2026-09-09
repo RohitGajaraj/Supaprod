@@ -108,7 +108,34 @@ export function DataSection({ workspaceId }: { workspaceId?: string }) {
 
   const seal = useQuery({ queryKey: ["ledger-seal"], queryFn: () => fSeal({ data: {} }) });
   const receipts = useQuery({ queryKey: ["value-receipts"], queryFn: () => fReceipts() });
-  const history = useQuery({ queryKey: ["export-log"], queryFn: () => fLog({ data: {} }) });
+  /*
+   * ── THE EXPORT WROTE SCOPED AND THE HISTORY READ UNSCOPED ────────────────
+   *
+   * One component, both halves. The export button below sends
+   * `workspaceId ? { workspaceId } : {}` and takes rows from this workspace;
+   * this list sent `{}` and `listExportLog` filters only when given one, so the
+   * history under a scoped export was every workspace's.
+   *
+   * It is the shape S1 found on /outcomes -- a headline over one population and
+   * a list over another -- and it survives review the same way: the code that
+   * would be wrong is code nobody wrote. Nobody decided to show every
+   * workspace's exports; the argument was simply never passed, and an omission
+   * has no diff to read.
+   *
+   * MEASURED BEFORE FIXING, because the size of a thing decides how much of it
+   * to write: `export_log` holds 2 rows across 2 workspaces and 2 users, and
+   * this read runs as the person, so RLS already keeps it to their own. So the
+   * live blast radius today is one row for one account. The shape is still
+   * wrong and the fix is one argument.
+   *
+   * THE KEY CARRIES THE WORKSPACE TOO. Without it, switching workspace serves
+   * the previous one's history from cache -- the same defect a beat later, and
+   * the one that outlives the filter because nothing about it looks unscoped.
+   */
+  const history = useQuery({
+    queryKey: ["export-log", workspaceId ?? null],
+    queryFn: () => fLog({ data: workspaceId ? { workspaceId } : {} }),
+  });
   const subs = useQuery({
     queryKey: ["subprocessors"],
     queryFn: () => fSubprocessors({ data: {} }),
