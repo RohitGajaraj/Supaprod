@@ -769,12 +769,19 @@ export async function maybeCompleteMission(
        *                              the work, and the convention is explicit
        *                              that a writer with no strong signal says
        *                              medium rather than fabricating high.
-       *   completed_with_failures  → low. The row this writer is about to store
-       *                              is titled "Mission completed", and on a
-       *                              mission with failed steps that title is
-       *                              already generous. A record we half-believe
-       *                              is exactly the one a person should read,
-       *                              so it goes to the queue and stays there. */
+       *   completed_with_failures  → low. `completed_with_failures` means some
+       *                              step did not reach a terminal state, so
+       *                              nothing here vouches for the work; calling
+       *                              the pass complete is already generous. A
+       *                              record we half-believe is exactly the one
+       *                              a person should read, so it goes to the
+       *                              queue and stays there.
+       *
+       * This paragraph used to make that argument from the row's TITLE ("the
+       * row this writer is about to store is titled 'Mission completed'"). The
+       * title lost its prefix below and the argument had to stop resting on it:
+       * the reason was always `finalStatus`, which is the field the line under
+       * this comment actually reads. */
       const confidence: ConfidenceTier = finalStatus === "completed" ? "medium" : "low";
       const gate = decideDecisionReview({
         sourceKind: "mission",
@@ -810,7 +817,42 @@ export async function maybeCompleteMission(
           .insert({
             user_id: updated.user_id,
             workspace_id: updated.workspace_id,
-            title: `Mission completed: ${(updated.title ?? "Untitled").slice(0, 240)}`,
+            /*
+             * ── THE TITLE IS THE WORK, NOT THE PROVENANCE ─────────────────
+             *
+             * This read `Mission completed: ${title}`. Seen on the served
+             * entry, 2026-09-09: the home's second line names the one call to
+             * start with, quoted, and it read
+             *
+             *   Start with "Mission completed: Show homeowner installer
+             *   arrival window on order page".
+             *
+             * which tells a person to start with a thing that announces its
+             * own completion. The lead is not wrong; the title is.
+             *
+             * THE PREFIX WAS ALREADY REDUNDANT WITH TWO COLUMNS ON THIS ROW.
+             * `source_kind: "mission"` and `mission_id` are both set eight
+             * lines below, and `approvals-queue.functions.ts` already turns
+             * the first of them into the reader-facing words: `impact:
+             * d.source_kind === "mission" ? "raised during a pass"`. So the
+             * queue said it twice, once in a field designed for it and once
+             * inside the subject.
+             *
+             * It is also the case `plan/format.ts` predicted in writing --
+             * *"any future writer that reintroduces a prefix"* -- when
+             * migration 20260805120000 moved `[auto]` out of titles for this
+             * exact reason. This was that writer.
+             *
+             * AND IT IS FIXED HERE RATHER THAN IN `cleanTitle`, deliberately.
+             * That helper strips `[auto]` globally and its own header says why
+             * that is safe: *"`[auto]` is not English and it is not a subject
+             * ... no title legitimately contains the literal token."* "Mission
+             * completed" IS English and can legitimately open a title a person
+             * wrote. Stripping it globally would silently rewrite somebody's
+             * own words, so the fix belongs at the writer that has no business
+             * adding it.
+             */
+            title: (updated.title ?? "Untitled").slice(0, 240),
             rationale,
             status: gate.status,
             mission_id: updated.id,

@@ -157,6 +157,35 @@ export function heroCopy(input: {
     return bits.length > 0 ? ` ${bits.join("; ")}.` : "";
   };
   /*
+   * ── ONE FACT, NOT A TALLY JOINED BY SEMICOLONS ────────────────────────────
+   *
+   * For the branch where CALLS lead. Read on the served entry, 2026-09-09:
+   *
+   *   Start with "Show homeowner installer arrival window on order page".
+   *   Answer them in Inbox, or on the runs below that carry them. 2 runs have
+   *   stopped. Open Inbox
+   *
+   * Four clauses, three different subjects, wrapping to two lines under the
+   * largest type on the landing page. On a workspace with all three facts the
+   * same slot reads "...; 2 runs have gone quiet; 2 runs have stopped." That
+   * is the *"dump of data and content"* the founder named, in the one line
+   * that is supposed to tell him what to do.
+   *
+   * `rest(null)` is right where the headline is ABOUT the runs, because there
+   * the tally is the subject. Here the subject is the calls, and the runs are
+   * a second topic entirely, so the line takes the ONE that most needs a
+   * person and drops the rest to the list that draws them properly.
+   *
+   * QUIET BEFORE STOPPED, on this file's own established order: *"a stopped
+   * run spends nothing more, a quiet seat may."* And `moving` never qualifies
+   * -- a run getting on with it by itself is the system working, and it has no
+   * business on a line a person is reading to find out what to do.
+   */
+  const mostUrgent = (): string => {
+    const pick = facts.find(([k, s]) => s && (k === "quiet" || k === "stopped"));
+    return pick ? ` ${pick[1]}.` : "";
+  };
+  /*
    * THE ASKS BEYOND THE RUNS. Read live: the Inbox page listed six calls
    * (design gates, decisions) while this line said nothing was waiting,
    * because none of them was a gate on a run row. The queue's number is the
@@ -187,11 +216,18 @@ export function heroCopy(input: {
      * the Inbox focuses when you get there, so the two cannot disagree.
      */
     const start = input.waitingFirst?.trim();
-    const lead = start ? `Start with ${quoted(start)}. ` : "";
+    const lead = start ? `Start with ${quoted(start)}.` : "";
+    /*
+     * WHERE TO ANSWER IS THE FALLBACK, NOT THE LEAD. It used to run in front
+     * of every one of these lines, and next to a door labelled "Open Inbox"
+     * with the runs visibly below, it explains the layout to somebody who is
+     * looking at the layout. It earns its place only when there is no call to
+     * name -- then it is the whole direction rather than a preamble to one.
+     */
     return {
       eyebrow,
       title,
-      line: `${lead}Answer them in Inbox, or on the runs below that carry them.${rest(null)}${short}`,
+      line: `${lead || "Answer them in Inbox, or on the runs below that carry them."}${mostUrgent()}${short}`,
       door: { label: "Open Inbox", to: "/approvals" },
     };
   }

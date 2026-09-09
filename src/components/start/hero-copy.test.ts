@@ -222,3 +222,88 @@ describe("placeholderFor", () => {
     expect(placeholderFor(null)).toBe("Make the checkout accept an American Express card");
   });
 });
+
+/*
+ * ── THE CALLS LINE SAYS ONE DIRECTION AND AT MOST ONE FACT ────────────────
+ *
+ * Read on the served entry (deployment 99f5076a, 2026-09-09), A1 delete probe:
+ *
+ *   4 design gates and 2 other calls are waiting for you.
+ *   Start with "Mission completed: Show homeowner installer arrival window on
+ *   order page". Answer them in Inbox, or on the runs below that carry them.
+ *   2 runs have stopped. Open Inbox
+ *
+ * Four clauses and three subjects wrapping to two lines. The stored title was
+ * fixed at its writer (`handoff.server.ts`); this pins the shape of the line
+ * that carried it, because nothing did and the branch was free to grow a
+ * fourth clause again.
+ */
+describe("the line under a calls headline", () => {
+  const seat = {
+    seat: "Scribe",
+    since: "2026-09-08T00:00:00Z",
+    tool: null,
+    lastCallAt: "2026-09-08T00:00:00Z",
+  };
+  const callsWaiting = (extra: Record<string, unknown> = {}) =>
+    heroCopy({
+      product: "Prism",
+      runs: [
+        { ...base, holdReason: "given-up" },
+        { ...base, holdReason: "given-up" },
+        { ...base, working: seat },
+      ],
+      waiting: 6,
+      waitingFirst: "Show homeowner installer arrival window on order page",
+      nowMs: Date.parse("2026-09-08T00:45:00Z"),
+      ...extra,
+    });
+
+  it("leads with the one call to start with, and drops the layout sentence", () => {
+    const c = callsWaiting();
+    expect(c.line).toStartWith(
+      'Start with "Show homeowner installer arrival window on order page".',
+    );
+    // The door below is labelled "Open Inbox" and the runs are visibly below.
+    expect(c.line).not.toContain("Answer them in Inbox");
+    expect(c.door?.label).toBe("Open Inbox");
+  });
+
+  it("carries at most ONE run fact, never a tally joined by semicolons", () => {
+    const c = callsWaiting();
+    expect(c.line).not.toContain(";");
+    // Quiet before stopped: a stopped run spends nothing more, a quiet seat may.
+    expect(c.line).toContain("1 run has gone quiet");
+    expect(c.line).not.toContain("2 runs have stopped");
+  });
+
+  it("never reports what is going fine on a line read to find what to do", () => {
+    expect(callsWaiting().line).not.toContain("moving");
+  });
+
+  it("says where to answer when there is no call it can name", () => {
+    // The fallback is the whole direction here rather than a preamble to one.
+    const c = callsWaiting({ waitingFirst: null });
+    expect(c.line).toStartWith("Answer them in Inbox");
+    expect(c.line).not.toContain("Start with");
+  });
+
+  /*
+   * THE MIRROR. Every assertion above is a REMOVAL, and a line that said
+   * nothing at all would pass all four. Where the headline is about the runs
+   * themselves the tally is the subject, and it must still be there.
+   */
+  it("still tallies the rest where the headline IS the runs", () => {
+    const c = heroCopy({
+      product: "Prism",
+      runs: [
+        { ...base, holdReason: "given-up" },
+        { ...base, working: seat },
+      ],
+      waiting: 0,
+      nowMs: Date.parse("2026-09-08T00:45:00Z"),
+    });
+    expect(c.title).toBe("1 run has gone quiet.");
+    expect(c.line).toContain("1 run has stopped");
+  });
+});
