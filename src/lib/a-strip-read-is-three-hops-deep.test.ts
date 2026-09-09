@@ -38,6 +38,9 @@ const fixture = (table: string, _cols: string, filters: Filter[]): Row[] => {
               status: "completed",
               created_at: EARLIER,
               agent_slug: "builder",
+              /* Null on runs older than the column: their trace lives only on
+                 the checkpoint, which is why that read stays. */
+              trace_id: null,
             },
           ]
         : [
@@ -47,6 +50,7 @@ const fixture = (table: string, _cols: string, filters: Filter[]): Row[] => {
               status: "running",
               created_at: AT,
               agent_slug: "shipper",
+              trace_id: "trace-2",
             },
           ];
     }
@@ -180,5 +184,40 @@ describe("a strip read is three hops deep", () => {
     );
     expect(rounds).toBe(1);
     expect(result.sessions).toEqual([]);
+  });
+});
+
+/**
+ * Measured on production 2026-09-09: for the 300 newest runs `agent_runs.trace_id`
+ * and the latest checkpoint's `state->>'traceId'` agree in every case, and for the
+ * 300 oldest the run column is null in all 185 that have checkpoints. So the
+ * column is newer than those runs: the checkpoint read is the only place a
+ * pre-August trace exists, and it must stay, but it should only be asked about
+ * the runs whose own row does not carry one.
+ */
+describe("the run carries its own trace, where it has one", () => {
+  it("asks the checkpoints only about runs whose row has no trace", async () => {
+    const asked: string[][] = [];
+    const wire = new FakeWire((table, _cols, filters) => {
+      if (table === "agent_run_checkpoints") {
+        const ids = filters.find((f) => f.op === "in" && f.col === "run_id")?.value as string[];
+        asked.push(ids ?? []);
+        return [{ run_id: "r1", step_index: 2, trace: "trace-1" }];
+      }
+      return fixture(table, "", filters);
+    });
+    const { result } = await drive(
+      wire,
+      readStudioSessions(wire as unknown as SupabaseClient, "user-1", {
+        includeArchived: false,
+        workspaceId: "ws-1",
+      }),
+    );
+    // r2 carries its own trace; only r1 is asked about.
+    expect(asked).toEqual([["r1"]]);
+    // And both still get their cost, from whichever place the trace was written.
+    const byId = new Map(result.sessions.map((s) => [s.mission_id, s]));
+    expect(byId.get("m1")?.cost_usd).toBe(0.25);
+    expect(byId.get("m2")?.cost_usd).toBe(0.5);
   });
 });

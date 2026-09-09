@@ -263,13 +263,13 @@ export async function readStudioSessions(
        */
       let builderQ = db
         .from("agent_runs")
-        .select("id,mission_id,status,created_at,agent_slug")
+        .select("id,mission_id,status,created_at,agent_slug,trace_id")
         .eq("user_id", userId)
         .eq("agent_slug", "builder");
       if (workspaceId) builderQ = builderQ.eq("workspace_id", workspaceId);
       let otherQ = db
         .from("agent_runs")
-        .select("id,mission_id,status,created_at,agent_slug")
+        .select("id,mission_id,status,created_at,agent_slug,trace_id")
         .eq("user_id", userId)
         .neq("agent_slug", "builder");
       if (workspaceId) otherQ = otherQ.eq("workspace_id", workspaceId);
@@ -312,6 +312,9 @@ export async function readStudioSessions(
         status: string;
         created_at: string;
         agent_slug: string | null;
+        /** Written on the run since August; null on older runs, whose trace
+         *  lives only on their latest checkpoint. */
+        trace_id: string | null;
       };
       const runRows = (runs ?? []) as RunRow[];
       const builderMissionIds = [
@@ -393,9 +396,23 @@ export async function readStudioSessions(
           .eq("parent_kind", "prd")
           .eq("child_kind", "mission")
           .in("child_id", missionIds),
+        /*
+         * ── THE RUN CARRIES ITS OWN TRACE, WHERE IT HAS ONE (2026-09-09) ────
+         *
+         * This read every checkpoint of every run in the window (up to 200
+         * runs, capped at 2,000 rows) and projected `state->>'traceId'` out of
+         * them, to learn a fact `agent_runs.trace_id` now holds directly.
+         * Measured on production: for the 300 newest runs the two agree in
+         * every case, and for the 300 OLDEST the run column is null in all 185
+         * that have checkpoints, so the column is newer than they are. That is
+         * why the checkpoint read stays rather than going: it is the only
+         * place a pre-August run's trace exists. It is now asked ONLY about
+         * the runs whose own row does not carry one, which on a workspace that
+         * has run since August is none of them, and the read costs nothing.
+         */
         traceByRun(
           supabase,
-          [...runRows, ...otherRunRows].map((r) => r.id),
+          [...runRows, ...otherRunRows].filter((r) => !r.trace_id).map((r) => r.id),
         ),
       ]);
 
@@ -422,6 +439,11 @@ export async function readStudioSessions(
         prdByMission.set(e.child_id, e.parent_id);
       }
       const prdIds = [...new Set(prdByMission.values())];
+      /* The run's own trace first, the checkpoint's only where the run has
+         none: one map, whichever place the fact was written. */
+      for (const r of [...runRows, ...otherRunRows]) {
+        if (r.trace_id && !traces.has(r.id)) traces.set(r.id, r.trace_id);
+      }
       const traceList = [...new Set(traces.values())];
       /**
        * The stage a mission that has NOT RUN YET is standing at.
