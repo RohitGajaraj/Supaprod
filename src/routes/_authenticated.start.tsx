@@ -681,6 +681,8 @@ function StartLanding() {
        */}
       {roadMode ? (
         <JourneyMap
+          /* It opens the page now, so it says what it is. */
+          leads
           /*
            * ── WHILE A SENTENCE IS BEING WRITTEN, THE ROAD IS ABOUT IT ───────
            *

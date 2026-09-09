@@ -105,3 +105,55 @@ describe("the sentence the entry says about itself", () => {
     expect(call![0]).toContain("homeReads.data.closed");
   });
 });
+
+/*
+ * ── A ROAD THAT OPENS A PAGE SAYS ITS OWN NAME ────────────────────────────
+ *
+ * `ROAD_NAME` was `aria-label` only, and that was RIGHT while the road sat
+ * fourth: the caption underneath says something about the WORK, and a heading
+ * saying "Where your work stands" over it is the furniture `JourneyMap`'s own
+ * header records removing.
+ *
+ * Moving the road to first changed what the removal was true of. A page cannot
+ * open on the bare word "Discover". That is law 20 with the arrow reversed --
+ * usually a change arrives at a destination it did not look at; here the
+ * destination moved under a decision that was correct where it stood.
+ *
+ * It also makes the MODE visible, which is worth having on its own: the three
+ * names are three different subjects -- work that has started, the road every
+ * run travels, the road THIS sentence will take -- and a drawing that changes
+ * subject silently is the ambiguity the route preview was nearly not built
+ * over.
+ */
+describe("the road names itself where it leads, and nowhere else", () => {
+  const MAP = readFileSync(join(import.meta.dir, "JourneyMap.tsx"), "utf8");
+
+  it("draws the name only when it is the page's first region", () => {
+    expect(MAP).toContain("{leads ? <Eyebrow>{ROAD_NAME[mode]}</Eyebrow> : null}");
+  });
+
+  it("defaults to silent, so a road inside another frame stays unframed", () => {
+    // A heading appearing inside somebody else's panel is the furniture all
+    // over again, and every other caller draws in one.
+    expect(MAP).toContain("leads = false");
+  });
+
+  it("is switched on where the entry draws it", () => {
+    const call = ROUTE.slice(ROUTE.indexOf("<JourneyMap"), ROUTE.indexOf("<JourneyMap") + 400);
+    expect(call).toContain("leads");
+  });
+
+  it("names the mode rather than a fixed word", () => {
+    /*
+     * THE MIRROR. A hard-coded "Where your work stands" would pass the first
+     * assertion and would be wrong in two of three modes -- and the one it is
+     * wrong in is the composer preview, where the drawing has changed subject
+     * and the name is the only thing that says so.
+     */
+    expect(MAP).toContain("ROAD_NAME[mode]");
+    const names = MAP.match(/const ROAD_NAME[\s\S]{0,220}?\};/)?.[0] ?? "";
+    for (const mode of ["promise", "map", "route"]) {
+      expect({ mode, named: names.includes(`${mode}:`) }).toEqual({ mode, named: true });
+    }
+  });
+});

@@ -14,7 +14,7 @@
  */
 import * as React from "react";
 
-import { Action } from "@/components/meridian/surface-parts";
+import { Action, Eyebrow } from "@/components/meridian/surface-parts";
 import { AGENT_STATIONS } from "@/lib/agent-vocabulary";
 import { joinPlainly } from "@/lib/spine/attach";
 
@@ -181,11 +181,19 @@ export function JourneyMap({
   stations,
   selected,
   onSelect,
+  leads = false,
 }: {
   mode: "promise" | "map" | "route";
   stations: readonly JourneyStation[];
   selected?: JourneyKey | null;
   onSelect?: (key: JourneyKey | null) => void;
+  /**
+   * This road opens the page, so it says its own name. Default false: a road
+   * drawn inside something that frames itself does not need a heading, and
+   * that was the reason the name was `aria-label` only until the entry put the
+   * road first.
+   */
+  leads?: boolean;
 }) {
   /* THE CAPTION SAYS WHAT THE PRESS DID. A station press filters a list that
      is usually below the fold, so it looked like nothing happened (third
@@ -215,6 +223,32 @@ export function JourneyMap({
       aria-label={ROAD_NAME[mode]}
       className="flex flex-col gap-mrd-4 rounded-mrd-pane bg-mrd-sheet px-mrd-5 pt-mrd-5 pb-mrd-4"
     >
+      {/*
+       * ── THE NAME BECOMES VISIBLE WHEN THE ROAD LEADS THE PAGE ────────────
+       *
+       * It was `aria-label` only, and that was RIGHT where the road sat
+       * fourth: the caption underneath says something about the work, and a
+       * heading saying "Where your work stands" over it is the furniture this
+       * file's own header records removing.
+       *
+       * The position changed on 2026-09-10 -- the road is the entry's first
+       * region now -- and a page cannot open on the bare word "Discover". The
+       * removal was correct for where it was, which is law 20 exactly, except
+       * that this time the destination moved under a decision instead of a
+       * decision arriving at a destination.
+       *
+       * ONLY WHERE IT LEADS. `leads` is a prop rather than a mode test because
+       * the same three modes draw in places that frame themselves, and a
+       * heading that appears inside somebody else's panel is the furniture all
+       * over again.
+       *
+       * IT ALSO MAKES THE MODE VISIBLE, which is the half I would have argued
+       * for anyway. The three names are three different subjects -- work that
+       * has started, the road every run travels, the road THIS sentence will
+       * take -- and the drawing changing subject silently is the ambiguity the
+       * route preview was nearly not built over.
+       */}
+      {leads ? <Eyebrow>{ROAD_NAME[mode]}</Eyebrow> : null}
       <Journey
         size="full"
         stations={stations}
