@@ -73,6 +73,7 @@
  * to be better than anything the machinery could say about it.
  */
 import { claimOf, containment, MIN_CONTAINMENT } from "@/lib/spine/what-it-keeps-saying";
+import { whatASeatActuallySaid } from "@/lib/spine/what-a-seat-actually-said";
 
 /** One turn, as `getTrackActivity` already returns it. */
 export type BlockedTurn = {
@@ -132,12 +133,23 @@ export type Blocker = {
  */
 export const MIN_BLOCKED_TURNS = 2;
 
+/**
+ * The seat's words, as prose.
+ *
+ * Some output is a sentence and some is the loop's preamble with the model's
+ * raw JSON step pasted after it. Normalised HERE, at the front, so the claim
+ * matching below and the quote at the end read the same thing -- otherwise the
+ * grouping scores punctuation and the card prints it. See
+ * `what-a-seat-actually-said.ts` for the run this was read off.
+ */
+const prose = (t: BlockedTurn): string | null => whatASeatActuallySaid(t.said);
+
 /** Failed, and filed nothing. A turn that filed is not blocked. */
 function blocked(t: BlockedTurn): boolean {
   if (!t.station) return false;
   if (t.outcome !== "partly" && t.outcome !== "stopped") return false;
   if (t.made.length > 0) return false;
-  return claimOf(t.said) !== null;
+  return claimOf(prose(t)) !== null;
 }
 
 /**
@@ -153,8 +165,8 @@ export function theBlockerItAlreadyNamed(turns: readonly BlockedTurn[]): Blocker
   for (const t of turns) {
     if (!blocked(t)) continue;
     const open = runs[runs.length - 1];
-    const claim = claimOf(t.said);
-    const openClaim = open ? claimOf(open[0]!.said) : null;
+    const claim = claimOf(prose(t));
+    const openClaim = open ? claimOf(prose(open[0]!)) : null;
     if (
       open &&
       open[0]!.station === t.station &&
@@ -212,7 +224,7 @@ export function theBlockerItAlreadyNamed(turns: readonly BlockedTurn[]): Blocker
      * whose folded row quotes the same group, and a page that quotes one event
      * two ways is worse than either way alone.
      */
-    said: best[best.length - 1]!.said!.trim(),
+    said: prose(best[best.length - 1]!)!.trim(),
     from: best[0]!.at,
     to: best[best.length - 1]!.at,
     halt: !best.some((t) => t.outcome === "partly"),

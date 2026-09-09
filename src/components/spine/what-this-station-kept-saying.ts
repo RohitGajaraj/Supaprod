@@ -51,6 +51,7 @@
  * by asking `saidTheSameThing`, never per section.
  */
 import { claimOf, containment, MIN_CONTAINMENT } from "@/lib/spine/what-it-keeps-saying";
+import { whatASeatActuallySaid } from "@/lib/spine/what-a-seat-actually-said";
 
 export type SayingRow = {
   runId: string;
@@ -135,13 +136,18 @@ export const MIN_SECTION_TURNS = 3;
  * its prose says, and the record's verdict beats the agent's account of itself.
  */
 export function whatThisStationKeptSaying(rows: readonly SayingRow[]): StationRefrain | null {
-  const eligible = rows.filter(
-    (r) =>
-      r.made.length === 0 &&
-      r.outcome !== "working" &&
-      r.outcome !== "waiting" &&
-      claimOf(r.said) !== null,
-  );
+  /* Prose first, for the reason `what-a-seat-actually-said.ts` gives: some
+     output is the loop's preamble with a raw JSON step pasted after it, and
+     `claimOf` would otherwise group these turns on punctuation. */
+  const eligible = rows
+    .map((r) => ({ ...r, said: whatASeatActuallySaid(r.said) }))
+    .filter(
+      (r) =>
+        r.made.length === 0 &&
+        r.outcome !== "working" &&
+        r.outcome !== "waiting" &&
+        claimOf(r.said) !== null,
+    );
   if (eligible.length < MIN_SECTION_TURNS) return null;
 
   /*
