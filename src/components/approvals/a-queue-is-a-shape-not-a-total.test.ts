@@ -22,9 +22,22 @@ const HELIO: ApprovalKind[] = [
 
 describe("a queue is a shape, not a total", () => {
   it("turns the served 66 into the shape a person can start on", () => {
+    /*
+     * WAS THE FULL ENUMERATION, and that was this file's own rule broken by its
+     * own composer. On the founder's queue it produced 143 characters and seven
+     * clauses in the page's largest type, while the home's hero read THE SAME
+     * ROWS through THE SAME `queueShape` and said "20 design gates and 33 other
+     * calls are waiting for you." One function, one queue, two sentences: one a
+     * person can hold and one they cannot. (Lane 1, walking the Inbox,
+     * 2026-09-09.)
+     *
+     * A shape is not a total and it is not an inventory. The breakdown is not
+     * lost: the filter row under this heading carries every family with its own
+     * count, from the same `allItems` through `queueCounts`, as pressable tabs.
+     * The two assertions below still pin that nothing is dropped upstream.
+     */
     expect(shapeSentence(queueShape(HELIO), false)).toBe(
-      "35 design gates, 10 assumption challenges, 8 decisions, 4 agent actions, " +
-        "4 house rules, 3 opportunities and 2 memory notes waiting for you.",
+      "35 design gates and 31 other calls are waiting for you.",
     );
   });
 
@@ -59,11 +72,24 @@ describe("a queue is a shape, not a total", () => {
     expect(shapeSentence(queueShape(HELIO), true)).toStartWith("At least 35 design gates");
   });
 
-  it("gets the singular right, on its own and in a list", () => {
-    expect(shapeSentence(queueShape(["decision"]), false)).toBe("1 decision waiting for you.");
-    expect(shapeSentence(queueShape(["decision", "spec", "spec"]), false)).toBe(
-      "2 specs and 1 decision waiting for you.",
+  it("gets the singular right on both halves of the sentence", () => {
+    // The family, and the count of the rest, each carry their own verb.
+    expect(shapeSentence(queueShape(["decision"]), false)).toBe("1 decision is waiting for you.");
+    expect(shapeSentence(queueShape(["spec", "spec"]), false)).toBe(
+      "2 specs are waiting for you.",
     );
+    expect(shapeSentence(queueShape(["decision", "spec", "spec"]), false)).toBe(
+      "2 specs and 1 other call is waiting for you.",
+    );
+    expect(shapeSentence(queueShape(["decision", "tool_call", "spec", "spec"]), false)).toBe(
+      "2 specs and 2 other calls are waiting for you.",
+    );
+  });
+
+  it("still names the largest family, so the sentence says where to start", () => {
+    // The compression takes the enumeration, never the lead: a person who reads
+    // only this line still knows which family to open first.
+    expect(shapeSentence(queueShape(HELIO), false)).toStartWith("35 design gates");
   });
 
   it("counts an unmapped family rather than dropping it", () => {

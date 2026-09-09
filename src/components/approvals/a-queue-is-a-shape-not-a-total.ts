@@ -124,11 +124,38 @@ export function queueCounts(
  */
 export function shapeSentence(shape: FamilyCount[], floor: boolean): string {
   if (shape.length === 0) return "";
-  const parts = shape.map((f) => f.label);
+  /*
+   * ── A SHAPE IS NOT A TOTAL, AND IT IS NOT AN INVENTORY EITHER ────────────
+   *
+   * This joined every family with commas, and on the founder's own queue that
+   * produced, in the page's largest type, 143 characters and seven clauses:
+   *
+   *   "20 design gates, 12 assumption challenges, 9 decisions, 4 house rules,
+   *    3 agent actions, 3 opportunities and 2 memory notes waiting for you."
+   *
+   * The home's hero reads THE SAME ROWS through THE SAME `queueShape` and says
+   * "20 design gates and 33 other calls are waiting for you." Two surfaces,
+   * one function, one queue, and one sentence a person can hold against one
+   * they cannot. (Found by Lane 1 walking the Inbox, 2026-09-09.)
+   *
+   * This file's own name carries the rule and the enumeration broke it: name
+   * the largest family, count the rest. The breakdown is not lost -- the filter
+   * row under this heading carries every family with its own count, built from
+   * the same `allItems` by `queueCounts` so the two cannot disagree, and it
+   * carries them as a row of pressable tabs, which is better than prose at
+   * exactly this job.
+   *
+   * THE WORDS ARE THE HERO'S, DELIBERATELY. Round five kept finding two
+   * surfaces describing one fact differently; matching the sentence is the
+   * cheapest way for these two never to again.
+   */
+  const biggest = shape[0]!;
+  const total = shape.reduce((n, f) => n + f.n, 0);
+  const others = total - biggest.n;
   const list =
-    parts.length === 1
-      ? parts[0]
-      : `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`;
+    others > 0
+      ? `${biggest.label} and ${others} ${others === 1 ? "other call is" : "other calls are"}`
+      : `${biggest.label} ${biggest.n === 1 ? "is" : "are"}`;
   // "Waiting for you" and not "ready for you": these are things a person has not
   // reached, and the page's own note prefers the verb that owes them nothing.
   return floor ? `At least ${list} waiting for you.` : `${list} waiting for you.`;
