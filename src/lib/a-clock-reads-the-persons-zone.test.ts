@@ -47,6 +47,13 @@ const STILL_RAW = new Set<string>([
   "src/components/knowledge/GraphNodeStory.tsx",
   "src/components/knowledge/GraphRecordRegions.tsx",
   "src/components/knowledge/LearningDetail.tsx",
+  // THE TWO STATION BODIES THAT BECAME COMPONENTS (P-14b, A-QUEUE.md): /learn
+  // on 2026-09-09 (53155ae45) and /ship the same day. Neither route formats a
+  // date anywhere any more, because neither route draws anything; the two
+  // entries below replace `routes/_authenticated.learn.tsx` and
+  // `routes/_authenticated.ship.tsx`. The debt moved with the code, unchanged,
+  // and is still named here rather than forgiven.
+  "src/components/learn/LearnRecord.tsx",
   "src/components/learn/SettlePanel.tsx",
   "src/components/memory/MemoryReviewQueue.tsx",
   "src/components/meridian/run-rows.tsx",
@@ -65,6 +72,7 @@ const STILL_RAW = new Set<string>([
   "src/components/settings/IntegrationsTab.tsx",
   "src/components/settings/MembersCard.tsx",
   "src/components/shared/StageTimeline.tsx",
+  "src/components/ship/ShipRecord.tsx",
   "src/components/ship/WhatShipped.tsx",
   "src/components/spine/TrackActivity.tsx",
   "src/components/supaprod/AuditLineageSheet.tsx",
@@ -80,11 +88,9 @@ const STILL_RAW = new Set<string>([
   "src/routes/_authenticated.admin.pricing.tsx",
   "src/routes/_authenticated.admin.workspaces.tsx",
   "src/routes/_authenticated.approvals.tsx",
-  "src/routes/_authenticated.learn.tsx",
   "src/routes/_authenticated.outcomes.tsx",
   "src/routes/_authenticated.plan.spec.$id.tsx",
   "src/routes/_authenticated.settings.tsx",
-  "src/routes/_authenticated.ship.tsx",
   "src/routes/_authenticated.threads.tsx",
   "src/routes/_authenticated.traces.$traceId.tsx",
   "src/routes/d.$slug.tsx",

@@ -2056,11 +2056,13 @@ function ReleaseCard({ item, decisions }: { item: ArtifactView; decisions?: Arti
       )}
 
       <OnTheHookFor decisions={decisions} />
-      {/* The announcement and the release document live on Ship's own page,
-          which lost its rail door; the release that went out is the one place
-          a person reaches for them from. */}
+      {/* The announcement and the release document live on the artifacts tab
+          of Outcomes since 2026-09-09 (P-14b): /ship lost its rail door first
+          and then the page itself, and the release that went out is the one
+          place a person reaches for them from. The label is unchanged, because
+          what is behind the door is unchanged. */}
       <div>
-        <Link to="/ship" className={DEPTH_DOOR_FACE}>
+        <Link to="/outcomes" search={{ tab: "artifacts" }} className={DEPTH_DOOR_FACE}>
           Open the announcement and the release document
           <DepthArrow />
         </Link>

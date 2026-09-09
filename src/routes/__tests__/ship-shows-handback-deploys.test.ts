@@ -2,7 +2,7 @@ import { describe, it, expect } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { ChangelogEntry } from "@/lib/changelog.functions";
-import { handbackDeploys, shipListItems, type ShipDeployment } from "../_authenticated.ship";
+import { handbackDeploys, shipListItems, type ShipDeployment } from "@/components/ship/ShipRecord";
 
 /**
  * A HANDED-BACK RELEASE REACHES THE SHIP PAGE (P-104, A-QUEUE.md).
@@ -27,7 +27,14 @@ import { handbackDeploys, shipListItems, type ShipDeployment } from "../_authent
  * a pasted address can never stand as proof that something shipped.
  */
 
-const SHIP = join(import.meta.dir, "..", "_authenticated.ship.tsx");
+/**
+ * THE ROUTE THIS FILE READS MOVED (P-14b, A-QUEUE.md, 2026-09-09). `/ship` is a
+ * redirect to `/outcomes?tab=artifacts` now, and every region it drew is
+ * `src/components/ship/ShipRecord.tsx`, mounted above the artifacts shelf. Not
+ * one line of the body changed in the fold, so every assertion below is the one
+ * it was, pointed at the file that holds the code.
+ */
+const SHIP = join(import.meta.dir, "..", "..", "components", "ship", "ShipRecord.tsx");
 
 function code(path: string): string {
   return readFileSync(path, "utf8")

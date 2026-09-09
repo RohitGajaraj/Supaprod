@@ -46,7 +46,14 @@ import { join } from "node:path";
  *   its own control in the row's action slot and `startFrom` keeps the click.
  */
 
-const SHIP = join(import.meta.dir, "..", "_authenticated.ship.tsx");
+/**
+ * THE ROUTE THIS FILE READS MOVED (P-14b, A-QUEUE.md, 2026-09-09). `/ship` is a
+ * redirect to `/outcomes?tab=artifacts` now, and every region it drew is
+ * `src/components/ship/ShipRecord.tsx`, mounted above the artifacts shelf. Not
+ * one line of the body changed in the fold, so every assertion below is the one
+ * it was, pointed at the file that holds the code.
+ */
+const SHIP = join(import.meta.dir, "..", "..", "components", "ship", "ShipRecord.tsx");
 
 /** Source with comments removed, so a rule can never be satisfied by prose
  *  ABOUT the rule. Same treatment ship-can-ship.test.ts uses. */

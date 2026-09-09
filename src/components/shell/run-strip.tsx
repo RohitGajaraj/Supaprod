@@ -207,7 +207,9 @@ export const STATION_ROUTE: Record<AgentStation, string> = {
   define: "/plan",
   design: "/design",
   build: "/build",
-  ship: "/ship",
+  // P-14b (A-QUEUE.md, 2026-09-09): /ship is a redirect stub; the station's
+  // record is Outcomes' artifacts tab, the same page `learn` points at.
+  ship: "/outcomes",
   learn: "/outcomes",
 };
 

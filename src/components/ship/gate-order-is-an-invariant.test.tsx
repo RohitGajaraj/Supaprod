@@ -20,7 +20,7 @@
  * customers?", the pending-post publish). The other two turned out not to be
  * binary asks at all on a closer read (a zero state, and a status that is
  * sometimes a multi-verb draft workflow with no real decline) and moved to
- * `Quiet` or a plain heading instead -- see `_authenticated.ship.tsx` itself
+ * `Quiet` or a plain heading instead -- see `ship/ShipRecord.tsx` itself
  * for that reasoning. This file keeps the promote case, the one that reaches
  * customers.
  */
@@ -104,10 +104,13 @@ describe("the order inside an Ask is the component, not the caller's layout", ()
 });
 
 describe("Ship's own ask argues before it asks for an answer", () => {
-  const src = readFileSync(
-    fileURLToPath(new URL("../../routes/_authenticated.ship.tsx", import.meta.url)),
-    "utf8",
-  );
+  /*
+   * THE ROUTE THIS READS MOVED (P-14b, A-QUEUE.md, 2026-09-09). `/ship` is a
+   * redirect to `/outcomes?tab=artifacts` and the promote's own Ask is in
+   * `ShipRecord.tsx`, the file sitting beside this one. The two assertions are
+   * unchanged: the anchor, and that the argument comes before the answer.
+   */
+  const src = readFileSync(fileURLToPath(new URL("./ShipRecord.tsx", import.meta.url)), "utf8");
 
   it("hands the promote its evidence through risk/reason, never as a sibling after the buttons", () => {
     const flat = src.replace(/\s+/g, " ");

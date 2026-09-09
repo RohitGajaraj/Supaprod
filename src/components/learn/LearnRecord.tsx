@@ -368,7 +368,14 @@ export function LearnRecord() {
               whatWillAppear="A verdict lands here the first time a shipped bet is graded against what its spec said it was for, and it stays on the record after that. Write down what a bet is meant to move before it goes out, and the grade has something to measure against."
             />
             <Actions>
-              <Action variant="primary" onClick={() => navigate({ to: "/ship" })}>
+              {/* P-14b (2026-09-09): Ship's record is the artifacts tab of this
+                  same page now, so the door names the tab rather than the
+                  retired route -- a redirect would land here anyway, and a
+                  door that goes out and comes back is a door that flickers. */}
+              <Action
+                variant="primary"
+                onClick={() => navigate({ to: "/outcomes", search: { tab: "artifacts" } })}
+              >
                 See what is waiting to go out
               </Action>
               <Action onClick={() => navigate({ to: "/start" })}>Open the specs</Action>

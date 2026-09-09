@@ -1,7 +1,7 @@
 import { describe, it, expect } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { announcementDraftBody } from "../_authenticated.ship";
+import { announcementDraftBody } from "@/components/ship/ShipRecord";
 
 /**
  * THE COMPOSER STARTS FROM THE RELEASE, NOT FROM A MODEL (P-133, A-QUEUE.md).
@@ -33,7 +33,14 @@ import { announcementDraftBody } from "../_authenticated.ship";
  * "prove nothing here claims to know what the founder has not yet said".
  */
 
-const SHIP = join(import.meta.dir, "..", "_authenticated.ship.tsx");
+/**
+ * THE ROUTE THIS FILE READS MOVED (P-14b, A-QUEUE.md, 2026-09-09). `/ship` is a
+ * redirect to `/outcomes?tab=artifacts` now, and every region it drew is
+ * `src/components/ship/ShipRecord.tsx`, mounted above the artifacts shelf. Not
+ * one line of the body changed in the fold, so every assertion below is the one
+ * it was, pointed at the file that holds the code.
+ */
+const SHIP = join(import.meta.dir, "..", "..", "components", "ship", "ShipRecord.tsx");
 const src = readFileSync(SHIP, "utf8");
 const code = src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
 

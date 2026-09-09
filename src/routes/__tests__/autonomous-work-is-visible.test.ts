@@ -98,7 +98,9 @@ const STATIONS = [
   // Station 03's surviving surface, and the only one in the product that
   // dispatches a build. See the note above this list.
   "routes/_authenticated.plan.spec.$id.tsx",
-  "routes/_authenticated.ship.tsx",
+  // "_authenticated.ship.tsx" left this list on 2026-09-09 (P-14b): it is a
+  // redirect to Outcomes, which is already on the list below and mounts
+  // CrewWorking once for every tab, Ship's record included.
   // "_authenticated.learn.tsx" left this list on 2026-09-09 (P-14b): it is a
   // redirect to Outcomes, which is already on the list and mounts CrewWorking.
   // Not a station. The company record, where agents write and where a reader

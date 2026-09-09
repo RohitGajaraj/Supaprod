@@ -13,7 +13,7 @@ import {
   unlistedMerges,
   whereItIs,
   type ShipDeployment,
-} from "../_authenticated.ship";
+} from "@/components/ship/ShipRecord";
 
 /**
  * A PERSON MUST BE ABLE TO SHIP FROM SHIP, and must never be offered a shipping
@@ -47,7 +47,14 @@ import {
  * it, so the door this station opens no longer has a first door to match.
  */
 
-const SHIP = join(import.meta.dir, "..", "_authenticated.ship.tsx");
+/**
+ * THE ROUTE THIS FILE READS MOVED (P-14b, A-QUEUE.md, 2026-09-09). `/ship` is a
+ * redirect to `/outcomes?tab=artifacts` now, and every region it drew is
+ * `src/components/ship/ShipRecord.tsx`, mounted above the artifacts shelf. Not
+ * one line of the body changed in the fold, so every assertion below is the one
+ * it was, pointed at the file that holds the code.
+ */
+const SHIP = join(import.meta.dir, "..", "..", "components", "ship", "ShipRecord.tsx");
 
 /** Source with comments removed, so a rule can never be satisfied by prose
  *  ABOUT the rule. Same treatment ship-has-an-agent.test.ts uses. */

@@ -79,7 +79,9 @@ describe("no station renders nothing while it reads", () => {
     "_authenticated.plan.index.tsx",
     "_authenticated.design.tsx",
     "_authenticated.build.index.tsx",
-    "_authenticated.ship.tsx",
+    // Ship's body moved to a component on 2026-09-09 (P-14b); the route is a
+    // redirect and has no wait of its own left to check.
+    join("..", "components", "ship", "ShipRecord.tsx"),
     "_authenticated.learn.tsx",
     // Discover's body lives in a component rather than the route, and it is
     // where the defect actually was.

@@ -69,7 +69,9 @@ const STATION_ROUTE = {
   define: "/start",
   design: "/start",
   build: "/start",
-  ship: "/ship",
+  // P-14b (A-QUEUE.md, 2026-09-09): /ship is a redirect stub; Ship's record
+  // is Outcomes' artifacts tab, which is where Learn already lands.
+  ship: "/outcomes",
   learn: "/outcomes",
 } as const satisfies Record<AgentStation, string>;
 

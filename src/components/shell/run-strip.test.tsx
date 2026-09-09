@@ -164,6 +164,22 @@ describe("the default cannot be quietly turned back off", () => {
     for (const station of AGENT_STATION_ORDER) {
       expect(STATION_ROUTE[station]).toMatch(/^\/[a-z-]+$/);
     }
-    expect(new Set(Object.values(STATION_ROUTE)).size).toBe(AGENT_STATION_ORDER.length);
+    /*
+     * SEVEN ENTRIES, NOT SEVEN DESTINATIONS (P-14b, A-QUEUE.md, 2026-09-09).
+     * This counted distinct paths, which asserted a second thing it never
+     * meant: that no two stations share a page. Learn's record moved onto
+     * Outcomes on 2026-09-09 and Ship's followed the same day, so `ship` and
+     * `learn` now open the same surface at different tabs -- true of the
+     * product, and the map holds only the path, so the two collapse into one
+     * value here.
+     *
+     * The rule this test is named for is untouched and is the loop above: no
+     * station may lose its engine. What the count guarded beyond that was a
+     * station quietly dropping OUT of the map, and that is asserted directly
+     * now rather than inferred from a set size, which is strictly the tighter
+     * check -- a duplicate could never have hidden a missing key anyway,
+     * because a missing key fails the loop first.
+     */
+    expect(Object.keys(STATION_ROUTE).sort()).toEqual([...AGENT_STATION_ORDER].sort());
   });
 });

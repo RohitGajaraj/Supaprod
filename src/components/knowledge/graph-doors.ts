@@ -95,7 +95,17 @@ const DOORS: Record<string, (id: string) => NodeDoor> = {
     search: { tab: "queue" },
   }),
   task: () => ({ label: "Open the tasks", tier: "list", to: "/start" }),
-  deployment: () => ({ label: "Open what shipped", tier: "list", to: "/ship" }),
+  // P-14b (A-QUEUE.md, 2026-09-09): /ship is a redirect and the record it
+  // drew is Outcomes' artifacts tab (`ship/ShipRecord.tsx`). Addressed with
+  // the tab the block is on rather than the bare path, because the artifacts
+  // tab is not the default one and a door that lands on Decisions is a door
+  // that lost the reader.
+  deployment: () => ({
+    label: "Open what shipped",
+    tier: "list",
+    to: "/outcomes",
+    search: { tab: "artifacts" },
+  }),
   /** Design memory is settled brand direction, and it lives in Settings. */
   design_memory: () => ({
     label: "Open the brand record",

@@ -411,6 +411,7 @@ import { NeedsSetup } from "@/components/meridian/NeedsSetup";
 import { Quiet } from "@/components/meridian/Quiet";
 import { ForecastDeskPanel } from "@/components/learn/ForecastDeskPanel";
 import { LearnRecord } from "@/components/learn/LearnRecord";
+import { ShipRecord } from "@/components/ship/ShipRecord";
 import { PageHeading } from "@/components/meridian/surface-parts";
 import { CtxHead, CtxRow } from "@/components/meridian/ContextColumn";
 import { Surface } from "@/components/meridian/Surface";
@@ -2186,7 +2187,20 @@ function MemoryPage() {
             its own regions and its own rhythm rather than sitting inside one,
             because its first region is the shelf's own claim plus the scoping
             control and its second is the one item in focus. */}
-            {tab === "artifacts" && <ArtifactsView />}
+            {tab === "artifacts" && (
+              <div className="flex flex-col gap-mrd-7">
+                {/* The record Ship kept, folded in from /ship (2026-09-09,
+                    P-14b): where it is live, the merge nothing has listed yet,
+                    the live releases with their rollbacks, what shipped and the
+                    release document under it, and the announcement gate and
+                    composer. It owns its own reads under the keys /ship used.
+                    ABOVE the shelf, because promoting a change and announcing
+                    it are decisions waiting on a person, and the artifacts
+                    below are a record to browse. See ship/ShipRecord.tsx. */}
+                <ShipRecord />
+                <ArtifactsView />
+              </div>
+            )}
 
             {tab === "docs" && (
               <div className="flex flex-col gap-mrd-7">

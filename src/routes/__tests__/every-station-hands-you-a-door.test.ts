@@ -45,7 +45,13 @@ const STATIONS: Array<{ station: string; files: string[]; components?: string[] 
     // Discover's route file is an 80-line shell; every control lives here.
     components: ["discover/DiscoverSurface.tsx"],
   },
-  { station: "06 Ship", files: ["_authenticated.ship.tsx"] },
+  // Ship's record lives on Outcomes since 2026-09-09 (P-14b); the route is a
+  // redirect, and the doors this station hands a person are the component's.
+  {
+    station: "06 Ship",
+    files: ["_authenticated.outcomes.tsx"],
+    components: ["ship/ShipRecord.tsx"],
+  },
   // Learn's record lives on Outcomes since 2026-09-09 (P-14b); the route is a
   // redirect, and the desk's doors are the component's.
   {

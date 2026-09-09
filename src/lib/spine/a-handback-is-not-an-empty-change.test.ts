@@ -146,7 +146,13 @@ describe("only a live release may be announced", () => {
 });
 
 describe("one vocabulary: /ship composes nothing of its own", () => {
-  const SHIP = readFileSync("src/routes/_authenticated.ship.tsx", "utf8")
+  /*
+   * THE ROUTE THIS READS MOVED (P-14b, A-QUEUE.md, 2026-09-09). `/ship` is a
+   * redirect to `/outcomes?tab=artifacts`; the station's regions, and the
+   * `releaseSummaryLines` / `mayAnnounce` / `releaseStanding` calls pinned
+   * below, are `components/ship/ShipRecord.tsx`. Same source, same rules.
+   */
+  const SHIP = readFileSync("src/components/ship/ShipRecord.tsx", "utf8")
     /* Comments stripped: this packet's explanation quotes the sentences it
        forbids re-writing (F-188). */
     .replace(/\/\*[\s\S]*?\*\//g, " ")

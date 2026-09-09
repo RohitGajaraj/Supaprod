@@ -26,7 +26,14 @@ import { readFileSync } from "node:fs";
 
 import { describe, expect, it } from "bun:test";
 
-const src = readFileSync(new URL("../_authenticated.ship.tsx", import.meta.url), "utf8");
+/**
+ * THE ROUTE THIS FILE READS MOVED (P-14b, A-QUEUE.md, 2026-09-09). `/ship` is a
+ * redirect to `/outcomes?tab=artifacts` now, and every region it drew is
+ * `src/components/ship/ShipRecord.tsx`, mounted above the artifacts shelf. Not
+ * one line of the body changed in the fold, so every assertion below is the one
+ * it was, pointed at the file that holds the code.
+ */
+const src = readFileSync(new URL("../../components/ship/ShipRecord.tsx", import.meta.url), "utf8");
 
 /** The source of the `stationEmpty` declaration, up to its semicolon. */
 function stationEmptyDecl(): string {

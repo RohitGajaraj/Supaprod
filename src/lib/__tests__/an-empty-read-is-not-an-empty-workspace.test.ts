@@ -139,7 +139,9 @@ const SURFACES = [
   ["Discover", "components/discover/DiscoverSurface.tsx"],
   // "Decide" and "Build" left this list (P-14, A-QUEUE.md, R-34): both are
   // now redirect stubs with no loading state of their own to derive.
-  ["Ship", "routes/_authenticated.ship.tsx"],
+  // Ship's record lives on Outcomes since 2026-09-09 (P-14b); the route is a
+  // redirect stub and the loading state to derive is the component's.
+  ["Ship", "components/ship/ShipRecord.tsx"],
   // Learn's record lives on Outcomes since 2026-09-09 (P-14b); the route is a
   // redirect stub and the loading state to derive is the component's.
   ["Learn", "components/learn/LearnRecord.tsx"],
@@ -233,7 +235,7 @@ const ISLOADING_IS_THE_BRANCH = /\.isLoading\s*\?/;
  *  list (P-14, A-QUEUE.md, R-35): `components/studio/ChangesPanel.tsx` was
  *  deleted with the run page it alone belonged to; its own guard, pinned by
  *  name further down, went with it. */
-const LOCKED = [["Ship", "routes/_authenticated.ship.tsx"]] as const;
+const LOCKED = [["Ship", "components/ship/ShipRecord.tsx"]] as const;
 
 /**
  * ZERO SURFACES NOW GUARD A WAIT ON `.isLoading` ALONE. This started at 2 when
@@ -283,7 +285,7 @@ describe("the guard is a property of the file, not of one line in it", () => {
     // figure, so it survives an edit to the comments. A stripper that silently
     // did nothing would make every rule below vacuous, and this is the only
     // thing standing between that and a green suite.
-    const raw = read("routes/_authenticated.ship.tsx");
+    const raw = read("components/ship/ShipRecord.tsx");
     const rawLines = raw.split("\n").filter((l) => l.includes(".isLoading")).length;
     const strippedLines = code(raw)
       .split("\n")
@@ -308,7 +310,7 @@ describe("the guard is a property of the file, not of one line in it", () => {
     // keeps `!wid || changelog.isLoading` because
     // ship-mounts-the-release-document.test.ts:83 pins that text, and adds
     // `stillWaiting(changelog)` -- the clause that actually carries the rule.
-    const lines = code(read("routes/_authenticated.ship.tsx"))
+    const lines = code(read("components/ship/ShipRecord.tsx"))
       .split("\n")
       .filter((l) => l.includes(".isLoading"));
     expect(lines.length).toBeGreaterThan(0);
@@ -316,7 +318,7 @@ describe("the guard is a property of the file, not of one line in it", () => {
   });
 
   it("Ship waits before each of the four verdicts that used to be wrong", () => {
-    const src = code(read("routes/_authenticated.ship.tsx"));
+    const src = code(read("components/ship/ShipRecord.tsx"));
     // The Gate, which asks the station's one question.
     expect(src).toMatch(/const postsReading = stillWaiting\(posts\)/);
     /* `Loading` OR `Reading`: the retired component and its Meridian replacement.
@@ -356,7 +358,7 @@ describe("the guard is a property of the file, not of one line in it", () => {
      * NoReleaseYet" -- and pins only the branch ORDER, which is why the order
      * held while the semantics moved underneath it.
      */
-    const src = code(read("routes/_authenticated.ship.tsx"));
+    const src = code(read("components/ship/ShipRecord.tsx"));
     const blocks = src.split("{docReading ? (").slice(1);
     expect(blocks.length).toBe(2); // the release list, and the release document
     for (const b of blocks) expect(b.slice(0, 240)).toContain(") : changelog.isError ? (");
