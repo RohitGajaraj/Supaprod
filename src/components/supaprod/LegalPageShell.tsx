@@ -222,7 +222,7 @@ export function LegalSection({ title, children }: { title: string; children: Rea
        * intact and narrows only what is read at length, which is what the token
        * is for -- meridian.css says "prose only, never a table or a row".
        */}
-      <div style={{ color: C.muted, lineHeight: 1.7, maxWidth: "var(--mrd-measure)" }}>
+      <div style={{ color: C.muted, lineHeight: 1.7, maxWidth: "var(--mrd-measure-page)" }}>
         {children}
       </div>
     </section>

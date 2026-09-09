@@ -974,7 +974,21 @@
   --mrd-lh-snug: 1.5; /* UI rows. Was 1.4; the reference's air lives here */
   --mrd-lh-prose: 1.625; /* reading */
   --mrd-lh-mono: 1.7; /* mono needs more, and the reference gives it more */
-  --mrd-measure: 68ch; /* prose only, never a table or a row */
+  /*
+   * `--mrd-measure` IS AN ALIAS NOW, NOT A `ch` VALUE (craft pass, 2026-09-09).
+   *
+   * It was `68ch` and it survived the 2026-09-01 migration that moved the
+   * prose ladder to rem, because that pass moved the ladder and nobody pointed
+   * at this one. So the token NAMED after the reading measure was the last
+   * place still doing the thing the migration existed to end: a width that
+   * changes with the type inside it, which is the third `ch` inversion this
+   * file records. Five call sites still read it, in three lanes' files, and a
+   * deletion would have taken the cap off all five; an alias fixes every one
+   * of them in a single line and leaves each free to name its own rung when
+   * its file is next open. New code names a rung: `--mrd-measure-prose`
+   * (32rem), `--mrd-measure-region` (34rem), `--mrd-measure-page` (41rem).
+   */
+  --mrd-measure: var(--mrd-measure-prose);
 
   /* ── SPACE. Grows, so composition has rhythm. ────────────────────────── */
   /*
@@ -1055,8 +1069,8 @@
   --mrd-bp-phone: 640px;
 
   /*
-   * THE READING MEASURE AS A WIDTH. `--mrd-measure` is 68ch and belongs to
-   * type; this is the same idea expressed as a box, for a COLUMN that holds a
+   * THE READING MEASURE AS A WIDTH. The prose ladder measures a PARAGRAPH;
+   * this is the same idea expressed as a box, for a COLUMN that holds a
    * heading, a paragraph and a field together -- those have different natural
    * measures and a shared container has to pick one. 42rem is that pick, and
    * it is where the reference (beautifului.dev) sets its own single-column

@@ -290,7 +290,7 @@ export function HeroLoopDemo() {
             -- on the first screen a stranger reads. Measured by S4 as rendered
             line boxes rather than container width, which is the distinction
             that makes the number real. */}
-        <p className="max-w-[var(--mrd-measure)] text-xs text-mrd-mute">
+        <p className="max-w-[var(--mrd-measure-prose)] text-xs text-mrd-mute">
           Every station is an agent making real decisions, creating real outputs, handed off by
           evidence, not by guess. You set the boundaries once. The loop handles the rest.
         </p>
