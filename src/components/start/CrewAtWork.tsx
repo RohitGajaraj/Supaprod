@@ -104,9 +104,13 @@ export function workingSeats(rows: readonly RunningSeat[] | undefined): WorkingS
 export function CrewAtWork({
   workspaceId,
   onOpen,
+  className = "",
 }: {
   workspaceId: string | null;
   onOpen: (trackId: string) => void;
+  /** The caller's own outer spacing: a part does not decide where it sits in
+   *  the page's rhythm (fifth review's craft pass, 2026-09-09). */
+  className?: string;
 }) {
   const fRunning = useServerFn(listRunningNow);
   /* Seeded by the home's composite read; this waits for it rather than
@@ -124,7 +128,11 @@ export function CrewAtWork({
      working; a failed read must not look the same (entry review, 2026-09-08). */
   if (q.isError) {
     return (
-      <section data-mrd="" aria-label="Working now" className="flex flex-col gap-mrd-2">
+      <section
+        data-mrd=""
+        aria-label="Working now"
+        className={`flex flex-col gap-mrd-2 ${className}`}
+      >
         <span className="mrd-eyebrow">Working now</span>
         <ReadFailedLine error={q.error} onRetry={() => void q.refetch()}>
           Cannot see who is working.
@@ -134,7 +142,11 @@ export function CrewAtWork({
   }
   if (seats.length === 0) return null;
   return (
-    <section data-mrd="" aria-label="Working now" className="flex flex-col gap-mrd-2">
+    <section
+      data-mrd=""
+      aria-label="Working now"
+      className={`flex flex-col gap-mrd-2 ${className}`}
+    >
       <span className="mrd-eyebrow">Working now</span>
       <ul className="flex flex-col gap-mrd-1">
         {seats.map((s) => {

@@ -559,7 +559,18 @@ function StartLanding() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-[62rem] flex-col gap-mrd-7 px-mrd-5 pt-mrd-7 pb-mrd-8">
+    /* THE PAGE HAS A RHYTHM, NOT ONE STEP (craft pass, 2026-09-09). Every one
+       of the column's eleven blocks sat exactly 40px from its neighbour, so
+       the composer was as far from its own receipts as the road was from the
+       run list, and nothing on the page was grouped with anything: the
+       founder's "it reads as a dump" in its most literal form, and Meridian's
+       middle steps unused on the page the ramp exists for. The base is now
+       `--mrd-s6` (24px), which holds a movement together, and the child that
+       OPENS a movement adds `--mrd-s5` (16px) to reach the 40px that separates
+       one movement from the next. Both steps are the ramp's own; a child that
+       does not render carries no margin, so a movement that is absent costs
+       nothing. */
+    <div className="mx-auto flex w-full max-w-[62rem] flex-col gap-mrd-6 px-mrd-5 pt-mrd-7 pb-mrd-8">
       {/* THE HERO WAITS FOR ITS NAME (Lane 1, 2026-09-08). Seen live: "What
           should your product do next?" for a beat before the workspace
           resolved, then "What should Prism do next?". A headline that
@@ -607,7 +618,7 @@ function StartLanding() {
 
       {/* `data-page-composer` stands the ask dock down: one prompt per screen,
           and this is the one. See `one-prompt-per-screen`. */}
-      <div data-page-composer className="flex flex-col gap-mrd-2">
+      <div data-page-composer className="mt-mrd-5 flex flex-col gap-mrd-4">
         <Composer
           value={sentence}
           onChange={setSentence}
@@ -669,7 +680,7 @@ function StartLanding() {
         />
       ) : null}
 
-      <CrewAtWork workspaceId={activeWorkspaceId ?? null} onOpen={openRun} />
+      <CrewAtWork workspaceId={activeWorkspaceId ?? null} onOpen={openRun} className="mt-mrd-5" />
 
       {roadMode ? (
         <JourneyMap
@@ -744,10 +755,10 @@ function StartLanding() {
           largest read on the page 170 ms ahead of the seed that carried the
           same rows (read live 2026-09-08). */}
       {seeded && !firstRun ? (
-        <YourRuns station={station} onClearStation={() => setStation(null)} />
+        <YourRuns station={station} onClearStation={() => setStation(null)} className="mt-mrd-5" />
       ) : null}
 
-      <HomeAnswers answers={sinceYouLooked} />
+      <HomeAnswers answers={sinceYouLooked} className="mt-mrd-5" />
 
       {/* WHAT IS ARRIVING, UNDER THE RUNS (founder, 2026-09-02 19:12): the
           product's central claim, evidence becomes work on its own, provable

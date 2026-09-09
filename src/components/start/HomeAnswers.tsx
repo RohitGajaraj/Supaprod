@@ -22,12 +22,23 @@ import type { Answer } from "@/components/start/three-answers-above-your-runs";
  * answers means the whole region is absent, which is the correct reading: a
  * home that could not look must not reassure.
  */
-export function HomeAnswers({ answers }: { answers: readonly Answer[] }) {
+export function HomeAnswers({
+  answers,
+  className = "",
+}: {
+  answers: readonly Answer[];
+  /** The caller's own outer spacing (craft pass, 2026-09-09). */
+  className?: string;
+}) {
   const shown = answers.filter((a) => a.read !== "unread");
   if (shown.length === 0) return null;
 
   return (
-    <section data-mrd="" aria-label="What needs you" className="flex flex-col gap-mrd-2">
+    <section
+      data-mrd=""
+      aria-label="What needs you"
+      className={`flex flex-col gap-mrd-2 ${className}`}
+    >
       {shown.map((a, i) => (
         <div key={i} className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
           {/*

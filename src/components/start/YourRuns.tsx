@@ -229,7 +229,10 @@ function RunRow({
 export function YourRuns({
   station = null,
   onClearStation,
+  className = "",
 }: {
+  /** The caller's own outer spacing (craft pass, 2026-09-09). */
+  className?: string;
   /** Show only the runs standing at this station (the map's press). */
   station?: JourneyKey | null;
   onClearStation?: () => void;
@@ -296,7 +299,7 @@ export function YourRuns({
     <section
       data-mrd=""
       data-your-runs=""
-      className="flex flex-col gap-mrd-2 font-mrd"
+      className={`flex flex-col gap-mrd-2 font-mrd ${className}`}
       aria-label="Your runs"
     >
       <SectionHead>Your runs</SectionHead>
