@@ -84,6 +84,14 @@ export type BriefingInput = {
   inFlightRuns: number;
   /** Pending gate counts keyed by stage (from the approvals queue). */
   gateCountByStage: Partial<Record<LoopStageId, number>>;
+  /**
+   * True when the queue this briefing counts could not be read. A failed read
+   * arrives here as zero gates, which is indistinguishable from a clear queue,
+   * and "Nothing waits on you" is then a claim the briefing cannot support
+   * (2026-09-09, the server twin of Lane 1's own loading-guard defect: a
+   * sentence standing on a read that had not answered).
+   */
+  queueUnread?: boolean;
   /** Injectable clock for tests. */
   now?: Date;
   /** The recipient's zone (profiles.timezone), which the day label and every receipt read in. */
@@ -183,7 +191,11 @@ export function composeBriefing(input: BriefingInput): Briefing {
   if (completions.length === 0 && input.inFlightRuns === 0 && needsYouCount === 0) {
     return {
       dayLabel,
-      paragraphs: ["Agents are idle. Nothing waits on you."],
+      paragraphs: [
+        input.queueUnread
+          ? "Agents are idle. What is waiting on you could not be read, so this does not say."
+          : "Agents are idle. Nothing waits on you.",
+      ],
       receipts: [],
       needsYouCount: 0,
     };
@@ -266,9 +278,16 @@ export const getBriefing = createServerFn({ method: "GET" })
 
     const [queue, eventsRes, runsRes] = await Promise.all([
       // One count, one source: the same queue the pill and Spine read.
-      readApprovalsQueue(context.supabase, context.userId, data.workspaceId).catch(() => ({
-        items: [] as ApprovalsQueueResult["items"],
-      })),
+      /* A FAILED READ IS NOT A CLEAR QUEUE. This swallowed the throw into an
+         empty list, and an empty list composes "Nothing waits on you", which
+         is the one sentence the briefing may not say on a read it did not
+         get. The flag travels to the composer, which says so instead. */
+      readApprovalsQueue(context.supabase, context.userId, data.workspaceId).catch((e) => {
+        console.error(
+          `[briefing] the queue could not be read: ${e instanceof Error ? e.message : String(e)}`,
+        );
+        return { items: [] as ApprovalsQueueResult["items"], unread: true as const };
+      }),
       db
         .from("stage_events")
         .select("entity_type,entity_id,to_stage,actor,at")
@@ -297,6 +316,7 @@ export const getBriefing = createServerFn({ method: "GET" })
       events: (eventsRes.data ?? []) as BriefingEvent[],
       inFlightRuns: runsRes.count ?? 0,
       gateCountByStage,
+      queueUnread: (queue as { unread?: boolean }).unread === true,
       zone: await zoneForUser(context.supabase as unknown as SupabaseClient, context.userId),
     });
   });

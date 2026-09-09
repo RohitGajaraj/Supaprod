@@ -74,7 +74,16 @@ export type LoopStageNode = {
   gateCount?: number;
 };
 
-export type LoopStateResult = { stages: LoopStageNode[] };
+export type LoopStateResult = {
+  stages: LoopStageNode[];
+  /**
+   * True when the approvals queue could not be read, so every `gateCount`
+   * below is a floor of zero rather than a count. A reader must not draw
+   * "nothing waits here" from it (2026-09-09: the throw was swallowed into an
+   * empty list and the whole strip reported a clear queue it had never seen).
+   */
+  queueUnread?: boolean;
+};
 
 // ---------------------------------------------------------------------------
 // Pure derivation (unit-tested, no DB)
@@ -343,9 +352,15 @@ export const getLoopState = createServerFn({ method: "GET" })
 
     const [queue, eventsRes, runsRes, learningRes] = await Promise.all([
       // One count, one source: the same queue the tray and rail badge read.
-      readApprovalsQueue(context.supabase, context.userId, data.workspaceId).catch(() => ({
-        items: [] as ApprovalsQueueResult["items"],
-      })),
+      /* A FAILED READ IS NOT A CLEAR QUEUE (2026-09-09). The throw became an
+         empty list here too, and every count downstream then reported zero
+         calls waiting with nothing to say it had not looked. Reported. */
+      readApprovalsQueue(context.supabase, context.userId, data.workspaceId).catch((e) => {
+        console.error(
+          `[loop-state] the queue could not be read: ${e instanceof Error ? e.message : String(e)}`,
+        );
+        return { items: [] as ApprovalsQueueResult["items"], unread: true as const };
+      }),
       db
         .from("stage_events")
         .select("entity_type,to_stage,actor,at")
@@ -385,5 +400,5 @@ export const getLoopState = createServerFn({ method: "GET" })
       lastLearningAt: (learningRes.data as { created_at?: string } | null)?.created_at ?? null,
     });
 
-    return { stages };
+    return { stages, queueUnread: (queue as { unread?: boolean }).unread === true };
   });
