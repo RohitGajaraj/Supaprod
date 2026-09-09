@@ -306,6 +306,17 @@ export function theBlockerItAlreadyNamed(turns: readonly BlockedTurn[]): Blocker
 /**
  * The one line above the sentence, naming who hit the wall and how often.
  *
+ * ── "ACROSS", READ ON THE RENDERED CARD ──────────────────────────────────
+ * This said "could not start Build, 6 times" until the turn/filing vocabulary
+ * split, then "in 6 turns", and that was worse in a way only the served page
+ * showed: "could not start Build in 6 turns" reads as a DEADLINE -- it failed
+ * to get started within six turns -- which inverts the fact. It tried six
+ * times and could not start at all.
+ *
+ * "Across" carries the repetition without the deadline sense, and without
+ * claiming the six were consecutive, which the grouping does not guarantee on a
+ * run whose loop bounces work between stations.
+ *
  * It deliberately does NOT say what to do. The agent's own sentence, rendered
  * under this, already ends in an instruction more specific than anything this
  * function knows ("Please bind a repository on Connectors"), and a second
@@ -381,7 +392,7 @@ export function blockerLead(b: Blocker): string {
         : `${b.seats.length} seats`;
   return b.turns === 1
     ? `${who} could not start ${b.stationName}.`
-    : `${who} could not start ${b.stationName}, in ${inTurns(b.turns)}.`;
+    : `${who} could not start ${b.stationName}, across ${inTurns(b.turns)}.`;
 }
 
 /**
