@@ -66,7 +66,7 @@ import {
   readApprovalsQueue,
   type ApprovalsQueueResult,
 } from "@/lib/approvals-queue.functions";
-import { readHomeAnswers, type HomeAnswerReads } from "@/lib/start/home-answers.functions";
+import { readAnswers, type HomeAnswerReads } from "@/lib/start/home-answers.functions";
 import { driveTrackOnce, DRIVE_SELECT } from "@/lib/spine/driver.server";
 import { recordTrackDrive } from "@/lib/spine/track-drives.server";
 import { readPasteBack, pasteBackLine } from "@/lib/spine/paste-back";
@@ -6315,7 +6315,7 @@ export const readStationTimings = createServerFn({ method: "GET" })
 
 /**
  * THE HOME IN ONE ROUND TRIP (Lane 1, 2026-09-08). The same four shapes
- * listRunsForStart, getApprovalsQueue, listRunningNow and readHomeAnswers
+ * listRunsForStart, getApprovalsQueue, listRunningNow and readAnswers
  * return today, read together so the arrival is one paint instead of four
  * staggered ones; the client seeds the four shared keys from it and nothing
  * else changes. Each read keeps its own failure: one refused read refuses the
@@ -6343,7 +6343,10 @@ export const readHome = createServerFn({ method: "GET" })
         // read gates the home's first paint (2026-09-08, the 7.7 s Inbox).
         readApprovalsQueue(context.supabase, context.userId, data.workspaceId),
         listRunningNow(scope),
-        readHomeAnswers(scope),
+        // Same reason as the queue above, and the same fix: this was a nested
+        // server function re-running the auth middleware on the read that
+        // gates the home's first paint (2026-09-09).
+        readAnswers(context.supabase, context.userId, data.workspaceId),
       ]);
       return { runs, queue, running, answers };
     },

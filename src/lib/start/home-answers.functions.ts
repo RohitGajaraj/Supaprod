@@ -10,6 +10,7 @@
  * home that reassures a person about two things it never looked at.
  */
 import { createServerFn } from "@tanstack/react-start";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { changelogTitleFor } from "@/lib/changelog";
@@ -85,16 +86,35 @@ export type ClosedLoop = {
   isSample: boolean;
 };
 
-export const readHomeAnswers = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((i: unknown) => Scope.parse(i ?? {}))
-  .handler(async ({ context, data }): Promise<HomeAnswerReads> => {
-    const { supabase, userId } = context;
-
+/**
+ * ── A PLAIN FUNCTION, AND THE SERVER FUNCTION IS A WRAPPER ────────────────
+ * Extracted 2026-09-09, following the pattern `readApprovalsQueue` already set
+ * two lines from the defect: `readHome` called this as a nested SERVER
+ * function, which re-ran the auth middleware for nothing on the read that gates
+ * the home's first paint. It takes the caller's own client now.
+ *
+ * It is also what makes the hop count testable. The round-counting wire drives
+ * a plain function and cannot reach inside a server function, so the guard that
+ * holds this at three hops could not have been written against the old shape.
+ */
+export async function readAnswers(
+  supabase: SupabaseClient,
+  userId: string,
+  workspaceIdIn: string | null,
+): Promise<HomeAnswerReads> {
+  {
+    const data = { workspaceId: workspaceIdIn };
     let workspaceId = data?.workspaceId ?? null;
     if (!workspaceId) {
       const { data: def } = await supabase.rpc("current_user_default_workspace");
-      workspaceId = (def as string | null) ?? null;
+      /*
+       * CHECKED TO BE A STRING, not merely non-null. `?? null` accepts anything
+       * the RPC hands back, and an empty array is truthy, so a reply of the
+       * wrong shape became the workspace id and every read below filtered on it
+       * and answered zero. Zero is the one answer this file must never invent:
+       * the shapes above draw an all-clear for it and nothing for null.
+       */
+      workspaceId = typeof def === "string" && def.length > 0 ? def : null;
     }
     // Without a workspace there is nothing to count and nothing honest to say.
     // Unread, never zero: the same rule the three shapes hold to.
@@ -130,32 +150,75 @@ export const readHomeAnswers = createServerFn({ method: "GET" })
       : ((seen.data as { seen_at?: string | null } | null)?.seen_at ?? null);
 
     const head = { count: "exact" as const, head: true };
-
-    let arrivingQ = supabase.from("themes").select("id", head).eq("workspace_id", wid);
-    if (lastLookedAt) arrivingQ = arrivingQ.gt("created_at", lastLookedAt);
-    const arriving = await arrivingQ;
-
     const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-    const learned = await supabase
-      .from("decisions")
-      .select("id", head)
-      .eq("workspace_id", wid)
-      .not("forecast_resolved_at", "is", null)
-      .gte("forecast_resolved_at", weekAgo);
 
     /*
-     * The re-score lives on `learnings`, not on `decisions`, so it is its own
-     * head count rather than a field on the one above. A row counts only when
-     * BOTH scores are present: half a re-score is not a movement, which is the
-     * same rule the evidence region's own line holds to.
+     * ── EVERYTHING THAT ONLY NEEDS THE LAST LOOK LEAVES TOGETHER ────────────
+     * Restructured 2026-09-09, and the reason is worth stating because I caused
+     * half of it. This handler awaited its reads one after another: the look,
+     * arriving, learned, released, its deployments, and then the two I added
+     * for the entry's evidence region, which made EIGHT sequential round trips
+     * on the home's arrival. F-212 measured this deployment at roughly 275ms
+     * warm per hop, so two of those were mine and cost about half a second on
+     * the surface F-216 had just spent a packet making fast.
+     *
+     * Only two of these depend on `lastLookedAt`, so the look stays its own hop
+     * and everything else leaves in one. Three hops now, not eight: the look,
+     * this group, and the deployments read that needs the release rows' ids.
+     *
+     * `Promise.all` and not `allSettled`: each of these already answers with its
+     * own `error` rather than throwing, and each null is handled on its own
+     * below, which is the rule this file was written for.
      */
-    const rescored = await supabase
-      .from("learnings")
-      .select("id", head)
+    let arrivingQ = supabase.from("themes").select("id", head).eq("workspace_id", wid);
+    if (lastLookedAt) arrivingQ = arrivingQ.gt("created_at", lastLookedAt);
+
+    let releasedQ = supabase
+      .from("changelog_entries")
+      .select("title,body,changeset_id,released_at")
       .eq("workspace_id", wid)
-      .not("prior_ice", "is", null)
-      .not("new_ice", "is", null)
-      .gte("created_at", weekAgo);
+      .order("released_at", { ascending: false })
+      .limit(20);
+    if (lastLookedAt) releasedQ = releasedQ.gt("released_at", lastLookedAt);
+
+    const [arriving, learned, rescored, closedQ, released] = await Promise.all([
+      arrivingQ,
+      supabase
+        .from("decisions")
+        .select("id", head)
+        .eq("workspace_id", wid)
+        .not("forecast_resolved_at", "is", null)
+        .gte("forecast_resolved_at", weekAgo),
+      /*
+       * The re-score lives on `learnings`, not on `decisions`, so it is its own
+       * head count rather than a field on the one beside it. A row counts only
+       * when BOTH scores are present: half a re-score is not a movement, which
+       * is the same rule the evidence region's own line holds to.
+       */
+      supabase
+        .from("learnings")
+        .select("id", head)
+        .eq("workspace_id", wid)
+        .not("prior_ice", "is", null)
+        .not("new_ice", "is", null)
+        .gte("created_at", weekAgo),
+      /*
+       * THE NEWEST CLOSED LOOP, ordered by when the row was written. Its own
+       * read and its own null, like the counts beside it: a refused `learnings`
+       * table must not blank the arriving count.
+       */
+      supabase
+        .from("learnings")
+        .select(
+          "verdict,summary,prior_ice,new_ice,is_sample,created_at,decisions(title,forecast_resolved_at)",
+        )
+        .eq("workspace_id", wid)
+        .not("verdict", "is", null)
+        .not("summary", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(1),
+      releasedQ,
+    ]);
 
     /*
      * WHAT WENT LIVE SINCE YOU LAST LOOKED (P-126). `changelog_entries` HAS NO
@@ -176,14 +239,6 @@ export const readHomeAnswers = createServerFn({ method: "GET" })
      * and recomputing through the one composer is what kept the first live
      * release from reading "Shipped an update" here too.
      */
-    let releasedQ = supabase
-      .from("changelog_entries")
-      .select("title,body,changeset_id,released_at")
-      .eq("workspace_id", wid)
-      .order("released_at", { ascending: false })
-      .limit(20);
-    if (lastLookedAt) releasedQ = releasedQ.gt("released_at", lastLookedAt);
-    const released = await releasedQ;
     const releasedRows = (released.data ?? []) as Array<{
       title: string;
       body: string | null;
@@ -212,29 +267,10 @@ export const readHomeAnswers = createServerFn({ method: "GET" })
     }
 
     /*
-     * ── WHETHER IT WORKED, WHICH THE ENTRY COULD NOT SAY ────────────────────
-     * Added 2026-09-09. The home stated what is waiting and what arrived, and
-     * nothing anywhere on it said the loop had ever closed. Measured on the
-     * founder's own workspace: 67 decisions, 38 specs, 37 prototypes and 12
-     * graded outcomes, and the entry surfaced two sentences about any of it.
-     *
-     * ORDERED BY WHEN THE FORECAST RESOLVED, not by when the row was written.
-     * A learning row is written when the grader runs; the fact a person cares
-     * about is when the answer came back. The two differ by days here.
-     *
-     * ITS OWN READ AND ITS OWN NULL, like the three above it. A refused
-     * learnings table must not blank the arriving count.
+     * The row's shape, cast where it is read. The query itself leaves with the
+     * group above; this is only how its answer is named.
      */
-    const closedQ = await supabase
-      .from("learnings")
-      .select(
-        "verdict,summary,prior_ice,new_ice,is_sample,created_at,decisions(title,forecast_resolved_at)",
-      )
-      .eq("workspace_id", wid)
-      .not("verdict", "is", null)
-      .not("summary", "is", null)
-      .order("created_at", { ascending: false })
-      .limit(1);
+    type ClosedDecision = { title: string | null; forecast_resolved_at: string | null };
     const closedRow = (closedQ.data ?? [])[0] as
       | {
           verdict: string | null;
@@ -243,9 +279,21 @@ export const readHomeAnswers = createServerFn({ method: "GET" })
           new_ice: number | null;
           is_sample: boolean | null;
           created_at: string;
-          decisions: { title: string | null; forecast_resolved_at: string | null } | null;
+          /*
+           * BOTH SHAPES, AND THE TYPE AND THE RUNTIME DISAGREE HERE. The
+           * generated types call every embed an array; PostgREST returns a
+           * single object for a many-to-one like this one, which is what the
+           * served page actually rendered on 2026-09-09 (the subject line drew
+           * the decision's title). Read defensively rather than trusting either
+           * one: the cost of being wrong is a silently missing subject, and the
+           * fix is three characters wide.
+           */
+          decisions: ClosedDecision | ClosedDecision[] | null;
         }
       | undefined;
+    const closedDecision: ClosedDecision | null = Array.isArray(closedRow?.decisions)
+      ? (closedRow.decisions[0] ?? null)
+      : (closedRow?.decisions ?? null);
 
     return {
       /*
@@ -281,7 +329,7 @@ export const readHomeAnswers = createServerFn({ method: "GET" })
           : {
               verdict: closedRow.verdict,
               summary: closedRow.summary,
-              decisionTitle: closedRow.decisions?.title ?? null,
+              decisionTitle: closedDecision?.title ?? null,
               /* Both or neither: half a re-score is not a movement, and
                  "58 to null" is the kind of sentence a reader has to decode. */
               priorIce:
@@ -292,8 +340,19 @@ export const readHomeAnswers = createServerFn({ method: "GET" })
                 closedRow.prior_ice != null && closedRow.new_ice != null
                   ? Number(closedRow.new_ice)
                   : null,
-              at: closedRow.decisions?.forecast_resolved_at ?? closedRow.created_at,
+              at: closedDecision?.forecast_resolved_at ?? closedRow.created_at,
               isSample: closedRow.is_sample === true,
             },
     };
-  });
+  }
+}
+
+/** The wrapper the client calls. The work is in `readAnswers` above so that
+ *  `readHome` can call it with the request's own client instead of paying for
+ *  a second middleware run. */
+export const readHomeAnswers = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => Scope.parse(i ?? {}))
+  .handler(async ({ context, data }): Promise<HomeAnswerReads> =>
+    readAnswers(context.supabase, context.userId, data?.workspaceId ?? null),
+  );
