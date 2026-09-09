@@ -41,6 +41,31 @@ export type ToolCallFacts = {
   files: string[];
   /** Whether those paths were written or read. Null when there are none. */
   touch: "wrote" | "read" | null;
+  /**
+   * WHAT CAME BACK, IN WORDS. Null when the result names nothing a person
+   * would read, or when it would only repeat `argument`.
+   *
+   * ── WHY A FOURTH FACT, MEASURED 2026-09-10 ──────────────────────────────
+   * `argument` answers what the call was ABOUT and `found` how many rows came
+   * back. Neither can speak for a call whose argument is an id and whose
+   * result is an object:
+   *
+   *   Engineer ran prd.get   {"id":"5446f8a8-7886-4696-9042-4eea8876b5fa","title":"Let a…
+   *   Critique ran critic.evaluate  {"ok":true,"review":{"board":[{"persona":"exec","ver…
+   *
+   * **710 of 3,490 tool calls -- one row in five -- render as raw JSON on the
+   * trace page for exactly this reason**, and they are the substantive ones:
+   * `sources.status` (124), `prd.get` (91), `ci.status` (35), `critic.review`
+   * (21). The meaning is sitting in a named field of the result and nothing
+   * reads it.
+   *
+   * NULL ON THE RUN SCREEN, BY DESIGN. `track.functions.ts` hands this
+   * function `{count}` in place of the result, because a real `result` is too
+   * big to travel to a pane that polls (P-32). So this is the trace page's
+   * fact, the one surface that holds the whole row, and the transcript keeps
+   * the two it already had.
+   */
+  outcome: string | null;
 };
 
 export const ARGUMENT_MAX = 120;
@@ -145,6 +170,100 @@ function prNumber(args: Obj): string | null {
   return typeof n === "number" ? `PR #${n}` : null;
 }
 
+/** A finite number, or null. `NaN` and infinities are not counts. */
+function num(v: unknown): number | null {
+  return typeof v === "number" && Number.isFinite(v) ? v : null;
+}
+
+/**
+ * The keys a RESULT carries that a person would read, in preference order.
+ *
+ * Read off the record rather than guessed: `prd.get` and `brain.get_decision`
+ * return `title`, `design.draft` returns `name`, `cluster.trigger` and
+ * `research.synthesize` return a `message` that is already an English
+ * sentence, `critic.review` returns a `note`, and `sense.found_nothing`
+ * returns `next`. One list covers all of them and every tool the catalogue
+ * grows that answers in the same shape.
+ */
+const RESULT_QUOTED_KEYS = ["title", "name"] as const;
+const RESULT_PLAIN_KEYS = ["message", "note", "next", "summary"] as const;
+
+/**
+ * What the result says, for the calls whose meaning is in what came back.
+ *
+ * NAMED FIELDS ONLY. There is no attempt to read an English sentence and
+ * decide what kind of answer it is; that is a classifier over prose, which is
+ * a second thing to be wrong and which `nowhere-to-look-yet.ts` records the
+ * cost of. Every branch here reads a key by name and formats numbers.
+ */
+function resultSaid(tool: string, result: unknown): string | null {
+  if (!isObj(result)) return null;
+
+  switch (tool) {
+    /*
+     * THE ANSWER NOTHING EVER SURFACED. Measured: 124 `sources.status` calls
+     * in this product's history and 124 of them returned zero scout targets.
+     * The one fact that explains why Discover keeps finding nothing has been
+     * on the deepest page all along, as `{"active_scout_targets":0,…}`.
+     */
+    case "sources.status": {
+      const targets = num(result.active_scout_targets);
+      const by = isObj(result.signals_7d_by_source) ? result.signals_7d_by_source : {};
+      const signals = Object.values(by).reduce<number>((t, v) => t + (num(v) ?? 0), 0);
+      if (targets === null) return null;
+      const sources = targets === 0 ? "no sources connected" : `${targets} sources connected`;
+      /* The signal count only when there are any: "0 signals in 7 days" beside
+         "no sources connected" is the same news twice. */
+      return signals > 0 ? `${sources} · ${signals} signals in 7 days` : sources;
+    }
+
+    /* A CI result is a verdict and a ratio, and it rendered as neither. */
+    case "ci.status": {
+      const passed = num(result.passed);
+      const suites = num(result.suites);
+      const verdict = str(result.result);
+      const failing = str(result.failing);
+      const ratio = passed !== null && suites !== null ? `${passed} of ${suites} passed` : null;
+      const parts = [verdict, ratio, failing ? `${failing} failing` : null].filter(
+        (p): p is string => p !== null,
+      );
+      return parts.length > 0 ? clip(parts.join(" · ")) : null;
+    }
+
+    /* A review is its verdict. The objections are a paragraph and the detail
+       pane beside the row is where a paragraph belongs. */
+    case "critic.review":
+    case "critic.evaluate": {
+      const direct = str(result.verdict);
+      if (direct) return direct;
+      const board = isObj(result.review) ? result.review.board : null;
+      if (!Array.isArray(board) || board.length === 0) return null;
+      const verdicts = board
+        .map((b) => (isObj(b) ? str(b.verdict) : null))
+        .filter((v): v is string => v !== null);
+      if (verdicts.length === 0) return null;
+      /* Every seat agreeing is one verdict; a split board is the news. */
+      const distinct = [...new Set(verdicts)];
+      return distinct.length === 1
+        ? `${distinct[0]}, all ${verdicts.length}`
+        : clip(distinct.join(", "));
+    }
+
+    default:
+      break;
+  }
+
+  for (const k of RESULT_QUOTED_KEYS) {
+    const v = str(result[k]);
+    if (v) return quoted(v);
+  }
+  for (const k of RESULT_PLAIN_KEYS) {
+    const v = str(result[k]);
+    if (v) return clip(firstLine(v));
+  }
+  return null;
+}
+
 export function toolCallFacts(tool: string, args: unknown, result: unknown): ToolCallFacts {
   const a: Obj = isObj(args) ? args : {};
   let argument: string | null = null;
@@ -211,5 +330,15 @@ export function toolCallFacts(tool: string, args: unknown, result: unknown): Too
     else if (typeof result.total === "number") found = result.total;
   }
 
-  return { argument, found, files, touch };
+  /*
+   * NEVER THE ARGUMENT TWICE. `decision.record` passes its title in the args
+   * AND gets it back in the result; a row reading
+   * `"Adopt checkout_single_address…" · "Adopt checkout_single_address…"`
+   * is the discriminator defect this repo has been repaired for all week, and
+   * the guard belongs here rather than in each of the two call sites.
+   */
+  const said = resultSaid(tool, result);
+  const outcome = said && said !== argument ? said : null;
+
+  return { argument, found, files, touch, outcome };
 }

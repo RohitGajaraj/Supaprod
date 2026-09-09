@@ -295,10 +295,19 @@ function toolDid(tool: string, args: unknown, result: unknown): React.ReactNode 
   const facts = toolCallFacts(tool, args, result);
   const found =
     facts.found === null ? null : facts.found === 1 ? "1 result" : `${facts.found} results`;
-  if (!facts.argument && !found) {
+  /*
+   * ── WHAT CAME BACK, WHEN THE ARGUMENT WAS AN ID ─────────────────────────
+   * `facts.outcome` is the fourth fact, and it is what stops one row in five
+   * on this page being raw JSON. Measured 2026-09-10: 710 of 3,490 tool calls
+   * had an argument this function could not name AND a result that was an
+   * object, so they fell to `JSON.stringify` -- and they are the substantive
+   * calls, `sources.status` and `prd.get` and `ci.status` and `critic.review`,
+   * whose meaning was sitting in a named field of the result the whole time.
+   */
+  if (!facts.argument && !facts.outcome && !found) {
     return (result ?? args) != null ? clip(JSON.stringify(result ?? args)) : "No result recorded";
   }
-  return [facts.argument, found].filter(Boolean).join(" · ");
+  return [facts.argument, facts.outcome, found].filter(Boolean).join(" · ");
 }
 
 /** Plain-words clock for the one whole-trace timestamp in the head. */

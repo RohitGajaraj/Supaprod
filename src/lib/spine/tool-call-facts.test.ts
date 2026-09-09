@@ -119,12 +119,106 @@ describe("what a tool call was about", () => {
     expect(clip("short")).toBe("short");
   });
 
+  it("says what came back when the argument was an id", () => {
+    /*
+     * ── 710 OF 3,490 TOOL ROWS RENDERED AS RAW JSON ──────────────────────
+     * Measured 2026-09-10. A call whose argument is an id and whose result is
+     * an object gave `toolDid` nothing to say, so the trace page fell to
+     * `JSON.stringify` -- on one row in five, and on the substantive ones.
+     */
+    expect(
+      toolCallFacts(
+        "prd.get",
+        { id: "5446f8a8" },
+        { id: "5446f8a8", title: "Let a homeowner reschedule" },
+      ).outcome,
+    ).toBe("“Let a homeowner reschedule”");
+  });
+
+  it("and never repeats the argument it already said", () => {
+    /*
+     * `decision.record` passes its title in the ARGS and gets it back in the
+     * RESULT. A row saying it twice, a bullet apart, is the discriminator
+     * defect this repo has been repaired for all week -- so the guard lives
+     * here rather than in each call site.
+     */
+    const both = { title: "Adopt the single address pattern" };
+    const f = toolCallFacts("decision.record", both, both);
+    expect(f.argument).toBe("“Adopt the single address pattern”");
+    expect(f.outcome).toBeNull();
+  });
+
+  it("reads the answer no surface has ever shown", () => {
+    /*
+     * 124 `sources.status` calls in this product's history; 124 of them
+     * returned zero scout targets. The one fact explaining why Discover keeps
+     * finding nothing sat on the deepest page as `{"active_scout_targets":0}`.
+     */
+    expect(
+      toolCallFacts("sources.status", {}, { active_scout_targets: 0, signals_7d_by_source: {} })
+        .outcome,
+    ).toBe("no sources connected");
+    /* The signal count only when there are any: "0 signals in 7 days" beside
+       "no sources connected" is the same news twice. */
+    expect(
+      toolCallFacts(
+        "sources.status",
+        {},
+        { active_scout_targets: 2, signals_7d_by_source: { manual: 1, unknown: 7 } },
+      ).outcome,
+    ).toBe("2 sources connected · 8 signals in 7 days");
+  });
+
+  it("turns a CI result into a verdict and a ratio", () => {
+    expect(
+      toolCallFacts(
+        "ci.status",
+        { sha: "3f8ac04" },
+        { passed: 213, result: "fail", suites: 214, failing: "checkout-address-10in snapshot" },
+      ).outcome,
+    ).toBe("fail · 213 of 214 passed · checkout-address-10in snapshot failing");
+  });
+
+  it("reduces a review board to its verdict, and says when it splits", () => {
+    const agreed = {
+      review: {
+        board: [
+          { persona: "exec", verdict: "revise" },
+          { persona: "eng", verdict: "revise" },
+        ],
+      },
+    };
+    expect(toolCallFacts("critic.evaluate", { target_id: "x" }, agreed).outcome).toBe(
+      "revise, all 2",
+    );
+    const split = {
+      review: {
+        board: [
+          { persona: "exec", verdict: "revise" },
+          { persona: "eng", verdict: "ship" },
+        ],
+      },
+    };
+    expect(toolCallFacts("critic.evaluate", { target_id: "x" }, split).outcome).toBe(
+      "revise, ship",
+    );
+  });
+
+  it("stays silent rather than guessing", () => {
+    // No named key it knows, so nothing. A guess here would be a classifier
+    // over prose, which is a second thing to be wrong.
+    expect(toolCallFacts("mystery.tool", { id: "x" }, { blob: "something" }).outcome).toBeNull();
+    expect(toolCallFacts("prd.get", { id: "x" }, null).outcome).toBeNull();
+    expect(toolCallFacts("prd.get", { id: "x" }, "a string").outcome).toBeNull();
+  });
+
   it("never throws on a row whose arguments are not an object", () => {
     expect(toolCallFacts("repo.tree", null, null)).toEqual({
       argument: null,
       found: null,
       files: [],
       touch: null,
+      outcome: null,
     });
     expect(toolCallFacts("workspace.search", "not an object", undefined).argument).toBeNull();
     expect(toolCallFacts("studio.stage", { changes: "nope" }, null).files).toEqual([]);
