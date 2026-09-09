@@ -33,6 +33,8 @@ export function CallContext({
   agentSlug,
   agentName,
   where,
+  runHref,
+  runTitle,
   impact,
   keys,
 }: {
@@ -65,6 +67,22 @@ export function CallContext({
    * decision here, next to the rendering that acts on it.
    */
   where: string | null;
+  /**
+   * The run this call was raised on, when there is one AND it can be named.
+   *
+   * ── THE LAYERS COULD NOT BE STITCHED FROM EITHER SIDE ────────────────────
+   * A call raised inside a run reached this pane with no way back to it, so a
+   * person could answer the most consequential question on the screen and have
+   * nowhere to go and watch the work carry on. The heading above says "Where
+   * this call came from" and, for exactly the calls that came from somewhere,
+   * it could not say where.
+   *
+   * BOTH OR NEITHER. A door with an id behind it and no words on it names no
+   * destination, which is the same defect one layer along; the caller passes
+   * these together or passes neither.
+   */
+  runHref?: string | null;
+  runTitle?: string | null;
   /** What answering it costs or touches. Absent on families that carry none. */
   impact?: string | null;
   /** The keyboard, drawn by the file that binds it. */
@@ -88,6 +106,16 @@ export function CallContext({
                 line, not better. */}
             {where ? (
               <span className="mt-0.5 block text-mrd-tiny text-mrd-mute">{where}</span>
+            ) : null}
+            {/* Under the project rather than instead of it: a call can sit in
+                both, and the run is the more specific of the two. */}
+            {runHref && runTitle ? (
+              <a
+                href={runHref}
+                className="mrd-focus mt-0.5 block rounded-mrd-ctl text-mrd-tiny text-mrd-mute underline decoration-mrd-line underline-offset-4 transition-colors hover:text-mrd-ink hover:decoration-mrd-edge"
+              >
+                {runTitle}
+              </a>
             ) : null}
           </span>
         </div>

@@ -133,6 +133,7 @@ import { getLiveActivity } from "@/lib/agents.functions";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { useAsk } from "@/lib/ask-context";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
+import { getTrack } from "@/lib/spine/track.functions";
 import { Surface } from "@/components/meridian/Surface";
 
 import { ApprovalCard } from "@/components/meridian/ApprovalCard";
@@ -913,6 +914,37 @@ function ApprovalsSurface() {
   const needsWorkspace =
     !workspacesLoading && workspaces.length === 0 && !queue.isLoading && !queue.isError && n === 0;
 
+  /*
+   * ── THE RUN THIS CALL CAME FROM, NAMED ─────────────────────────────────
+   *
+   * Lane 1's fifth review, [0] and [7]: a call raised on a run reached the
+   * Inbox with no way back to it, so a person could answer a gate and not watch
+   * the work carry on. Lane 3 landed the link (`agent_approvals.run_id` to
+   * `agent_runs.track_id`, both written by the loop) and `trackId` is on the
+   * item now.
+   *
+   * AN ID IS NOT A DESTINATION. A door reading "Open the run" names nothing,
+   * which is the defect the same review raised about doors elsewhere. The run's
+   * title is what a person recognises, so this reads it -- and reads it for the
+   * FOCUSED CALL ONLY, one at a time, rather than widening the queue's own read
+   * to carry a title for six hundred rows that are never looked at. The queue
+   * is hop-counted and this is a different question asked at a different rate.
+   *
+   * `getTrack` is the run screen's own read, so the title in this door and the
+   * title on the page it opens come from one place and cannot drift. The door
+   * degrades to nothing while the read is out and to nothing if it fails: a
+   * call that cannot name its run is the ordinary pre-spine case, and this
+   * surface has just been repaired for inventing a container it could not read.
+   */
+  const fGetTrack = useServerFn(getTrack);
+  const focusedRun = useQuery({
+    queryKey: ["track", focused?.trackId],
+    queryFn: () => fGetTrack({ data: { trackId: focused!.trackId! } }),
+    enabled: Boolean(focused?.trackId),
+    staleTime: 30_000,
+  });
+  const runTitle = focused?.trackId ? (focusedRun.data?.title ?? null) : null;
+
   const focusedSince = focused ? waitingSince(focused.timestamp) : null;
   const focusedLines = focused
     ? focused.evidence.slice(0, 3).map((line: string) => stripAutoMarkers(line))
@@ -946,6 +978,10 @@ function ApprovalsSurface() {
                which is the invention that rule exists to stop. `CallContext`
                now takes the null and draws the line away. */
             where={subjectOf(focused)}
+            /* Only when the run is both linked AND named. A door with an id
+               behind it and no words on it is not a door a person will press. */
+            runHref={focused.trackId && runTitle ? `/track/${focused.trackId}` : null}
+            runTitle={runTitle}
             impact={focused.impact}
             keys={
               /* SAID `r` UNTIL 2026-08-10, AND `r` DOES NOTHING. The decline key
