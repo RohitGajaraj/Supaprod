@@ -2419,7 +2419,11 @@ forbids exactly that.
 3. **`eslint.config.js` is hook-protected**, so the `.remember/tmp/**` ignore needs a human. That
    scratch file regenerates and keeps producing two lint errors.
 4. **19 unverified round-six craft findings** stay **not actionable** without a skeptic pass.
-5. **The held-vs-failed greyscale pair** is still open in the design contract.
+5. ~~The held-vs-failed greyscale pair~~ **CLOSED 2026-09-09 (`294f7b469`).** The contract
+   asked whoever took it to measure first and say which of three answers it was; it is the first, a
+   second non-hue channel, and the fill was the only one free (the glyph is the STATION's, the word
+   beside a node is the station's own name, dashed is `waived`). **The fill marks the node that
+   STOPPED the road, never every node that is over**, which is why `done` keeps the lift.
 
 **One caution for whoever looks at the home next.** The workspace switcher is per-user server state
 on a shared account. I switched to Helio Labs twice to verify and restored it to A1 delete probe
