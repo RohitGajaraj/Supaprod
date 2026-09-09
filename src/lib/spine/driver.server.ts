@@ -29,6 +29,7 @@
  */
 import { trackGoalSentence } from "@/lib/track-origin";
 import { callWasARefusal } from "@/lib/spine/a-refusal-the-router-can-see";
+import { mayRelease } from "@/lib/spine/a-wall-that-came-down";
 import { theCallLine } from "@/lib/spine/which-way-the-call-went";
 import {
   metricsForTheBrief,
@@ -90,6 +91,7 @@ import {
   producedNothingNote,
   selfCheckNote,
   STATION_NEEDS,
+  TERMINAL_HOLDS,
 } from "@/lib/spine/correction";
 import {
   applyCorrection,
@@ -4588,6 +4590,175 @@ export async function driveTrackOnce(
 }
 
 /** The columns driveTrackOnce needs. Exported so the tick and the driver agree. */
+/**
+ * ── RELEASE THE TRACKS A WALLET STOPPED ──────────────────────────────────────
+ *
+ * A track whose terminal hold was RECORDED FROM a wallet halt, and whose
+ * account now holds credit, gets ONE slot to re-decide in. Not a hold rewrite,
+ * not an unconditional release.
+ *
+ * `going-in-circles` takes a track out of the sweep for good, so a track
+ * stopped by an empty account never gets a turn in which to notice the account
+ * has money again. `c6cd66ebc` stops it happening to new tracks. This is the
+ * repair for the ones already stopped: on production, `6cc7a010` and
+ * `0c0db8e6`, each twelve `out_of_credit` halts on 2026-09-04 against an
+ * account then holding 13 credits and holding 15,238 now.
+ *
+ * THE RULES ARE IN `a-wall-that-came-down.ts` and are pure, so each one can be
+ * argued with by running it. This function is the reads and the write.
+ *
+ * TWO READS FOR THE WALLET, NOT AN EMBED. `spine_tracks.workspace_id` has NO
+ * foreign key to `workspaces`, so PostgREST cannot resolve one through it --
+ * an embed there took the home down on 2026-09-10. And the wallet belongs to
+ * the WORKSPACE, never to whoever triggered the sweep: resolving it from a
+ * user reads the wrong balance on any track they can see and do not own.
+ */
+export async function releaseWalletStoppedTracks(
+  supabase: SupabaseClient,
+  limit = 10,
+): Promise<{
+  released: Array<{ trackId: string; because: string }>;
+  leftAlone: Array<{ trackId: string; why: string }>;
+  failed: string[];
+}> {
+  const released: Array<{ trackId: string; because: string }> = [];
+  const leftAlone: Array<{ trackId: string; why: string }> = [];
+  const failed: string[] = [];
+  try {
+    /* Every open track on a terminal hold. The set is small and knowable (six
+       in the whole product carry one with any halted run), and the BOUND that
+       matters is how many this pass releases, which is the slice below. */
+    const { data: trackRows, error: trackErr } = await supabase
+      .from("spine_tracks" as never)
+      .select("id,status,last_hold,workspace_id,wallet_released_at")
+      .eq("status", "open")
+      .in("last_hold", TERMINAL_HOLDS as unknown as string[])
+      .order("driven_at", { ascending: true })
+      .limit(200);
+    if (trackErr) {
+      failed.push(`tracks: ${trackErr.message}`);
+      return { released, leftAlone, failed };
+    }
+    const tracks = (trackRows ?? []) as unknown as Array<{
+      id: string;
+      status: string | null;
+      last_hold: string | null;
+      workspace_id: string | null;
+      wallet_released_at: string | null;
+    }>;
+    if (tracks.length === 0) return { released, leftAlone, failed };
+
+    /* The newest run per track, and the workspaces' account ids, together:
+       neither needs the other's answer. */
+    const [runsRes, wsRes] = await Promise.all([
+      supabase
+        .from("agent_runs")
+        .select("track_id,status,halted_reason,created_at")
+        .in(
+          "track_id",
+          tracks.map((t) => t.id),
+        )
+        .order("created_at", { ascending: false })
+        .limit(500),
+      supabase
+        .from("workspaces")
+        .select("id,account_id")
+        .in("id", [...new Set(tracks.map((t) => t.workspace_id).filter((w): w is string => !!w))]),
+    ]);
+    if (runsRes.error) {
+      failed.push(`runs: ${runsRes.error.message}`);
+      return { released, leftAlone, failed };
+    }
+    const newestRun = new Map<
+      string,
+      { status: string | null; haltedReason: string | null; at: string }
+    >();
+    for (const r of (runsRes.data ?? []) as Array<{
+      track_id: string | null;
+      status: string | null;
+      halted_reason: string | null;
+      created_at: string;
+    }>) {
+      if (!r.track_id || newestRun.has(r.track_id)) continue;
+      newestRun.set(r.track_id, {
+        status: r.status,
+        haltedReason: r.halted_reason,
+        at: r.created_at,
+      });
+    }
+    const accountOf = new Map<string, string | null>(
+      ((wsRes.data ?? []) as Array<{ id: string; account_id: string | null }>).map((w) => [
+        w.id,
+        w.account_id,
+      ]),
+    );
+    /* The balances, once, for every account in play. Null where it could not
+       be read, which `mayRelease` refuses on rather than treating as zero or
+       as money. */
+    const accountIds = [...new Set([...accountOf.values()].filter((a): a is string => !!a))];
+    const spendable = new Map<string, number>();
+    if (accountIds.length > 0) {
+      const { data: credits, error: creditErr } = await supabase
+        .from("account_credits")
+        .select("account_id,balance_credits,topup_credits")
+        .in("account_id", accountIds);
+      if (creditErr) {
+        failed.push(`credits: ${creditErr.message}`);
+        return { released, leftAlone, failed };
+      }
+      for (const c of (credits ?? []) as Array<{
+        account_id: string;
+        balance_credits: number | null;
+        topup_credits: number | null;
+      }>) {
+        spendable.set(c.account_id, (c.balance_credits ?? 0) + (c.topup_credits ?? 0));
+      }
+    }
+
+    let done = 0;
+    for (const t of tracks) {
+      const account = t.workspace_id ? (accountOf.get(t.workspace_id) ?? null) : null;
+      const verdict = mayRelease({
+        status: t.status,
+        lastHold: t.last_hold,
+        holdIsTerminal: (TERMINAL_HOLDS as readonly string[]).includes(t.last_hold ?? ""),
+        newestRun: newestRun.get(t.id) ?? null,
+        releasedAt: t.wallet_released_at,
+        spendableCredits: account ? (spendable.get(account) ?? null) : null,
+      });
+      if (!verdict.release) {
+        leftAlone.push({ trackId: t.id, why: verdict.why });
+        continue;
+      }
+      if (done >= limit) {
+        leftAlone.push({ trackId: t.id, why: "this pass was full; the next sweep takes it" });
+        continue;
+      }
+      const { error: writeErr } = await supabase
+        .from("spine_tracks" as never)
+        .update({
+          last_hold: null,
+          last_hold_because: null,
+          /* Null so it sorts FIRST next tick: this track has waited six days
+             and the ordering key is what decides who gets served. */
+          driven_at: null,
+          wallet_released_at: new Date().toISOString(),
+        } as never)
+        .eq("id", t.id);
+      if (writeErr) {
+        failed.push(`${t.id}: ${writeErr.message}`);
+        continue;
+      }
+      done += 1;
+      released.push({ trackId: t.id, because: verdict.because });
+    }
+    return { released, leftAlone, failed };
+  } catch (e) {
+    failed.push(e instanceof Error ? e.message : String(e));
+    return { released, leftAlone, failed };
+  }
+}
+
 /**
  * ── A GATE THAT IS OVER MUST NOT GO ON SAYING IT IS WAITING (2026-09-09) ────
  *

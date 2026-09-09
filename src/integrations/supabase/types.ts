@@ -7565,6 +7565,7 @@ export type Database = {
           updated_at: string
           user_id: string
           waived: Json
+          wallet_released_at: string | null
           workspace_id: string
         }
         Insert: {
@@ -7598,6 +7599,7 @@ export type Database = {
           updated_at?: string
           user_id: string
           waived?: Json
+          wallet_released_at?: string | null
           workspace_id?: string
         }
         Update: {
@@ -7631,6 +7633,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
           waived?: Json
+          wallet_released_at?: string | null
           workspace_id?: string
         }
         Relationships: [

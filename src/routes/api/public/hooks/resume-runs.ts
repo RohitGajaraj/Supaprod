@@ -10,6 +10,7 @@ import { recordStageEvent } from "@/lib/stage-events.server";
 import {
   driveTrackOnce,
   repairStaleGates,
+  releaseWalletStoppedTracks,
   DRIVE_SELECT,
   type DriveRow,
 } from "@/lib/spine/driver.server";
@@ -769,6 +770,26 @@ export const Route = createFileRoute("/api/public/hooks/resume-runs")({
              */
             const gateRepair = await repairStaleGates(admin as unknown as SupabaseClient, 10);
 
+            /*
+             * ── AND THE TRACKS A WALLET STOPPED ────────────────────────────
+             *
+             * A terminal hold takes a track out of the sweep for good, so a
+             * track stopped by an empty account has no turn in which to notice
+             * the account has money again. On production `6cc7a010` and
+             * `0c0db8e6` each carry twelve `out_of_credit` halts from
+             * 2026-09-04 against an account that held 13 credits then and
+             * holds 15,238 now, and neither has moved in six days.
+             *
+             * Bounded at ten a pass and reported by track with the halt that
+             * justified it, because a repair whose report is a number cannot
+             * be argued with, and a number mistaken for a cause is what put
+             * these tracks here.
+             */
+            const walletRepair = await releaseWalletStoppedTracks(
+              admin as unknown as SupabaseClient,
+              10,
+            );
+
             return new Response(
               JSON.stringify({
                 ok: true,
@@ -777,6 +798,12 @@ export const Route = createFileRoute("/api/public/hooks/resume-runs")({
                 gatesPruned: gateRepair.pruned,
                 gatesReleased: gateRepair.released,
                 gatesFailed: gateRepair.failed,
+                // Tracks a wallet stopped, released now the account can pay.
+                // `leftAlone` carries a sentence per track, so a pass that
+                // released nothing still says why for each one it looked at.
+                walletReleased: walletRepair.released,
+                walletLeftAlone: walletRepair.leftAlone,
+                walletFailed: walletRepair.failed,
                 // Fresh open tracks nobody had driven, started here (F-55 sweep).
                 freshTracksDriven: freshTracks,
                 freshTracksFailed: freshFailed,
