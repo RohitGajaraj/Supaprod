@@ -174,6 +174,29 @@ export type Turn = {
    * do about it.
    */
   stopLine: string | null;
+  /**
+   * The platform's own slug for why it refused to run, when it wrote one.
+   *
+   * ── THE PROSE WAS ALREADY HERE AND A SURFACE CANNOT ACT ON PROSE ─────────
+   * `stopLine` renders this column for a reader, and renders it well. What it
+   * cannot do is let a surface DECIDE anything, because telling "out of credit"
+   * from "no progress for 4 hours" would mean matching the sentence -- the trap
+   * this lane has refused four times over.
+   *
+   * The column is already selected for `stopLine`, so carrying the raw value
+   * costs no query and no hop. It is null for the stall sweeper's whole-sentence
+   * form (see `stopLine`'s own note on the two vocabularies): a slug has no
+   * whitespace, and a value that is not a slug is not one this can be keyed on.
+   *
+   * WHY A SURFACE WANTS IT. S1's rule from the entry, 2026-09-10: **a cause the
+   * platform RECORDED outranks a shape the driver INFERRED.** A hold is the
+   * driver reading a count; a halt is the platform saying it refused to run at
+   * all. On `6cc7a010` the card leads with "Design has been run many times over
+   * and the work has not moved on once" while the record holds twelve
+   * `out_of_credit` halts, and five of the six tracks that have ever held a
+   * halted run halted for that reason.
+   */
+  haltedReason: string | null;
   usd: number;
   /**
    * Credits this turn's own calls debited, summed off `credit_ledger` and
@@ -275,6 +298,10 @@ export function buildActivity(input: {
       tookMs: measured(r.duration_ms),
       tokens: measured(r.tokens_used),
       stopLine: stopLine(r),
+      /* The slug only. A whole sentence in this column is the stall sweeper's
+         form and is not a key; `stopLine` renders it either way. */
+      haltedReason:
+        r.halted_reason && !/\s/.test(r.halted_reason.trim()) ? r.halted_reason.trim() : null,
       usd: Number(r.spend_used_usd ?? 0) || 0,
       credits: (r.trace_id && input.creditsByTrace?.[r.trace_id]) || 0,
       traceId: r.trace_id ?? null,
