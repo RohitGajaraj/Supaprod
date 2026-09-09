@@ -518,8 +518,28 @@ copy of the shortest.
 
 **Two conditions on holding, and if either breaks the answer flips.** A fourth is no longer
 confirmation, it is wallpaper. And if any copy ever derives from a DIFFERENT read they can disagree,
-and three places that can disagree about one number is worse than any of the alternatives. Today all
-three come from one source, and that is what makes it safe, not the jobs argument.
+and three places that can disagree about one number is worse than any of the alternatives. All the
+copies come from one source, and that is what makes it safe, not the jobs argument.
+
+> **AND THE FIRST CONDITION WAS MET WITHIN THE HOUR, ON THE RULING'S OWN EXAMPLE.** Reading the whole
+> page rather than the two regions the question arrived about, the count is in **four** places: the
+> road, the story, the transcript's section header, and the artifacts pane. The last two are the same
+> sentence minus a verb, and they are the two LONGEST forms. So the argument for keeping the third,
+> that it names what the prototypes are of and is therefore the fullest form rather than a copy,
+> applies to both of them, which makes one of them a copy of the fullest form.
+>
+> **The lesson is not about counts.** It is that I ruled on the two regions the question named
+> instead of on the page. A duplication question cannot be answered from the pair somebody brings
+> you; it has to be answered from everywhere the fact appears, which means reading the whole surface
+> before ruling. That is the counting habit below, applied to the thing I had just written the
+> counting habit about.
+
+**Verifying a read proves it is correct, never that anyone wanted it.** Lane 3's, 2026-09-09, and it
+generalises past reads. A cost figure on the most-mounted read in the product was verified against
+production, carefully, hours before anyone checked whether it reached a screen. It reached none: an
+entire RPC computed on every authenticated page and discarded. **Verification feels like proof that
+a thing should exist and is not.** Ask what renders it before you ask whether it is right, because a
+correct answer nobody reads is the most expensive kind.
 
 **And count before ruling.** The header chip was ruled by principle (a status chip names the state,
 the remedy has a home in the footer) and the count turned out to be the stronger argument: five
