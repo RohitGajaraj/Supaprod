@@ -2496,3 +2496,60 @@ remedy, which stays, now sharing one wording for one event.
 trust it.** Put the defect back, watch it name the file, take it out. My first version of one of these
 passed while measuring nothing, because stripping string literals erased the very token the reader
 keyed on. A guard that finds nothing and a guard that has nothing to find are the same green.
+
+### Lane 2 · addendum, 2026-09-09 · the founder's screenshot, and one state that wore two words
+
+**Pushed through `c8f7c02e7`.** All from the founder reporting a live screen, plus Lane 1's two
+rulings on my surface.
+
+#### The wall of red (his screenshot)
+
+One failed read produced **five messages, four of them red.** The header said "This run could not be
+read." correctly and exactly once, then **mounted the panes anyway**, and each honestly reported its
+own refused read. Every component correct; nothing owning the composition. The panes no longer mount
+when the run's own read fails, and the page carries a retry that invalidates **every** key it reads,
+because a retry leaving the others stale redraws the same wall the moment they mount.
+
+**Lane 1 generalised this into Law 11** (`e678dfe5b`): *one cause gets one sentence, at the level
+that owns the cause* — the level being the smallest thing a retry would fix.
+
+**Say this to whoever reads it next, because it must not get undone:** the state is louder *because*
+of this morning's work. Those reads used to swallow their errors and render as empty, and making them
+throw was right. **An honest failure then has to be routed, not reported five times.** Reverting the
+throw to quieten the screen trades a visible problem for an invisible one.
+
+#### A truncated address is not a platform fault
+
+`/track/ce846e9b` — the first block of a uuid, the shape you get cutting a link — hit the same wall,
+and every message was about the wrong thing. The page already had a good answer for an address that
+reaches no run; a malformed id never got there because the reads threw instead of returning null. It
+goes there now, the sub says which of the two it is, and the route's own reads are gated on the shape
+so nothing is asked at all.
+
+#### One state, two words — and a sharper one inside the card
+
+Lane 1 ruled the header chip should name the STATE, the remedy having a home in the footer's press.
+**I counted before building, because the chip's own comment argued the opposite:** five surfaces
+describe that state and **three already said stopped**, including the road's own node state. Only the
+chip and the browser tab said "Needs a restart", so the two moved to the three. The tab moved with the
+chip because `run-tab.ts` promises its word matches `run-status.ts` exactly.
+
+**The sharper instance was inside one component.** `RunNow` draws chip and headline on ONE line, so a
+stopped run read `[Stopped] Stopped at Build.` — the same word eight pixels apart — with the state
+said a third time underneath. The chip keeps the word (it carries the only hue on that card); the
+headline gives way to the sentence already beneath it, which names the station too. **Five of the
+twelve registers in `run-now.ts` have a version of this** (`Reading`/"Reading this run.",
+`Abandoned`/"This run was abandoned.", `Ready`/"Ready when you are.", `Stopped`/"You stopped this.").
+Only one had a replacement sentence already written; the rest need one invented, which is a larger
+judgement than deleting a repetition.
+
+#### Open, with my ruling and the counter-argument
+
+- **The count appears three times, not two**: the road's "3 prototypes", the story's "filed 3
+  prototypes", the transcript section's "Design filed 3 prototypes of …". **I am holding** — map,
+  narrative and per-station record are three jobs, and a short repetition serving a different job is
+  not the same defect as a full distinctive sentence repeated, which makes a reader ask which one is
+  real. Lane 1 has the counter and can overrule.
+- **The four remaining chip/headline restatements** above.
+- **The `failed` node's fill** is verified only on a `stopped` node (reads right: clearly the node the
+  road ended at, not loud). The fail hue is unjudged.
