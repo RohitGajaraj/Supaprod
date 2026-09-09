@@ -69,13 +69,7 @@ const STOPS: LineStop[] = [
 
 function draw(over: Partial<React.ComponentProps<typeof ThroughLine>> = {}) {
   return render(
-    <ThroughLine
-      stops={STOPS}
-      standing="build"
-      stuckAt="build"
-      stuckSaying={SAYING}
-      {...over}
-    />,
+    <ThroughLine stops={STOPS} standing="build" stuckAt="build" stuckSaying={SAYING} {...over} />,
   );
 }
 

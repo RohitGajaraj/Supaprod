@@ -79,7 +79,6 @@ import {
   sectionMeta,
   transcriptSections,
 } from "@/components/spine/transcript-sections";
-import { whatItProduced } from "@/components/track/what-it-produced";
 import { useTimezone } from "@/hooks/use-timezone";
 import { useTrackActivityPush } from "@/hooks/use-track-activity-push";
 import type { AgentStation } from "@/lib/agent-vocabulary";
@@ -1028,16 +1027,36 @@ export function TrackActivity({
       next.set(key, !openSections.has(key));
       return next;
     });
-  /* What each station filed, off the chain the pane already polls, so a closed
-     section still says what came of it. */
-  const producedBy = React.useMemo(() => {
-    const m = new Map<AgentStation, string>();
-    for (const stop of chainQ.data?.chain.stops ?? []) {
-      const line = whatItProduced(stop.label, stop.members);
-      if (line) m.set(stop.station, line);
-    }
-    return m;
-  }, [chainQ.data]);
+  /*
+   * ── `producedBy` IS GONE, AND IT WAS THE FOURTH COPY OF ONE COUNT ────────
+   *
+   * It read "What each station filed, off the chain the pane already polls, so
+   * a closed section still says what came of it" -- a good reason on the day it
+   * was written, when the section header was one of two places that said it.
+   * Read whole on the served build, 2026-09-09 (Lane 1), one run said "3
+   * prototypes" FOUR times:
+   *
+   *   the road, under Design                "3 prototypes"
+   *   the story block                       "Design filed 3 prototypes"
+   *   this section header                   "Design filed 3 prototypes of
+   *                                          Reschedule installer visit…"
+   *   the artifact pane, What it has made   "3 prototypes of Reschedule
+   *                                          installer visit…"
+   *
+   * Three of those were ruled acceptable on a test we agreed and wrote down: a
+   * short factual count read again CONFIRMS -- you glance, it agrees, you move
+   * on -- where a long distinctive sentence read again makes you stop and
+   * compare. That ruling carried an explicit condition: **a fourth is no longer
+   * confirmation, it is wallpaper.** The condition was met, so one had to go.
+   *
+   * THIS ONE, and not the pane's, because the pane draws ONE station at a time
+   * ("Showing Design") and its sentence is the whole content of a region headed
+   * "What it has made", while the story above covers every station and now
+   * carries this fact for all seven. So the section header's copy is the one
+   * whose job is fully done elsewhere; the pane's is the answer to its own
+   * heading. A transcript section is a record of TURNS -- who acted, how many,
+   * how long -- and the tally belongs to the surfaces that tally.
+   */
   const zone = useTimezone();
 
   React.useEffect(() => {
@@ -1779,7 +1798,7 @@ export function TrackActivity({
         {sections.map((section, si) => {
           const isOpen = openSections.has(section.key);
           const isLast = si === sections.length - 1;
-          const product = section.station ? (producedBy.get(section.station) ?? null) : null;
+
           const chip =
             section.last === "working" ? (
               <StatusChip status="agent" pulse>
@@ -1850,9 +1869,6 @@ export function TrackActivity({
                     {chip}
                     {meta ? <span className="mrd-meta">{meta}</span> : null}
                   </span>
-                  {product ? (
-                    <span className="min-w-0 text-mrd-small text-mrd-body">{product}</span>
-                  ) : null}
                   {section.via && isOpen ? (
                     <span className="min-w-0 text-mrd-small text-mrd-mute">{section.via}</span>
                   ) : null}
