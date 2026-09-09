@@ -58,8 +58,6 @@ import {
 } from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useNavigate } from "@tanstack/react-router";
-import { SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
 
 import { toast } from "@/lib/notify";
 import { decideApproval } from "@/lib/agent_loop.functions";
@@ -130,7 +128,6 @@ export function ApprovalsPanel() {
   const fDecide = useServerFn(decideApproval);
   const fExtend = useServerFn(extendApprovalTtl);
   const qc = useQueryClient();
-  const navigate = useNavigate();
 
   const q = useQuery({ queryKey: ["govern-approvals"], queryFn: () => fList() });
 
@@ -307,12 +304,6 @@ export function ApprovalsPanel() {
             })
           }
           onExtend={() => extend.mutate({ approvalId: focused.id, tool: focused.tool_name })}
-          // P-14 (A-QUEUE.md, R-35): /runs/$missionId is deleted. This
-          // approval carries mission_id, not a track id, so this falls back
-          // to Start rather than a dead link.
-          onOpenMission={
-            focused.mission_id ? () => void navigate({ to: SIGNED_IN_HOME }) : undefined
-          }
         />
       ) : (
         <NothingHere>
@@ -443,7 +434,6 @@ function FocusedCall({
   onApprove,
   onReject,
   onExtend,
-  onOpenMission,
 }: {
   a: GovernApproval;
   track: AgentTrackRecord | null;
@@ -454,7 +444,6 @@ function FocusedCall({
   onApprove: () => void;
   onReject: () => void;
   onExtend: () => void;
-  onOpenMission?: () => void;
 }) {
   const name = agentDisplayName(a.agent_slug);
   const trackLabel = formatTrackRecord(track);
@@ -534,14 +523,37 @@ function FocusedCall({
         }
       />
 
-      {onOpenMission ? (
-        <Actions>
-          <Action variant="quiet" onClick={onOpenMission}>
-            Open the mission
-          </Action>
-        </Actions>
-      ) : null}
-
+      {/*
+       * ── "OPEN THE MISSION" OPENED THE HOME PAGE, AND IS CUT ──────────────
+       *
+       * `/runs/$missionId` was deleted (P-14, R-35) and an approval carries a
+       * `mission_id` rather than a track id, so this fell back to Start
+       * "rather than a dead link". That chose the wrong failure. **A dead link
+       * tells a person it is broken. A link to the home page silently loses
+       * their place and looks like it worked** -- they pressed a control that
+       * named a destination, arrived somewhere else, and have to find their
+       * way back to the queue they were working through.
+       *
+       * MEASURED ON PRODUCTION, 2026-09-10, before cutting it:
+       *
+       *   pending approvals ............................ 21
+       *   carrying a mission_id (so the control drew) ... 7
+       *   resolvable to a track through `agent_runs` .... 0
+       *
+       * Across every status it is 15 of 176. So the join this control was
+       * built for does not exist for a single call a person can act on today,
+       * and rebuilding it would resolve one approval in twelve.
+       *
+       * It is cut rather than relabelled because there is nothing true for it
+       * to say. "Open the home page" is not a thing anybody wants from a
+       * decision they are in the middle of making, and the rail is two
+       * keystrokes away for anybody who does.
+       *
+       * IT COMES BACK THE DAY AN APPROVAL CAN NAME ITS TRACK. That is a write,
+       * not a surface: `agent_approvals` would carry the track id the way
+       * `spine_tracks.pending_gates` already carries the approval id in the
+       * other direction.
+       */}
       {/* The exact payload. One click away rather than on the surface: it is
           what an engineer opens to check the call, and it is never what a
           product lead reads to make it. */}
