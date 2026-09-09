@@ -30,6 +30,7 @@ import { nothingIsComing } from "@/components/track/nothing-is-coming";
 import { waitingOnTime } from "@/components/track/a-calendar-wait-is-not-a-stoppage";
 import { parseReview, hasVerdict } from "@/components/track/verdict-reading";
 import { formatDeadlineDate } from "@/components/track/expiry-deadline";
+import { KIND_WORD } from "@/lib/spine/attach";
 
 type Stop = Pick<
   StationArtifactView,
@@ -50,8 +51,25 @@ function newest(stop: Stop, kind: string) {
     .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))[0];
 }
 
-function plural(n: number, one: string, many: string): string {
-  return `${n} ${n === 1 ? one : many}`;
+/**
+ * `${n} <noun>`, with the noun read from the one vocabulary rather than typed
+ * out here.
+ *
+ * IT USED TO TAKE THE WORDS AS ARGUMENTS, AND THE COMMENT SAW IT COMING. The
+ * Design case read "The canon's noun, not a local swap. See what-it-made.ts."
+ * one line above `plural(n, "prototype", "prototypes")` -- a comment asserting
+ * the noun is the canon's, directly over the noun being hand-typed. It agreed
+ * with `KIND_WORD` on the day it was written and nothing held it there: rename
+ * `prototype` in the canon and the road keeps the old word while the transcript,
+ * the story and the Start row all move.
+ *
+ * `what-it-made.ts` records paying for exactly that ("carried the same local
+ * swap"), and the census in `one-vocabulary-counts-what-a-station-filed.test.ts`
+ * now enforces it for every tally in the product.
+ */
+function plural(n: number, kind: string): string {
+  const word = KIND_WORD[kind] ?? { one: kind, many: `${kind}s` };
+  return `${n} ${n === 1 ? word.one : word.many}`;
 }
 
 const REVIEW_VERDICT: Record<string, "pass" | "fail" | "open"> = {
@@ -77,7 +95,7 @@ export function journeyOutcome(stop: Stop, horizonDue: string | null): string | 
   switch (stop.station) {
     case "sense": {
       const n = count(stop, "signal");
-      if (n > 0) return plural(n, "finding", "findings");
+      if (n > 0) return plural(n, "signal");
       return stop.everDriven ? "nothing found" : null;
     }
     case "decide": {
@@ -87,12 +105,13 @@ export function journeyOutcome(stop: Stop, horizonDue: string | null): string | 
     }
     case "define": {
       const n = count(stop, "prd");
-      return n > 0 ? (n === 1 ? "spec written" : plural(n, "spec", "specs")) : null;
+      /* One spec reads as an event on the road ("spec written") rather than a
+         tally of one; past that it is a count, and the noun is the canon's. */
+      return n > 0 ? (n === 1 ? "spec written" : plural(n, "prd")) : null;
     }
     case "design": {
       const n = count(stop, "prototype");
-      /* The canon's noun, not a local swap. See what-it-made.ts. */
-      return n > 0 ? plural(n, "prototype", "prototypes") : null;
+      return n > 0 ? plural(n, "prototype") : null;
     }
     case "build": {
       const c = newest(stop, "changeset");
