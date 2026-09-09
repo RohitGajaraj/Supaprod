@@ -37,6 +37,12 @@ import { weWrote, whoWroteLine } from "@/components/track/how-much-of-this-we-wr
 import { whatItMade } from "@/components/track/what-it-made";
 import { foldVersions, repeatedTitles, titleKey } from "@/components/track/versions-of-one-thing";
 import {
+  changeLine,
+  foldRepeats,
+  versionsLabel,
+  whatChanged,
+} from "@/components/track/what-changed-between-versions";
+import {
   offerToConnect,
   sourceLine,
   sourceVerdict,
@@ -3246,6 +3252,29 @@ function StationPanel({
    * with no body renderer keeps its title line rather than pretending.
    */
   const items = view?.items;
+  /*
+   * ── THE BODY OF EVERY VERSION, KEYED THE WAY THE FOLD KEYS IT ────────────
+   *
+   * `ChainMember` carries no body by design (`track.functions.ts:2703`), and
+   * `foldVersions` folds chain members, so the fold could count its versions
+   * and never compare them. `ArtifactView.fields` has held the body all along:
+   * `FIELDS.prototype` is `["description", "entry_path", "share_slug",
+   * "prd_id"]` and, measured 2026-09-09, `fields.description` had NO consumer
+   * anywhere in the app. This joins the two back together by `artifactId`,
+   * which is the key both lists already use.
+   *
+   * A NON-STRING FIELD BECOMES NULL rather than being stringified. `fields` is
+   * `Record<string, FieldValue>` and a JSON column would render as "[object
+   * Object]" in a quotation, which is worse than saying nothing about it.
+   */
+  const bodyByArtifact = React.useMemo(() => {
+    const m = new Map<string, string | null>();
+    for (const it of items ?? []) {
+      const body = it.fields?.body ?? it.fields?.description ?? null;
+      m.set(it.artifactId, typeof body === "string" ? body : null);
+    }
+    return m;
+  }, [items]);
   const made = whatItMade({
     station: stop.station,
     label: stop.label,
@@ -3351,6 +3380,7 @@ function StationPanel({
           now={now}
           openArtifactId={openArtifactId}
           onOpen={onOpenArtifact}
+          bodies={bodyByArtifact}
           arrival={arrival}
           /* The primary is drawn as a card above, so its own title line is not
              drawn again beneath it. */
@@ -3446,6 +3476,7 @@ function MemberRows({
   now,
   openArtifactId,
   onOpen,
+  bodies,
   arrival,
   omit,
 }: {
@@ -3453,6 +3484,15 @@ function MemberRows({
   now: number;
   openArtifactId: string | null;
   onOpen?: (artifactId: string) => void;
+  /**
+   * Each member's body, by artifact id, where the artifacts read has answered.
+   *
+   * OPTIONAL, and the second mount of this component deliberately passes none:
+   * it draws from the chain alone while `getTrackArtifacts` is still out, and a
+   * fold there says what it has always said. Nothing about a version's
+   * comparison may make a row wait for a second read.
+   */
+  bodies?: ReadonlyMap<string, string | null>;
   /** The pane's arrival motion, keyed the way the pane keys it. */
   arrival?: (key: string) => React.CSSProperties | undefined;
   /**
@@ -3489,6 +3529,7 @@ function MemberRows({
               now={now}
               openArtifactId={openArtifactId}
               onOpen={onOpen}
+              bodies={bodies}
             />
           </div>
         );
@@ -3503,6 +3544,7 @@ function VersionedLine({
   now,
   openArtifactId,
   onOpen,
+  bodies,
 }: {
   newest: ChainMember;
   /** Newest first. */
@@ -3510,6 +3552,9 @@ function VersionedLine({
   now: number;
   openArtifactId: string | null;
   onOpen?: (artifactId: string) => void;
+  /** Each version's body, by artifact id. Absent until the artifacts read
+   *  answers, and absent forever for kinds that carry no body. */
+  bodies?: ReadonlyMap<string, string | null>;
 }) {
   const id = React.useId();
   const openInEarlier = earlier.some((v) => v.artifactId === openArtifactId);
@@ -3524,6 +3569,28 @@ function VersionedLine({
   const open = toggle && toggle.at === openArtifactId ? toggle.open : openInEarlier;
   const n = earlier.length + 1;
 
+  /*
+   * ── WHAT SEPARATES THESE VERSIONS, WHICH THE FOLD COULD NOT SAY ─────────
+   *
+   * The fold has been right since 2026-09-08 that four rows sharing a title are
+   * ONE thing filed four times. What it could not say is whether the four
+   * differ, and on this data they usually do not: of 59 prototypes filed on a
+   * track, 23 are byte-identical to another version of the same thing, because
+   * the Design station files each drawing twice about eighteen seconds apart.
+   * So a person met "prototype · 4 versions" over two designs and had no way to
+   * learn it, which is a product counting its own output at double.
+   *
+   * NEWEST FIRST, so each row's successor is the one ABOVE it in this list --
+   * `[newest, ...earlier]` is the sequence, and a version is scored against
+   * what it became rather than against the newest. A run of copies then reads
+   * as a run of copies and a revision appears once, on the row where it
+   * happened. See `what-changed-between-versions.ts` for why that ordering is
+   * not the same answer.
+   */
+  const sequence = [newest, ...earlier];
+  const bodyOf = (m: ChainMember): string | null => bodies?.get(m.artifactId) ?? null;
+  const repeats = foldRepeats(sequence.map(bodyOf));
+
   return (
     <div className="flex flex-col">
       <Row
@@ -3535,7 +3602,7 @@ function VersionedLine({
         time={exactTime(newest.createdAt)}
         focused={newest.artifactId === openArtifactId}
         onClick={onOpen ? () => onOpen(newest.artifactId) : undefined}
-        action={<Value tone="quiet">{`${newest.word} · ${n} versions`}</Value>}
+        action={<Value tone="quiet">{versionsLabel(newest.word, n, repeats)}</Value>}
       />
       <button
         type="button"
@@ -3567,7 +3634,7 @@ function VersionedLine({
               transform: open ? "translateY(0)" : "translateY(4px)",
             }}
           >
-            {earlier.map((v) => (
+            {earlier.map((v, i) => (
               <MemberLine
                 key={`${v.kind}:${v.artifactId}`}
                 m={v}
@@ -3575,6 +3642,9 @@ function VersionedLine({
                 repeated
                 focused={v.artifactId === openArtifactId}
                 onOpen={onOpen}
+                /* `sequence[i]` is the version filed AFTER this one: the list
+                   runs newest first, and `earlier[i]` is `sequence[i + 1]`. */
+                sub={changeLine(whatChanged(bodyOf(v), bodyOf(sequence[i]!)))}
               />
             ))}
           </div>
@@ -3612,6 +3682,7 @@ function MemberLine({
   repeated = false,
   focused = false,
   onOpen,
+  sub,
 }: {
   m: ChainMember;
   now: number;
@@ -3621,11 +3692,19 @@ function MemberLine({
   focused?: boolean;
   /** Opens the artifact this row names. A missing one has nothing to open. */
   onOpen?: (artifactId: string) => void;
+  /**
+   * What this version is, next to the version filed after it: identical to it,
+   * or the size of the revision and the line it dropped. Only a version row
+   * inside a fold has a successor to be measured against, so every other caller
+   * leaves this out and the row is unchanged.
+   */
+  sub?: string | null;
 }) {
   return (
     <Row
       tight
       lead={m.missing ? `This ${m.word} is no longer there` : (m.title ?? cap(m.word))}
+      sub={sub ?? undefined}
       /* The exact instant replaces the rounded one ONLY where the rounded one
          has stopped distinguishing anything. On a row that is already unique,
          "1d ago" is the more readable of the two and it stays. */

@@ -344,6 +344,31 @@ describe("removing an overlap from both sides at once leaves a hole", () => {
     expect(out.next).toContain("Send it back a step");
   });
 
+  /*
+   * ── AND THE ONE HOLD WHERE NO DIAGNOSIS IS THE RIGHT ANSWER ──────────────
+   *
+   * `given-up` carried "Nothing more will be tried here on its own.", which is
+   * an EFFECT in the file that owns causes. Read live 2026-09-09, the hold card
+   * said "nothing more will be tried" three times in three sentences owned by
+   * three files, and this was the third.
+   *
+   * It is removed rather than rewritten because the cause for this hold is
+   * already on the card and is BETTER than anything a constant here could say:
+   * `spine_tracks.last_hold_because`, written per track by `decideCorrection`,
+   * naming the station, the missing thing and the real correction count. So
+   * this is not the hole above — the cause is named, by the row rather than by
+   * this map — and the assertion has to be about the DOOR surviving, which is
+   * what this file is left owning for this hold.
+   */
+  it("leaves given-up carrying the door alone, because the row names the cause", () => {
+    const out = wayOut("given-up", BOTH_OPEN);
+    expect(out.next).toBe("Send it back a step, or do this step yourself.");
+    expect(out.onThisScreen).toBe(true);
+    // The effect belongs to HOLD_LINE and must not come back here.
+    expect(out.next).not.toContain("Nothing more");
+    expect(out.next).not.toContain("will be tried");
+  });
+
   it("does not put the effect back, which is the half S0's line owns", () => {
     // "Nothing further will be spent on this until you look." is theirs.
     expect(wayOut("corrections-spent", BOTH_OPEN).next).not.toContain("Nothing further");

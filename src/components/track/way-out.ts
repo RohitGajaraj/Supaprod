@@ -158,7 +158,48 @@ const DIAGNOSIS: Partial<Record<HoldReason, string>> = {
    */
   "corrections-spent":
     "It has been sent back for this same fix as often as it is allowed and is still short of it.",
-  "given-up": "Nothing more will be tried here on its own.",
+  /*
+   * ── `given-up` HAS NO DIAGNOSIS, AND THAT IS THE DIVISION BEING KEPT ──────
+   *
+   * Was: *"Nothing more will be tried here on its own."* — which is the EFFECT,
+   * and the effect is the hold line's job by the rule stated forty lines above:
+   * the hold line carries WHAT IS HAPPENING, this file carries WHY and WHAT TO
+   * DO. It was the only entry in this map stating an effect rather than a
+   * cause.
+   *
+   * Read live on the served build, 2026-09-09, the hold card on `ce846e9b`
+   * top to bottom. "Nothing more will be tried" appeared THREE TIMES on one
+   * card, in three sentences owned by three files:
+   *
+   *   HOLD_LINE["given-up"]  ...and still cannot finish with everything it
+   *                          needs on the record. Nothing more will be tried on
+   *                          it automatically.
+   *   last_hold_because      ...has been corrected 2 times, and still cannot
+   *                          finish. Nothing more will be tried on this
+   *                          automatically.
+   *   this entry             Nothing more will be tried here on its own.
+   *
+   * THE HOLE THIS DOES NOT LEAVE, which is the failure the suite beside this
+   * file exists to catch. Removing a diagnosis is safe only when the CAUSE is
+   * still named somewhere, and for `given-up` it is — by `last_hold_because`,
+   * the driver's own stored sentence, which names the station, the missing
+   * thing and the real correction count, and renders directly above this line.
+   * That is strictly more than any constant in this map could say, because it
+   * is written per track rather than per hold. `corrections-spent` above keeps
+   * its diagnosis for the opposite reason, and that difference is the point.
+   *
+   * WHAT THE STRUCTURAL GUARD CANNOT SEE, recorded so the next reader does not
+   * assume it is covered: "will not be tried again without you" and "Nothing
+   * more will be tried here on its own" share no run of three significant
+   * words, so `two-lines-on-one-screen-must-not-restate-each-other` passed on
+   * this pair the whole time. The repetition was semantic, not lexical. An
+   * instrument that counts word runs finds the copies; it does not find the
+   * paraphrases, and this one was found by reading the rendered card.
+   *
+   * No entry at all, rather than an empty string: `wayOut` returns the offer
+   * alone when a hold has no diagnosis, which is the shape six other holds
+   * already use.
+   */
 };
 
 /*
