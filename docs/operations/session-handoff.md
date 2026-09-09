@@ -2347,6 +2347,18 @@ ACTS on; two independent views for a claim nobody can test.** The first is about
 figure; the second is about the product catching itself lying. Where a load-bearing claim has no test,
 the redundancy is worth the repetition, and that is the exception to saying each thing once.
 
+**THE SHARPER FORM, and it is the one to use** (Lane 1, in the design contract at `0e156a7ee`; both
+readings are kept here because the second was found by writing the first). My split above was on the
+wrong axis: the false clause was never a second READING of a count, it asserted a consequence it had
+not read at all, while the region beside it stated the underlying facts. So no boundary against "one
+count, one source" is needed, because nothing was read twice:
+
+> **A fact has one source; a claim ABOUT that fact must be DERIVED from it, never asserted alongside it.**
+
+One count, one source is untouched. What changes is that a clause hanging off a count has to read
+something. And putting evidence beside a claim is not redundancy for its own sake: **an underived claim
+needs something in view that can contradict it, because a sentence cannot contradict itself.**
+
 **Also closed since the last entry:** the decide loop (a station re-proposing what its own track already
 declined, 13 declines in 14 decisions and about 2,289 credits on one track), with the measurement that
 **forbids** loosening it to paraphrases (a reversal, "Decline shipping of X" to "Proceed with X", scores
