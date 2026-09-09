@@ -49,7 +49,7 @@ import { useNewestCallByRun } from "@/components/track/LiveWork";
 import { objectOf } from "@/components/track/live-station";
 import { ArtifactPane } from "@/components/track/ArtifactPane";
 import { TrackConsent } from "@/components/track/TrackConsent";
-import { Action, Door, RecordSpeaks } from "@/components/meridian/surface-parts";
+import { Action, Door } from "@/components/meridian/surface-parts";
 import { Row } from "@/components/meridian/rows";
 import { Receipt } from "@/components/meridian/Receipt";
 import {
@@ -1253,16 +1253,28 @@ export function TrackRunLeft({
            *
            * QUOTED AND ATTRIBUTED, NEVER ASSERTED (F-54). The record's verdict
            * is unchanged and still says those turns filed nothing. This is
-           * what the seats CLAIMED, in quotation marks, with the count that
-           * makes it a finding rather than a remark — so a reader who thinks
-           * the claim is wrong is looking at a disagreement rather than at
-           * this surface's opinion of one.
+           * what the seats CLAIMED, with the count that makes it a finding
+           * rather than a remark.
+           *
+           * ── AND THE QUOTE ITSELF MOVED OUT (Lane 1, 2026-09-09, two runs) ──
+           * The story block on the right now quotes the station's own words
+           * under the station that said them, so the sentence was on screen
+           * TWICE, both visible without scrolling. Lane 1 read it on
+           * `ce846e9b` and again on `6cc7a010`, where the halt quote
+           * "AI credits exhausted..." appeared in both places, so it is
+           * systematic rather than one run repeating itself.
+           *
+           * THE STORY KEEPS THE QUOTE and this card keeps the COUNT, because
+           * that division is what each is for. The quote belongs beside the
+           * station that said it, which is the story's whole shape. What only
+           * this card can say is the diagnosis and the advice -- "said this 6
+           * times, and filed nothing on any of them", and the way out beneath
+           * it -- and neither of those is anywhere else. Dropping the quote
+           * here costs the card nothing and stops the screen saying one
+           * sentence twice, which is the defect this file has been repaired
+           * for three times today.
            */}
-          {refrain ? (
-            <RecordSpeaks evidence={refrainLead(refrain)}>
-              &ldquo;{refrain.saying}&rdquo;
-            </RecordSpeaks>
-          ) : null}
+          {refrain ? <HoldFact>{refrainLead(refrain)}</HoldFact> : null}
           {now.register === "working" && presences.length > 0 ? (
             <ul aria-label="Working on this now" className="flex flex-col gap-mrd-2">
               {presences.map((a) => {
