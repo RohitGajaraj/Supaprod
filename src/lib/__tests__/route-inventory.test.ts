@@ -111,6 +111,49 @@ describe("route inventory - every public route has an inbound link", () => {
     });
   }
 
+  /*
+   * ── AN EXEMPTION IS A CLAIM ABOUT HOW A SURFACE IS REACHED, AND NOTHING
+   *    WAS CHECKING IT ──────────────────────────────────────────────────────
+   *
+   * Added 2026-09-09, from an incident, and Lane 3 proposed the shape.
+   *
+   * `/meridian`'s exemption said it is "reached by typing the URL" and nothing
+   * else. Its route has thrown a redirect for anything but a dev server since
+   * P-10, because it renders fabricated data and a customer must never meet it.
+   * The sentence had been wrong for eleven days. I read it, believed it, told
+   * two lanes to open the page, and watched production bounce me to the home.
+   *
+   * NOTHING WENT RED, AND NOTHING COULD. Documentation is the one place where a
+   * claim can rot with no failing test, and an exemption is worse than most
+   * because it is the ONLY place anybody looks for how a surface is reached:
+   * the whole point of writing one is that the reader stops checking.
+   *
+   * WHAT IS CHECKABLE HERE, AND WHAT IS NOT. Most of an exemption is prose and
+   * a guard on prose is the trap this file has already been bitten by. But one
+   * claim is mechanical: a route whose `beforeLoad` redirects unless
+   * `import.meta.env.DEV` is not reachable in production by any means, so its
+   * exemption MUST say so. That is greppable on both sides, and it is exactly
+   * the claim that misled.
+   */
+  test("an exemption for a dev-only route says it is dev-only", () => {
+    const offenders: string[] = [];
+    for (const [path, reason] of [...Object.entries(EXEMPT), ...Object.entries(AUTH_EXEMPT)]) {
+      const file = [...publicRouteFiles(), ...authRouteFiles()].find(
+        (f) => routePath(f) === path || authRoutePath(f) === path,
+      );
+      if (!file) continue;
+      const src = readFileSync(join(ROUTES_DIR, file), "utf8");
+      const devGated = src.includes("import.meta.env.DEV") && src.includes("throw redirect");
+      if (!devGated) continue;
+      if (!/\bdev\b/i.test(reason)) {
+        offenders.push(
+          `${path} redirects unless import.meta.env.DEV, and its exemption never says so: "${reason.slice(0, 80)}..."`,
+        );
+      }
+    }
+    expect(offenders).toEqual([]);
+  });
+
   test("exempt routes still exist (delete the exemption when the route goes)", () => {
     const paths = files.map(routePath);
     for (const p of Object.keys(EXEMPT)) expect(paths).toContain(p);
