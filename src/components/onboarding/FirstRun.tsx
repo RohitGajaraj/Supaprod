@@ -106,15 +106,24 @@ export function FirstRun() {
       <div className="flex w-full max-w-[38rem] flex-col gap-mrd-7">
         <SupaprodMark size={36} glow={false} />
 
+        {/* THE PRODUCT SAYS ITS NAME ONCE (fifth review, 2026-09-09). The mark
+            above carries the identity; an eyebrow spelling "Supaprod" under it
+            was the name said twice before the screen said anything a person
+            came for.
+
+            AND THE JOURNEY IS DRAWN, NOT LISTED. This paragraph carried the
+            six verbs of the road ("finds the evidence, makes the call, writes
+            the spec...") four hundred pixels above the road itself, which
+            draws the same seven stations with their glyphs and says the same
+            thing better. The sentence keeps only what the drawing cannot
+            show: what happens the moment this press lands. */}
         <header className="flex flex-col gap-mrd-3">
-          <span className="mrd-eyebrow">Supaprod</span>
           <h1 className="font-mrd-display text-mrd-h1 leading-mrd-tight font-medium tracking-[-0.015em] text-mrd-ink">
             What are you building?
           </h1>
           <p className="max-w-[var(--mrd-measure-page)] text-mrd-prose leading-mrd-prose text-mrd-body">
-            Name it, and say in one line who it is for. After this, everything is a run you can
-            watch: it finds the evidence, makes the call, writes the spec, builds the change, ships
-            it and checks that it did what you said.
+            Name it, and say in one line who it is for. After that, everything you ask for is a run
+            you can watch, from the first step to the last.
           </p>
         </header>
 
