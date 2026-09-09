@@ -2314,3 +2314,46 @@ refusal sentence is quoted twice on one screen, and two chips carry two differen
 state ("Needs a restart" in the header, "Stopped" on the card). My ruling on the second is that the
 header chip should change, because a status chip names the state and the remedy already has a home
 in the footer's press.
+
+### Lane 3 · addendum, 2026-09-09 afternoon · a defect family, named, and the rule that finds it
+
+**Everything below is pushed.** Landing order: `d4f089292` (the decide loop), `655594820` (the
+paraphrase measurement and my lint files), `544215c1f` (a failed read is not a clear queue),
+`8141580ef` (the caveat joins its module), `48f1fa53b` (idle is a reading), plus `a07dbf880`,
+`b93519806` and the earlier batch.
+
+**THE FAMILY, four sightings in one day, two lanes.** Every one is a surface stating something it had
+not read, and every one passed every gate because the code did exactly what it said:
+1. A loading guard naming two of the three reads its sentence stood on (Lane 1).
+2. The approvals queue caught into an empty list by the briefing and the loop state, so "Nothing waits
+   on you" was said on a read neither had got (Lane 3).
+3. An unconditional clause claiming a decision had been re-scored when both scores were null (Lane 1).
+4. "Agents are idle" derived from a head query's `count: null` cast to zero by `?? 0` (Lane 3). The
+   sharpest of the four: **a head query answering null and one answering zero are the same shape on the
+   wire, and only one of them is a fact**, so anything derived from the zero inherits the bug. Take the
+   flag off the query's own answer, never off the count.
+
+**THE RULE THAT FOUND THREE OF THEM** (Lane 1's formulation, and better than "somebody looked", which is
+not reproducible advice): **when you cannot test whether a claim is true, render a second independent
+statement of the same fact from a different read, where one glance takes in both.** A sentence cannot
+contradict itself; the re-score clause had been false for as long as it existed and became visible the
+instant a region underneath stated the same decision from a different read and stayed silent where the
+line spoke.
+
+**AND THE TENSION IT CREATES, which a later session must not resolve by reflex.** This repo also holds
+"one count, one source" (the approvals count is single-sourced precisely so two surfaces cannot give
+two answers). These are not in conflict once the cases are named. **One source for a number a person
+ACTS on; two independent views for a claim nobody can test.** The first is about a person trusting a
+figure; the second is about the product catching itself lying. Where a load-bearing claim has no test,
+the redundancy is worth the repetition, and that is the exception to saying each thing once.
+
+**Also closed since the last entry:** the decide loop (a station re-proposing what its own track already
+declined, 13 declines in 14 decisions and about 2,289 credits on one track), with the measurement that
+**forbids** loosening it to paraphrases (a reversal, "Decline shipping of X" to "Proceed with X", scores
+0.889 against 0.800 and 0.714 for genuine rewordings, because a claim-word measure is verb-blind and
+"not" is a stop word; any threshold catching the rewordings refuses the approval that reverses a
+decline). The lint errors in my own files, one of them declared rather than fixed with its reason. And
+three of my own test cases that never ran, appended with `it` into a file importing `test`, which Lane 1
+found and which is now read by `a-test-that-never-ran-is-not-a-guard.test.ts`; I audited all eleven
+guards I wrote today, declared against ran, and all eleven match.
+
