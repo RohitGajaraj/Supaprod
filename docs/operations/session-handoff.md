@@ -2250,6 +2250,11 @@ them the English word "it" before a parenthesis in a prose comment.
    screen's new header and story block render for a signed-in user. Lane 2 has since mounted the
    component against the real row (8 tests, no hang), so the hang hypothesis is settled; what is
    left is the founder's reaction to the story, which is what it was built for.
+2b. **The dev server cannot render an authenticated route on this machine**, and both lanes burned
+   time discovering it separately. `bun run dev` starts fine without `SUPABASE_SERVICE_ROLE_KEY`,
+   which the founder does not hold by design, so every signed-in route bounces to sign-in locally.
+   **Local verification of anything behind auth is not available here.** Use the served build, or ask
+   the other lane whether their browser is alive.
 3. **`eslint.config.js` is hook-protected**, so `.remember/tmp/**` cannot be added to the ignore
    list by an agent. That scratch file regenerates and will keep producing two lint errors until a
    human adds the line. Lane 3 reports the other remaining errors are `.claude/workflows/*.js` and
