@@ -541,6 +541,10 @@
   color: var(--mrd-mute);
   white-space: nowrap;
   overflow: hidden;
+  /* A fact is a title, and a Learn-written title ran to 110 characters and
+     filled the bar on a wide screen (read live on 5be2e7d0, 2026-09-09). A
+     readable line of a title is enough; the ellipsis says there is more. */
+  max-width: 56ch;
   /* The prototype wrote `clip` here, and it was right for the prototype: every
    * fact it drew was short enough that nothing ever reached the edge. Real
    * facts are mission titles, and a title cut mid-word ("...with a manual

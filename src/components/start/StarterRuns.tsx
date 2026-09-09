@@ -32,6 +32,29 @@ export type StarterState = {
   reason: string | null;
 };
 
+/**
+ * A WHY IS A REASON, NOT A BRIEF. The server bounds a new row's why at 160
+ * characters; rows written before that bound carry three sentences and a
+ * number, and one such card stood twice the height of its neighbours on the
+ * home (read live on 5be2e7d0, 2026-09-09). The same bound applies here, at
+ * a sentence end where there is one, so three cards weigh the same and
+ * nothing is hidden behind a tooltip a touch never shows.
+ */
+export const WHY_MAX = 160;
+export function boundWhy(why: string, max: number = WHY_MAX): string {
+  const text = why.trim();
+  if (text.length <= max) return text;
+  const head = text.slice(0, max);
+  const sentenceEnd = Math.max(
+    head.lastIndexOf(". "),
+    head.lastIndexOf("? "),
+    head.lastIndexOf("! "),
+  );
+  if (sentenceEnd >= 40) return head.slice(0, sentenceEnd + 1);
+  const wordEnd = head.lastIndexOf(" ");
+  return `${head.slice(0, wordEnd > 40 ? wordEnd : max).replace(/[,;:]$/, "")}…`;
+}
+
 /** The one line above the cards, or the line that stands in for them. */
 export function starterLine(state: StarterState | undefined, name: string): string | null {
   if (!state) return null;
@@ -90,14 +113,13 @@ export function StarterRuns({
             <li key={r.sentence}>
               <PickCard
                 lead={r.sentence}
-                sub={r.why}
+                sub={boundWhy(r.why)}
                 glyph={<SketchProblem />}
                 onSelect={() => onUse(r.sentence)}
                 className="h-full"
                 /* The why exists nowhere but this card (the press carries
-                   only the sentence), and it is server-bounded at 160
-                   characters, so it is never clipped (fourth review,
-                   2026-09-09). */
+                   only the sentence); bounded above at a sentence end, it is
+                   never clipped (fourth review, 2026-09-09). */
                 clamp={false}
               />
             </li>
