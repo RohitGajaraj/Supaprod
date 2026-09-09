@@ -2889,6 +2889,40 @@ blocked on somebody else and the fourth on a measurement I had not taken.
    attachment rather than filing time.
 4. **Verified on the served page.** Everything above was read live, not inferred.
 
+### Two findings from a STRANGER'S walk, left open, in their words
+
+S1 walked `6cc7a010` cold at the end of the session, knowing nothing about it. That produced three
+findings on this lane's surfaces. One is fixed (a reader ambushed by the wall the blocker chose not
+to show — the card now says "One more wall is behind this one"). **These two are open, and they are
+recorded from the walk rather than from my summary of it, because a stranger's reading is the thing
+I cannot reproduce.**
+
+1. **Four identical "Stopped" chips on one screen.** Header at y 97, the "What is happening now"
+   card at y 295 — so both are always visible together — and two more in the story at y 1093 and
+   y 1188. S1's argument, quoting this lane's own way-out header back at it: *"Two sentences
+   AGREEING a line apart are worse than two contradicting."* The top pair is exactly that, as chips.
+
+   Their lean: the card drops its chip, because the section is named "What is happening now" and its
+   first line already answers it. **My hesitation, which is the reason it is still open:** a scrolled
+   reader loses the only state marker on the screen, and I would want to see that on a rendered page
+   before cutting it. Neither of us has.
+
+2. **Two counts of "times" that a stranger cannot reconcile.** The road says Design filed
+   *"1 prototype, 3 times"* and 800px below, the refrain says Design *"said this 12 times, and filed
+   nothing on any of them"*. Both true, both about different passes, and S1 assumed one was broken.
+
+   This is law 21 from the inside: the fold kept its number, and the two numbers here count
+   **different things** — filings of a drawing, and turns that produced nothing — with nothing on
+   screen saying which is which. The fix is a shared vocabulary for "times" across two surfaces
+   rather than a patch on either, and the road's node has room for about twelve characters. I did
+   not attempt it rather than attempt it badly.
+
+**And what the walk confirmed, which is worth as much as the findings.** S1: *"the story is the best
+thing on the screen... I understood what the run had actually done from that alone, before I
+understood anything from the summary above it. The problem is not that the pane says too little. It
+is that the top of the pane says the SHAPE and the bottom says the CAUSE, and a stranger reads
+top-down."*
+
 ### What is open now
 
 1. **The `no-two-states-look-the-same` shape belongs on this lane's surfaces
