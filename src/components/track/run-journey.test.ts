@@ -80,3 +80,63 @@ describe("the road counts drawings, not filings", () => {
     expect(journeyOutcome(design(withGhost), null)).toBe("1 prototype");
   });
 });
+
+/**
+ * THE BIGGEST INSTANCE OF THIS IN THE PRODUCT, ON ITS BUSIEST NODE.
+ *
+ *   track       filed   distinct titles   distinct bodies
+ *   6ff86b03     148          19                22
+ *   425e6887     125          12                21
+ *   47dcbf3c      67           4                 4
+ *
+ * `47dcbf3c` said "67 findings" on the road. There are FOUR, logged about
+ * seventeen times each. And Discover is where 82 of the 121 tracks this product
+ * has ever made are standing, so it is the most-read node on the most common
+ * screen.
+ */
+describe("the road counts findings, not filings", () => {
+  const finding = (n: number, title: string) => ({
+    kind: "signal",
+    artifactId: `s-${n}`,
+    title,
+    missing: false,
+    createdAt: `2026-09-04T02:${String(n).padStart(2, "0")}:00Z`,
+    fields: {},
+  });
+  const discover = (items: ReturnType<typeof finding>[], everDriven = true) => ({
+    station: "sense" as const,
+    label: "Discover",
+    state: "done" as const,
+    waivedReason: null,
+    expects: { kind: "signal", word: "finding" },
+    everDriven,
+    hold: null,
+    holdReason: null,
+    items,
+  });
+
+  it("says four findings and how often, not sixty-seven", () => {
+    const many = Array.from({ length: 12 }, (_, i) =>
+      finding(i, `Homeowners cannot tell a reboot from an outage ${i % 4}`),
+    );
+    /* "findings", not "signals": the column word is `signal` and the canon
+       renders it as "finding", which is the rename OPERATING-MODEL section 12
+       made. My first assertion here said "signals" and the code was right. */
+    expect(journeyOutcome(discover(many), null)).toBe("4 findings, 12 times");
+  });
+
+  it("leaves the line alone when every finding is its own", () => {
+    const three = [1, 2, 3].map((n) => finding(n, `Finding ${n}`));
+    expect(journeyOutcome(discover(three), null)).toBe("3 findings");
+  });
+
+  it("still says nothing found when a driven station found nothing", () => {
+    // The state 82 of 121 tracks are actually in. It must not become "0
+    // findings" or fall silent.
+    expect(journeyOutcome(discover([]), null)).toBe("nothing found");
+  });
+
+  it("and says nothing at all at a station never driven", () => {
+    expect(journeyOutcome(discover([], false), null)).toBeNull();
+  });
+});

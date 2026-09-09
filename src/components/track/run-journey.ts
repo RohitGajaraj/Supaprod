@@ -114,9 +114,35 @@ export function journeyOutcome(stop: Stop, horizonDue: string | null): string | 
   if (stop.state === "not-reached" && !stop.items.some((i) => !i.missing)) return null;
   switch (stop.station) {
     case "sense": {
-      const n = count(stop, "signal");
-      if (n > 0) return plural(n, "signal");
-      return stop.everDriven ? "nothing found" : null;
+      /*
+       * ── THE BIGGEST INSTANCE OF THIS IN THE PRODUCT, ON ITS BUSIEST NODE ──
+       *
+       * Measured over every track that filed more than two findings:
+       *
+       *   track       filed   distinct titles   distinct bodies
+       *   6ff86b03     148          19                22
+       *   425e6887     125          12                21
+       *   3a652670      80           6                 9
+       *   47dcbf3c      67           4                 4
+       *
+       * `47dcbf3c` said **"67 findings"** on the road. There are FOUR, logged
+       * about seventeen times each. A person reads 67 as sixty-seven pieces of
+       * evidence, which is the impression `whatItProduced`'s header describes
+       * paying for on decisions, at twenty times the scale.
+       *
+       * And Discover is where 82 of the 121 tracks this product has ever made
+       * are standing, so this is the most-read node on the most common screen.
+       *
+       * Same fold as Design below and as the artifact pane, by title, through
+       * `foldVersions` -- so the road, the pane and the story cannot disagree
+       * about what counts as one finding.
+       */
+      const found = stop.items.filter((i) => i.kind === "signal" && !i.missing);
+      if (found.length === 0) return stop.everDriven ? "nothing found" : null;
+      const distinct = foldVersions(found).length;
+      return distinct === found.length
+        ? plural(found.length, "signal")
+        : `${plural(distinct, "signal")}, ${found.length} times`;
     }
     case "decide": {
       const d = newest(stop, "decision");
