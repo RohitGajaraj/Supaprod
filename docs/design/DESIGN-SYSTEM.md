@@ -702,6 +702,32 @@ mean the same thing is a guess. A guard that counts how many sentences assert ON
 already identified, in the phrasings the page actually uses, is arithmetic. Prefer the second, and
 write down what it cannot see.
 
+**When a repeat is a defect, and when it is not.** The law names a shape; this decides whether to act
+on it. **A short factual count read again CONFIRMS** — you glance, it agrees, you move on — **where a
+long distinctive sentence read again makes you STOP and compare**, and that stop is the whole cost.
+So three copies of a count are fine and a fourth is wallpaper, while a second copy of a distinctive
+sentence is already one too many. Without this a reader of the law has no way to judge the collision
+in front of them, and the honest answer is usually that it is not a defect.
+
+**You must be able to NAME the fact from a column, and this is the precondition that bites.**
+Lane 2 tried to census "runs that did work they had already decided against" and could not:
+`decisions.status` is the approval state of the RECORD, so "Decline broad onboarding flow
+improvement" with status `approved` means the decision *to decline* was approved. The direction of a
+call lives only in the first word of its title. The census was therefore impossible, and the
+available alternative — matching on the title — is the exact trap this contract names twice
+elsewhere.
+
+**A census over a fact you cannot name from a column is a classifier wearing a census's clothes, and
+it will pass its own tests.** The honest move when you cannot name the fact is to stop and file the
+missing field, not to loosen the census. Lane 2 built nothing and filed the field, which is the
+right call and the harder one.
+
+**The evidence is better than the argument.** Three censuses exist and every one of them caught
+something before anybody needed it to: the tally census found nine emitters where four had been
+counted by eye, and three more emitting into nothing; the register census found the twelfth; and the
+surface registry failed a new file on its author before they had decided where it belonged. **A guard
+that fails on its first run is the only kind anyone trusts afterwards.**
+
 ### 15. A delta needs a whole to be a delta of
 
 Added 2026-09-09. `/arriving` in an empty workspace said, in three consecutive lines: *"Your sources
