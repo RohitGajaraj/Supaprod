@@ -2409,6 +2409,10 @@ forbids exactly that.
 
 **What is still open, in the order I would take it.**
 
+0. **The strip read's wall-clock on the served build is CLOSED, not open.** It is verified in the
+   round-counting wire and against production; it is unmeasured on the wire's own clock, because both
+   lanes' Chrome extensions went from intermittently wedging to fully disconnected. Do not carry it as
+   a task. It is one glance at a network panel for anyone with a working browser on a signed-in page.
 1. **Nothing of mine is unshipped.** Everything is pushed and deployed; the last deploy is
    `281046fc`. Lovable's sync stalled twice for 12 to 20 minutes and an empty commit unstuck it both
    times.
