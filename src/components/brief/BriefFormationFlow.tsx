@@ -207,7 +207,7 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
           padding: "24px 26px 22px",
         }}
       >
-        <div className="flex items-center justify-between" style={{ marginBottom: 4 }}>
+        <div className="mb-mrd-2 flex items-center justify-between">
           <MonoLabel>{progressLabel ?? "Strategic brief"}</MonoLabel>
           <button
             type="button"
@@ -227,7 +227,7 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
         </div>
 
         {phase === INTRO ? (
-          <div style={{ marginTop: 10 }}>
+          <div className="mt-mrd-4">
             <h2
               style={{
                 fontWeight: 600,
@@ -253,7 +253,7 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
               Each call also grows watched assumptions that Supaprod checks against incoming
               signals, so a strategy drifting out of date surfaces itself.
             </p>
-            <div className="flex items-center" style={{ gap: 10, marginTop: 20 }}>
+            <div className="flex items-center gap-mrd-4" style={{ marginTop: 20 }}>
               {/* Opens the flow: the same job BriefPanel's "Walk them in order" does, default face. */}
               <Action onClick={advance}>Start</Action>
               <Action variant="quiet" onClick={onClose}>
@@ -292,7 +292,7 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
               style={{ resize: "vertical", width: "100%" }}
             />
             {singleton ? (
-              <div style={{ marginTop: 6 }}>
+              <div className="mt-mrd-3">
                 <MonoLabel>Standing · v{singleton.version}</MonoLabel>
               </div>
             ) : null}
@@ -308,7 +308,7 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
               >
                 Back
               </Action>
-              <div className="flex items-center" style={{ gap: 10 }}>
+              <div className="flex items-center gap-mrd-4">
                 {/* TIER: Action, quiet face. Moves only, so disabled rather than
                     busy: its handler is a synchronous setPhase and announcing
                     work would be false (answers/UL0-004 C-01). It still blocks
@@ -350,7 +350,7 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
             </p>
 
             {bets.length > 0 ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 14 }}>
+              <div className="flex flex-col gap-mrd-4" style={{ marginBottom: 14 }}>
                 {bets.map((bet) => (
                   <div
                     key={bet.id}
@@ -391,7 +391,6 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
                 value={betTitle}
                 onChange={(e) => setBetTitle(e.target.value)}
                 placeholder="Bet title"
-                style={{}}
               />
               <textarea
                 className="input"
