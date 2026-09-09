@@ -32,7 +32,11 @@ import {
   metricsForTheBrief,
   gradedAgainstFromStates,
 } from "@/lib/spine/the-number-a-person-gave-us";
-import { whatLearnIsWaitingFor } from "@/lib/spine/what-learn-is-waiting-for";
+import {
+  whatLearnIsWaitingFor,
+  whatLearnNeedsFromYou,
+  onlyAPersonCanGradeThis,
+} from "@/lib/spine/what-learn-is-waiting-for";
 import {
   whatWouldMeasure,
   isStanding,
@@ -3850,10 +3854,11 @@ export async function driveTrackOnce(
    */
   if (!producedThisVisit && station === "learn") {
     const dueIso = await forecastDueDate(supabase, row.id);
+    const metricSources = dueIso ? await metricSourcesForTrack(supabase, row.id) : null;
     if (dueIso && Date.parse(dueIso) > Date.now()) {
       // F-175: hoisted so the row and the screen carry one sentence, not two
       // copies of it. The DATE is the part no reader can derive from the word.
-      const because = whatLearnIsWaitingFor(dueIso, await metricSourcesForTrack(supabase, row.id));
+      const because = whatLearnIsWaitingFor(dueIso, metricSources);
       await supabase
         .from("spine_tracks" as never)
         .update({
@@ -3869,6 +3874,40 @@ export async function driveTrackOnce(
         moved: false,
         arrivedAt: null,
         hold: "needs-evidence",
+        line: say(because),
+        attached,
+      };
+    }
+
+    /*
+     * ── THE VERDICT IS A PERSON'S, SO FILE IT AS THEIRS (2026-09-09) ───────
+     *
+     * Past the horizon with nothing connected that can produce a number, the
+     * machine cannot grade this and no further attempt will change that. The
+     * branch below counted it as `produced-nothing`, so Learn burned three
+     * attempts on work it had correctly identified as somebody else's, and
+     * stopped with a hold whose own words say it is not on you. `waiting-on-
+     * a-person` is the product's word for this, it is resumable, and the Learn
+     * desk is where the move is made, so the sentence names it. No attempt is
+     * spent, on the same rule as the wait above: honesty must not cost the
+     * station.
+     */
+    if (dueIso && onlyAPersonCanGradeThis(metricSources)) {
+      const because = whatLearnNeedsFromYou(dueIso, metricSources);
+      await supabase
+        .from("spine_tracks" as never)
+        .update({
+          last_hold: "waiting-on-a-person",
+          last_hold_because: because,
+          driven_at: new Date().toISOString(),
+        } as never)
+        .eq("id", row.id);
+      return {
+        trackId: row.id,
+        station,
+        moved: false,
+        arrivedAt: null,
+        hold: "waiting-on-a-person",
         line: say(because),
         attached,
       };

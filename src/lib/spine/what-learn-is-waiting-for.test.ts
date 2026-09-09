@@ -1,7 +1,11 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, test, expect } from "bun:test";
-import { whatLearnIsWaitingFor, onlyAPersonCanGradeThis } from "./what-learn-is-waiting-for";
+import {
+  whatLearnIsWaitingFor,
+  whatLearnNeedsFromYou,
+  onlyAPersonCanGradeThis,
+} from "./what-learn-is-waiting-for";
 import {
   whatLearnCanMeasure,
   whatWouldMeasure,
@@ -172,5 +176,37 @@ describe("the metric press offers only the door that works", () => {
     // every mention, which would pass it vacuously and break a working door.
     expect(src).toContain("Connect a source");
     expect(src).toContain('to="/sync"');
+  });
+});
+
+/**
+ * Lane 1's fifth review, 2026-09-09: past the horizon, with nothing connected
+ * that can read the metric, Learn burned three attempts on a verdict only a
+ * person can give and stopped with a hold whose own words say it is not on
+ * you. The sentence below is what the driver says instead, and it has to name
+ * whose move it is and where the move is made.
+ */
+describe("past the horizon, with nothing that can read it", () => {
+  const states = [{ metric: "activation rate", source: null }] as never;
+
+  it("says the date it came due, not the date it comes due", () => {
+    const said = whatLearnNeedsFromYou("2026-09-01T00:00:00.000Z", states);
+    expect(said).toContain("came due on 2026-09-01");
+    expect(said).not.toContain("comes due");
+  });
+
+  it("says whose move it is and where it is made", () => {
+    const said = whatLearnNeedsFromYou("2026-09-01T00:00:00.000Z", states);
+    expect(said).toContain("The verdict is yours");
+    expect(said).toContain("Learn desk");
+    // And the way out that does not need a person at all.
+    expect(said).toContain("connect a source");
+  });
+
+  it("counts its metrics, so one metric is not called several", () => {
+    const one = whatLearnNeedsFromYou("2026-09-01T00:00:00.000Z", states);
+    expect(one).toContain("its success metric.");
+    const two = whatLearnNeedsFromYou("2026-09-01T00:00:00.000Z", [...states, ...states] as never);
+    expect(two).toContain("its success metrics.");
   });
 });

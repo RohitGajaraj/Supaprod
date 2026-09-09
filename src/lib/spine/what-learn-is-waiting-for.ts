@@ -105,6 +105,29 @@ export function whatLearnIsWaitingFor(
  * matching on the sentence above. A surface that greps prose is how the two
  * copies of the hold line drifted in the first place.
  */
+/**
+ * ── PAST THE HORIZON, WITH NOTHING THAT CAN READ IT (2026-09-09) ────────────
+ *
+ * The sentence above is for a forecast that has not come due. This one is for
+ * the day it does, when nothing connected to the workspace can produce a
+ * number for it: the machine cannot grade it and no further attempt will
+ * change that, so the honest thing is to say whose move it is and where the
+ * move is made. Lane 1's fifth review found the driver burning three attempts
+ * here instead, and stopping with a hold that reads "not on you".
+ */
+export function whatLearnNeedsFromYou(
+  dueIso: string,
+  states: readonly SourceState[] | null,
+): string {
+  const due = onDate(dueIso);
+  const many = (states?.length ?? 0) > 1;
+  return (
+    `The forecast this work is graded against came due on ${due}, and nothing connected to this ` +
+    `workspace can produce a number for ${many ? "its success metrics" : "its success metric"}. ` +
+    `The verdict is yours: grade it on the Learn desk, or connect a source and it will be read.`
+  );
+}
+
 export function onlyAPersonCanGradeThis(states: readonly SourceState[] | null): boolean {
   return states !== null && states.length > 0 && !states.some(canProduceAReading);
 }
