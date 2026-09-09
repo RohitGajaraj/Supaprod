@@ -30,6 +30,7 @@ import {
   argValue,
   drive,
   eqValue,
+  wireError,
   type Filter,
   type Row,
 } from "@/__tests__/a-wire-that-counts-rounds";
@@ -123,11 +124,6 @@ const fixture = (table: string, _cols: string, filters: Filter[]): Row[] => {
       return [{ mission_id: "m1", prd_id: "prd1", title: "The spec" }];
     case "rpc:mission_routed_stations":
       return [{ mission_id: "m3", agent_slug: "builder" }];
-    case "rpc:run_trace_costs":
-      return [
-        { run_id: "r1", trace_id: "trace-1", cost_usd: 0.25 },
-        { run_id: "r2", trace_id: "trace-2", cost_usd: 0.5 },
-      ];
     default:
       throw new Error(`unexpected read of ${table}`);
   }
@@ -150,12 +146,11 @@ describe("a strip read is two hops deep", () => {
     expect(result.bounded).toBe(false);
     const byId = new Map(result.sessions.map((s) => [s.mission_id, s]));
     expect([...byId.keys()].sort()).toEqual(["m1", "m2", "m3"]);
-    // Each kind keeps its own cost and status.
+    // Each kind keeps its own status.
     expect(byId.get("m1")?.kind).toBe("build");
-    expect(byId.get("m1")?.cost_usd).toBe(0.25);
     expect(byId.get("m1")?.run_status).toBe("completed");
     expect(byId.get("m2")?.kind).toBe("mission");
-    expect(byId.get("m2")?.cost_usd).toBe(0.5);
+    expect(byId.get("m2")?.run_status).toBe("running");
     // The changeset carries its file count, the mission its spec and its gate.
     expect(byId.get("m1")?.changeset?.file_count).toBe(2);
     expect(byId.get("m1")?.prd).toEqual({ id: "prd1", title: "The spec" });
@@ -165,17 +160,29 @@ describe("a strip read is two hops deep", () => {
     expect(byId.get("m3")?.station).toBe("build");
   });
 
-  it("asks for the cost of every run of both kinds, once", async () => {
-    let asked: unknown = null;
+  it("asks each function about exactly the ids the round before it produced", async () => {
+    const asked = new Map<string, unknown>();
     const wire = new FakeWire((table, cols, filters) => {
-      if (table === "rpc:run_trace_costs") asked = argValue(filters, "p_run_ids");
+      if (table.startsWith("rpc:")) asked.set(table, argValue(filters, "p_mission_ids"));
       return fixture(table, cols, filters);
     });
     await run(wire);
-    expect(wire.reads.filter((t) => t === "rpc:run_trace_costs")).toHaveLength(1);
-    // Both kinds' runs, in one call: the old shape asked the checkpoints and
-    // then ai_events, in two different rounds.
-    expect(asked).toEqual(["r1", "r2"]);
+    // Every mission in the window, and no second call to narrow it afterwards.
+    for (const fn of ["rpc:mission_spec_titles", "rpc:mission_routed_stations"]) {
+      expect(wire.reads.filter((t) => t === fn)).toHaveLength(1);
+      expect(asked.get(fn)).toEqual(["m1", "m2", "m3"]);
+    }
+  });
+
+  it("never asks what a run cost, because nothing renders it", async () => {
+    /* `run_trace_costs` was built this morning to fold the cost sum out of a
+       third round, and withdrawn the same day (20260909101100): the field it
+       fed was rendered by no surface, so the most-mounted read in the product
+       was computing money on every page and dropping it. The fixture throws on
+       an unexpected read, so a call coming back names itself. */
+    const wire = new FakeWire(fixture);
+    await run(wire);
+    expect(wire.reads.filter((t) => t.startsWith("rpc:"))).toHaveLength(2);
   });
 
   it("never reads the six tables whose joins moved into the database", async () => {
@@ -234,5 +241,46 @@ describe("a join that finds nothing weakens the claim, it does not drop the row"
       id: "prd1",
       title: "Spec",
     });
+  });
+});
+
+/**
+ * ── A READ THAT FAILED IS NOT A READ THAT FOUND NOTHING ──────────────────────
+ *
+ * Every read here but the two run queries used to destructure `{ data }`
+ * alone, so an error and an empty answer reached the surface as the same
+ * thing. Two of them decide what a person believes about work that is waiting,
+ * and they answer it differently on purpose.
+ */
+describe("a read that failed is not a read that found nothing", () => {
+  const failing = (table: string) => (t: string, cols: string, filters: Filter[]) =>
+    t === table ? (wireError(`${table} refused`) as unknown as Row[]) : fixture(t, cols, filters);
+
+  it("throws when the missions read fails, because the missions ARE the answer", async () => {
+    /* An empty list is drawn as seven stations with no work in them, which is
+       a claim about the workspace. The strip's own failure state says "count
+       unavailable" instead, and it is only reachable by throwing. */
+    const wire = new FakeWire(failing("missions"));
+    await expect(run(wire)).rejects.toThrow("missions refused");
+  });
+
+  it("keeps the list when the gate read fails, and says the gates are not counted", async () => {
+    const wire = new FakeWire(failing("agent_approvals"));
+    const { result, rounds } = await run(wire);
+    expect(rounds).toBe(2);
+    // Every session still lists: losing the strip over a gate count would cost
+    // more than the count is worth.
+    expect(result.sessions).toHaveLength(3);
+    // And not one of them says zero, which is what "nothing is waiting" looks
+    // like on a surface that cannot tell the difference.
+    for (const s of result.sessions) expect(s.pending_approvals).toBeNull();
+  });
+
+  it("counts the gates as zero when the read answered and found none", async () => {
+    const wire = new FakeWire((t, cols, filters) =>
+      t === "agent_approvals" ? [] : fixture(t, cols, filters),
+    );
+    const { result } = await run(wire);
+    for (const s of result.sessions) expect(s.pending_approvals).toBe(0);
   });
 });

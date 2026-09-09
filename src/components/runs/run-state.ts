@@ -33,7 +33,22 @@ const STOPPED = new Set(["failed", "halted", "cancelled", "completed_with_failur
 
 export function runState(s: StudioSessionListItem): RunState {
   const status = s.run_status ?? s.status;
-  if (s.pending_approvals > 0) return "gate";
+  /*
+   * NULL IS NOT ZERO, AND THE DIFFERENCE DECIDES WHETHER A PERSON LOOKS.
+   *
+   * `pending_approvals` is null when the gate read itself failed, which until
+   * 2026-09-09 arrived here as a zero and read as "nothing is waiting". The
+   * line below catches most of it: a run with a pending gate normally carries
+   * `waiting_approval` or `blocked` in its own status. What it cannot catch is
+   * a run whose status still says running while an approval sits pending, and
+   * that one would read "Working" while a person is the thing it is waiting on.
+   *
+   * So an unread count resolves toward the look. Being sent to a run that
+   * turns out to need nothing costs a glance; the opposite costs a person
+   * waiting on a machine that says it is busy, which is the failure this
+   * product cannot afford. It is also rare: it takes a failed read to reach.
+   */
+  if (s.pending_approvals === null || s.pending_approvals > 0) return "gate";
   if (status === "waiting_approval" || status === "blocked" || status === "proposed") return "gate";
   if (status === "running") return "working";
   if (status === "queued") return "queued";

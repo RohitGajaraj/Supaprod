@@ -1,0 +1,23 @@
+-- run_trace_costs is withdrawn on the day it landed, and the reason is worth
+-- more than the function was.
+--
+-- It was written this morning to fold the station strip's third hop into its
+-- second: the checkpoint read that found a legacy run's trace, and the
+-- ai_events sum over it, became one call. It did that correctly and was
+-- verified against both reads on production before the caller moved. Then the
+-- field it fed, `StudioSessionListItem.cost_usd`, turned out to be rendered
+-- NOWHERE (Lane 1, 2026-09-09: every `.cost_usd` in src is a different object
+-- or a different column). So the most-mounted read in the product was
+-- computing a money figure on every authenticated page and throwing it away.
+--
+-- Making it honest was the wrong question. An unread number cannot be made
+-- honest, only deleted, and deleting it takes a whole call off every page.
+-- The function goes with it rather than sitting in the schema as a thing
+-- nothing calls: the next person to find it would have to work out whether it
+-- is load-bearing, and the answer would not be written anywhere.
+--
+-- If a session's spend is ever rendered, this is the shape to bring back: the
+-- coalesce of agent_runs.trace_id with the latest checkpoint's state->>'traceId'
+-- (uuid-shaped values only, so one malformed row cannot throw), summed over
+-- ai_events per run. It is in git at e59d65380.
+drop function if exists public.run_trace_costs(uuid[]);

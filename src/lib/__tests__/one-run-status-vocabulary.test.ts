@@ -503,6 +503,22 @@ describe("axis 3 · which spellings mean a person is required", () => {
     expect(taskStatus("proposed")).toBe("blocked");
   });
 
+  test("a gate count that could not be read outranks every spelling too", () => {
+    /*
+     * `pending_approvals` is null when the gate read failed, and until
+     * 2026-09-09 that arrived as a zero: a run whose status still said running
+     * while an approval sat pending read "Working" while a person was the thing
+     * it was waiting on. An unread count resolves toward the look, because
+     * being sent to a run that needs nothing costs a glance and the opposite
+     * costs a person waiting on a machine that says it is busy.
+     */
+    const notGated = TABLE.filter((s) => {
+      const row = { run_status: null, status: s.raw, pending_approvals: null };
+      return runState(row as unknown as Parameters<typeof runState>[0]) !== "gate";
+    }).map((s) => s.raw);
+    expect(notGated).toEqual([]);
+  });
+
   test("a pending approval outranks every spelling in the table", () => {
     // `run-state.ts`'s own claim, and it had no test. Answering a gate updates
     // the approvals table and `missions.status` only catches up on the next

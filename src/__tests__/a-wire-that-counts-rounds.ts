@@ -22,6 +22,14 @@
  */
 
 export type Row = Record<string, unknown>;
+/**
+ * What a fixture returns to make ONE read fail rather than come back empty.
+ *
+ * A handler that destructures `{ data }` alone cannot tell those apart, and
+ * that is the defect these guards were written to catch, so the wire has to be
+ * able to produce the difference.
+ */
+export const wireError = (message: string) => ({ __wireError: { message } });
 export type Filter = { op: string; col: string; value: unknown };
 /** What the wire answers: rows for a table, or whatever shape an rpc returns. */
 export type Fixture = (table: string, cols: string, filters: Filter[]) => Row[] | unknown;
@@ -99,17 +107,25 @@ export class FakeBuilder {
     if (this.one && Array.isArray(rows)) return rows[0] ?? null;
     return rows;
   }
+  private failure(): { message: string } | null {
+    const rows = this.client.peek(this.table, this.cols, this.filters);
+    return rows && typeof rows === "object" && "__wireError" in rows
+      ? ((rows as { __wireError: { message: string } }).__wireError ?? null)
+      : null;
+  }
   then<T>(
     onFulfilled: (v: { data: never; error: null }) => T,
     onRejected?: (e: unknown) => T,
   ): Promise<T> {
     const p = new Promise<{ data: never; error: null }>((resolve) => {
-      this.client.pending.push(() =>
-        resolve({
-          data: this.answer() as never,
-          error: null,
-        }),
-      );
+      this.client.pending.push(() => {
+        const failed = this.failure();
+        resolve(
+          failed
+            ? ({ data: null, error: failed } as unknown as { data: never; error: null })
+            : { data: this.answer() as never, error: null },
+        );
+      });
     });
     return p.then(onFulfilled, onRejected);
   }
@@ -138,6 +154,10 @@ export class FakeWire {
   }
   rowsFor(table: string, cols: string, filters: Filter[]): unknown {
     this.reads.push(table);
+    return this.fixture(table, cols, filters);
+  }
+  /** The fixture's answer without recording a read: used to look for a failure. */
+  peek(table: string, cols: string, filters: Filter[]): unknown {
     return this.fixture(table, cols, filters);
   }
   /** Resolve everything issued so far as one round of the wire. */

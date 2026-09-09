@@ -65,8 +65,15 @@ export type StudioSessionListItem = {
   run_status: string | null;
   prd: { id: string; title: string } | null;
   changeset: StudioChangesetSummary | null;
-  pending_approvals: number;
-  cost_usd: number;
+  /**
+   * Gates waiting on a person, or NULL when that read failed.
+   *
+   * Zero and "could not tell" were the same number until 2026-09-09, and
+   * `runState` turns this into the one state that says a person is needed, so
+   * the difference is the difference between a run that needs nobody and a run
+   * nobody knows about.
+   */
+  pending_approvals: number | null;
   /** SESSION-ORG: soft-archived (hidden from the default Build list). */
   archived: boolean;
   /**
@@ -149,30 +156,6 @@ export function formatDesignDispatchSections(ctx: DesignDispatchContext | null):
  * `build.functions.ts`'s own dispatch path, the sibling this file's header
  * already named as the OTHER contract-holder.
  */
-
-/**
- * What each run cost, whichever place its trace was written.
- *
- * This was two reads in two different rounds: the checkpoints, to learn the
- * trace of a run older than `agent_runs.trace_id`, and then `ai_events` by
- * that trace. The second could not leave until the first came back, which is
- * the whole reason this read had a third hop. `run_trace_costs`
- * (20260909101000) is the same coalesce and the same sum, done once in the
- * database, so it leaves in the round that already holds the run ids.
- *
- * The sum is per RUN, not per trace, exactly as the caller computed it: two
- * runs sharing a trace each report that trace's spend, and a run whose trace
- * is nowhere reports nothing and is absent from the map.
- */
-async function costByRun(db: SupabaseClient, runIds: string[]): Promise<Map<string, number>> {
-  const out = new Map<string, number>();
-  if (!runIds.length) return out;
-  const { data } = await db.rpc("run_trace_costs", { p_run_ids: runIds });
-  for (const row of (data ?? []) as { run_id: string; cost_usd: number | null }[]) {
-    out.set(row.run_id, row.cost_usd ?? 0);
-  }
-  return out;
-}
 
 /**
  * List Studio sessions (mission-centric), including legacy Builder missions
@@ -386,12 +369,11 @@ export async function readStudioSessions(
       // three functions of 20260909101000 and one PostgREST embed move that
       // join into the database, where the key is already in hand.
       const [
-        { data: missions },
+        { data: missions, error: missionsError },
         { data: changesets },
-        { data: pendings },
+        { data: pendings, error: pendingsError },
         { data: specRows },
         { data: routedRows },
-        costs,
       ] = await Promise.all([
         db
           .from("missions")
@@ -415,21 +397,40 @@ export async function readStudioSessions(
           .eq("status", "pending"),
         db.rpc("mission_spec_titles", { p_mission_ids: missionIds }),
         db.rpc("mission_routed_stations", { p_mission_ids: missionIds }),
-        /*
-         * ── THE RUN CARRIES ITS OWN TRACE, WHERE IT HAS ONE (2026-09-09) ────
-         *
-         * Measured on production: for the 300 newest runs `agent_runs.trace_id`
-         * and the latest checkpoint's `state->>'traceId'` agree in every case,
-         * and for the 300 OLDEST the run column is null in all 185 that have
-         * checkpoints. So the column is newer than those runs and the
-         * checkpoint is the only place a pre-August trace exists. Both places
-         * are read, and the sum over them taken, inside `run_trace_costs`.
-         */
-        costByRun(
-          supabase,
-          [...runRows, ...otherRunRows].map((r) => r.id),
-        ),
       ]);
+
+      /*
+       * ── ONE OF THESE MAY NOT FAIL QUIETLY, AND ONE MAY NOT FAIL AT ALL ─────
+       *
+       * Every read in this handler used to destructure `{ data }` alone, so a
+       * read that failed was indistinguishable from a read that found nothing,
+       * and the strip drew the difference as work that is not there.
+       *
+       * THE MISSIONS ARE THE ANSWER. Without them this returns an empty list,
+       * and `useSpineStrip` renders an empty list as seven stations with no
+       * work in them, which is a claim about the workspace rather than about
+       * the read. It already draws a failed read correctly and deliberately
+       * (`quiet` on every station, "count unavailable"), so throwing puts it in
+       * the state that was designed for exactly this.
+       *
+       * THE GATES ARE WHAT A PERSON ACTS ON, and they travel as null rather
+       * than as a throw. `run-state.ts` turns this count into the `gate` state,
+       * and the line after it already catches `waiting_approval`, `blocked` and
+       * `proposed` from the status itself (Lane 1 measured that backstop), so
+       * the only run this read can lose is one whose status still says running
+       * while an approval sits pending. That is narrow and it is transient, and
+       * blanking all seven stations over it would cost more than it saves.
+       * Null says "not counted" where zero said "none", and the state mapping
+       * decides what to do with the difference.
+       *
+       * THE OTHER FOUR STAY QUIET ON PURPOSE. A missing changeset, spec title
+       * or routing shows up as an absence in the place a link or a word would
+       * be, which is honest about itself. There were five: `cost_usd` was the
+       * fifth, and it is gone rather than guarded, because it was computed on
+       * the most-mounted read in the product and rendered by nobody. An unread
+       * number cannot be made honest, only deleted (Lane 1, 2026-09-09).
+       */
+      if (missionsError) throw new Error(missionsError.message);
 
       /* The latest non-abandoned changeset per mission, with the file count
          the embed brought with it. `studio_changes` arrives as PostgREST's
@@ -527,26 +528,19 @@ export async function readStudioSessions(
         routedSlug.set(row.mission_id, row.agent_slug);
       }
 
-      // Cost: the run's own trace or its checkpoint's, summed over ai_events, and
-      // computed separately per agent-kind run set (never merged) so a 'build'-kind
-      // mission's cost/status can never absorb a different agent's contribution
-      // mid-mission.
-      function costAndStatusByMission(rows: RunRow[]): {
-        cost: Map<string, number>;
-        status: Map<string, string>;
-      } {
-        const cost = new Map<string, number>();
+      /* The run status each kind reports, kept per agent-kind run set and never
+         merged, so a 'build'-kind mission's status can never absorb a different
+         agent's contribution after a mid-mission handoff. */
+      function statusByMission(rows: RunRow[]): Map<string, string> {
         const status = new Map<string, string>();
         for (const r of rows) {
           if (!r.mission_id) continue;
           if (!status.has(r.mission_id)) status.set(r.mission_id, r.status);
-          const spent = costs.get(r.id);
-          if (spent != null) cost.set(r.mission_id, (cost.get(r.mission_id) ?? 0) + spent);
         }
-        return { cost, status };
+        return status;
       }
-      const builder = costAndStatusByMission(runRows);
-      const other = costAndStatusByMission(otherRunRows);
+      const builder = statusByMission(runRows);
+      const other = statusByMission(otherRunRows);
 
       const sessions = (
         (missions ?? []) as Array<{
@@ -565,8 +559,7 @@ export async function readStudioSessions(
         .map((m) => {
           const prdId = prdByMission.get(m.id) ?? null;
           const kind = missionKind.get(m.id) ?? "mission";
-          const { cost: costByMission, status: runStatusByMission } =
-            kind === "build" ? builder : other;
+          const runStatusByMission = kind === "build" ? builder : other;
           return {
             mission_id: m.id,
             kind,
@@ -578,8 +571,7 @@ export async function readStudioSessions(
             run_status: runStatusByMission.get(m.id) ?? null,
             prd: prdId ? { id: prdId, title: prdTitle.get(prdId) ?? "Spec" } : null,
             changeset: changesetByMission.get(m.id) ?? null,
-            pending_approvals: pendingByMission.get(m.id) ?? 0,
-            cost_usd: Number((costByMission.get(m.id) ?? 0).toFixed(4)),
+            pending_approvals: pendingsError ? null : (pendingByMission.get(m.id) ?? 0),
             archived: !!m.archived_at,
             station:
               stationByMission.get(m.id) ??
