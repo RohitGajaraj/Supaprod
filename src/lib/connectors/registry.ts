@@ -11,9 +11,8 @@
 // the UI renders an explanatory not-yet-available state from setupHint plus
 // the missingEnv list returned by listConnections. "Admin setup required" is
 // this file's shorthand for that state and is NOT a string the product renders
-// anywhere; the words on screen are "Waiting on an admin" (the catalogue cell's
-// sub, AccountConnectionsSection.tsx:754) and "Not available yet. {setupHint}"
-// (the detail page's Empty, :1029). Quote those if you are matching UI copy.
+// anywhere. The words on screen are `NOT_SET_UP_HERE`, below, and they are one
+// string in one place -- see the note on it for why they used to be two.
 //
 // COPY IS A PROMISE (2026-08-06 audit). `description` is not an internal note,
 // and it reaches a reader through six paths, only two of them verbatim:
@@ -178,6 +177,35 @@ export type ProviderSpec = {
    */
   userFacing?: boolean;
 };
+
+/**
+ * ── THE ONE SENTENCE FOR A CONNECTOR NOBODY HERE CAN TURN ON ──────────────
+ *
+ * WALKED AS A STRANGER ON THE SERVED /sync, 2026-09-10. Seven of the fifteen
+ * connectors read **"Waiting on an admin"** — Intercom, Stripe, Zendesk,
+ * HubSpot, Canny, Productboard, Notion.
+ *
+ * **There is no admin to wait on.** `deriveProviderAvailability` reads
+ * `process.env` on the DEPLOYMENT, and its own comment says the credential is
+ * "the founder-registered OAuth client". So the person who unblocks it is a
+ * Supaprod operator, and nothing in this product — no setting, no role, no
+ * permission — lets the person reading that cell change it. On the founder's
+ * own workspace it is worse still: he IS the admin, so the sentence sends him
+ * looking for a control that does not exist.
+ *
+ * A state a reader cannot act on is allowed. **A state that names an actor who
+ * cannot act is not**, because the reader spends the effort before they find
+ * out. So the sentence says whose side it is on, in the register the product
+ * already uses for itself: `/outcomes` says a forecast "is measured by
+ * `prd.get`, which is OURS rather than yours".
+ *
+ * ── AND IT WAS TWO SENTENCES FOR ONE STATE ────────────────────────────────
+ * The catalogue cell said "Waiting on an admin" and the detail page said "Not
+ * available yet." for the identical condition, which is the rule
+ * `forecast-words.ts` states at length: two surfaces must never call one thing
+ * two things. One export, both callers.
+ */
+export const NOT_SET_UP_HERE = "Not set up on our side yet";
 
 export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
   github: {

@@ -26,6 +26,7 @@ import {
   providerReturnsSignals,
   type ProviderId,
   type ProviderSpec,
+  NOT_SET_UP_HERE,
 } from "@/lib/connectors/registry";
 import {
   buildConnectorCatalog,
@@ -488,8 +489,8 @@ export function AccountConnectionsSection({
     : loading
       ? "Reading what the crew is connected to."
       : reading.length === 0
-        ? `The crew reads nothing yet. ${connectableCount > 0 ? `${connectableCount} connectors are ready to connect.` : "Every connector is still waiting on an admin to register its app."}`
-        : `The crew reads ${reading.length} ${reading.length === 1 ? "connector" : "connectors"}. ${connectableCount > 0 ? `${connectableCount} more are ready to connect.` : "Everything else is waiting on an admin."}`;
+        ? `The crew reads nothing yet. ${connectableCount > 0 ? `${connectableCount} connectors are ready to connect.` : "None of them is set up on our side yet."}`
+        : `The crew reads ${reading.length} ${reading.length === 1 ? "connector" : "connectors"}. ${connectableCount > 0 ? `${connectableCount} more are ready to connect.` : "Everything else is not set up on our side yet."}`;
 
   const readingLine = (a: { entry: CatalogEntry }) => {
     const e = a.entry;
@@ -736,7 +737,7 @@ export function AccountConnectionsSection({
                       ? "Connects, but sends nothing back yet"
                       : can
                         ? a.entry.flowLabel
-                        : "Waiting on an admin"
+                        : NOT_SET_UP_HERE
                   }
                   title={can ? connectHintFor(a.entry) : setupHintFor(spec)}
                   // A cell nobody can connect dims and never lights up: an
@@ -1036,7 +1037,9 @@ export function ConnectorDetail({
         {back}
         <div className="flex flex-col gap-mrd-7">
           <PageHeading title={titled} sub={spec.description} />
-          <NothingHere>Not available yet. {hint}</NothingHere>
+          <NothingHere>
+            {NOT_SET_UP_HERE}. {hint}
+          </NothingHere>
         </div>
       </>
     );

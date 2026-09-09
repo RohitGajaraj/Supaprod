@@ -104,7 +104,12 @@ import {
 } from "@/lib/connections.functions";
 import { pullMapping, pushMapping } from "@/lib/sync.functions";
 import { getIngestToken, rotateIngestToken, revokeIngestToken } from "@/lib/ingest.functions";
-import { CONNECTOR_REGISTRY, type ProviderId, type ProviderSpec } from "@/lib/connectors/registry";
+import {
+  CONNECTOR_REGISTRY,
+  NOT_SET_UP_HERE,
+  type ProviderId,
+  type ProviderSpec,
+} from "@/lib/connectors/registry";
 import { humanWriteError } from "@/lib/roles.functions";
 import { failureLine, reasonLine } from "@/lib/error-copy";
 import { useWorkspace } from "@/hooks/use-workspace";
@@ -881,7 +886,7 @@ function ConnectPresses({
                   ? "Connects, but sends nothing back yet"
                   : p.ready
                     ? sourceBrings(p.spec.id)
-                    : "Waiting on an admin"
+                    : NOT_SET_UP_HERE
               }
               title={p.ready ? p.spec.description : (p.spec.setupHint ?? p.spec.description)}
               // A cell nobody can connect dims and never lights up: an
