@@ -2010,10 +2010,17 @@ export function DiscoverSurface({
   ) : lead ? (
     lead.lead
   ) : ranked.length === 1 ? (
-    "One cluster needs your decision."
+    "One cluster is open."
   ) : (
+    /* NOT "needs your decisions" (fifth review, 2026-09-09). This branch draws
+       only when the top-ranked cluster is an Example, which is every new
+       workspace's first visit, and there it claimed the person's move while
+       the home's hero one press away read "Nothing you started is waiting on
+       you." Clusters are promoted unattended by the sweep, so an open cluster
+       is the machine's state, not a call. The sub line below already says how
+       they are ordered. */
     <>
-      <Num>{ranked.length}</Num> clusters need your decisions.
+      <Num>{ranked.length}</Num> clusters are open, ranked.
     </>
   );
 

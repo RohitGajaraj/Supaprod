@@ -40,6 +40,7 @@ import { listProductGoals } from "@/lib/spine/track.functions";
 import { listTopOpportunities } from "@/lib/discovery.functions";
 import { matchProductFromSentence, type ProductCandidate } from "@/lib/spine/product-match";
 import { ComposerProductPicker } from "@/components/start/ComposerProductPicker";
+import { ComposerRoutePicker } from "@/components/start/ComposerRoutePicker";
 import type { WorkShape } from "@/lib/spine/route";
 import { readHomeAnswers } from "@/lib/start/home-answers.functions";
 import { homeAnswers } from "@/components/start/three-answers-above-your-runs";
@@ -362,10 +363,15 @@ function StartLanding() {
   const placeholderReady =
     noWorkspace || (!workspaceLoading && (productGoals.isSuccess || productGoals.isError));
 
+  /* THE ROUTE THIS SENTENCE TAKES, picked by the person rather than assumed
+     (fifth review, 2026-09-09). Discover-first stays the default, per the
+     founder's own §5E ruling; a card that carries its own shape overrides it. */
+  const [pickedShape, setPickedShape] = useState<WorkShape>("new-capability");
+
   const go = useMutation({
     mutationFn: async (job?: ExampleJob) => {
       const s = (job?.sentence ?? sentence).trim();
-      const shape: WorkShape = job?.shape ?? "new-capability";
+      const shape: WorkShape = job?.shape ?? pickedShape;
       return start({
         data: {
           title: s.slice(0, 200),
@@ -603,6 +609,11 @@ function StartLanding() {
             onSelect={setActiveProductId}
           />
         ) : null}
+        {/* WHERE THE SENTENCE ENTERS THE ROAD, said before Enter and picked in
+            the person's own words. Every sentence used to be filed as new work
+            and walk all seven stations, so "fix the broken login" opened a
+            Discover run (fifth review, 2026-09-09). */}
+        <ComposerRoutePicker shape={pickedShape} onSelect={setPickedShape} />
         {/* WHAT THE WORKSPACE ALREADY HOLDS ABOUT THE SENTENCE BEING TYPED.
             Anticipation: the evidence read happens while the person types,
             settled and debounced, so the first thing they learn about their
