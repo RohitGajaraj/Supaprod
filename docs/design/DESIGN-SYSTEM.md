@@ -161,6 +161,15 @@ reading is not a status. Its word is "not read". The rule this generalises, and 
 surface owes: **a read that refused and a read that answered empty are different facts, and a
 surface that draws them the same is claiming the one it did not measure.**
 
+**A row of controls counts and acts; prose only counts.** When a control on the same screen already
+carries the breakdown, the sentence above it must not repeat it. Found on the Inbox (Lane 2,
+2026-09-09): the heading read "20 design gates, 12 assumption challenges, 9 decisions, 4 house
+rules, 3 agent actions, 3 opportunities and 2 memory notes waiting for you", 143 characters and six
+commas, directly above a filter row carrying every one of those families with its own count as a
+pressable tab. The heading is now the largest family and a count of the rest, in the same words the
+home's hero uses for the same rows. The rule generalises past this screen: a sentence beside a
+control is free to do the thing prose is better at, which is telling a person where to start.
+
 **A person names the work; the machine names the route.** The composer carries a picker of the five
 work shapes in the person's own words ("Something is broken now") and answers with the road it takes
 ("it enters at Build; Discover, Decide, Plan and Design are waived"), read from `suggestRoute` so a
