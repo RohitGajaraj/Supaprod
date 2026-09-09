@@ -112,6 +112,27 @@ export type Tally = {
    * comparison, which is true of every run whose drives predate the column.
    */
   selfCheck: string | null;
+  /**
+   * "13 of the 14 decisions were declined." Null when nothing was declined,
+   * which is 21 of the 29 tracks that carry a decision at all.
+   *
+   * ── A DECLINE IS AN OUTCOME AND IT IS NOT THE SAME OUTCOME ──────────────
+   * The chip beside this says "14 decisions", and on `d2263583` thirteen of
+   * those fourteen were declined: the strategist proposed, the critic refused
+   * for want of A/B evidence, and the two of them repeated that exchange for
+   * three hours and fifty-one minutes. The run's actual product is one refusal,
+   * and the strip led with a count that reads as fourteen pieces of work.
+   *
+   * NOT A CORRECTION TO THE COUNT. Fourteen decisions do exist and a decline is
+   * real work -- the critic deciding to refuse is the most valuable thing that
+   * happened on that run. What was missing is the SHAPE of the fourteen, so
+   * this is a clause beside the chip rather than a smaller number inside it.
+   *
+   * Measured 2026-09-09: 60 decision rows across 29 tracks, 20 of them
+   * declined, on 8 tracks. Silent on the other 21, because a clause that says
+   * "0 were declined" on every healthy run distinguishes nothing.
+   */
+  declined: string | null;
   elapsed: string | null;
   cost: string | null;
 };
@@ -119,7 +140,14 @@ export type Tally = {
 /** True when the strip has anything to say. Nothing produced means no strip. */
 export function hasAnything(t: Tally): boolean {
   return Boolean(
-    t.made.length || t.pr || t.verdict || t.horizon || t.selfCheck || t.elapsed || t.cost,
+    t.made.length ||
+      t.pr ||
+      t.verdict ||
+      t.horizon ||
+      t.selfCheck ||
+      t.declined ||
+      t.elapsed ||
+      t.cost,
   );
 }
 
@@ -264,7 +292,35 @@ export function runTally(input: {
   const elapsed = atLeast(s.timedTurns > 0 ? formatElapsed(s.msTotal / 1000) : null);
   const cost = atLeast(spendClause(s));
 
-  return { made, pr, verdict, horizon, selfCheck: selfCheckLine(input.selfChecks), elapsed, cost };
+  /*
+   * HOW THE DECISIONS WENT, counted off the status the pane already carries in
+   * `fields` (FIELDS.decision includes `status`), so no read is added. Only
+   * decisions: `status` means different things on the other kinds, and one word
+   * counted across four vocabularies is a number nobody can check.
+   */
+  const decisions = stops.flatMap((st) =>
+    st.items.filter((i) => i.kind === "decision" && !i.missing),
+  );
+  const declinedCount = decisions.filter(
+    (i) => (i.fields as Record<string, unknown> | null)?.status === "declined",
+  ).length;
+  const declined =
+    declinedCount > 0
+      ? declinedCount === decisions.length
+        ? `All ${declinedCount} were declined.`
+        : `${declinedCount} of the ${decisions.length} decisions were declined.`
+      : null;
+
+  return {
+    made,
+    pr,
+    verdict,
+    horizon,
+    selfCheck: selfCheckLine(input.selfChecks),
+    declined,
+    elapsed,
+    cost,
+  };
 }
 
 /**
@@ -360,8 +416,14 @@ export function gotYouClauses(t: Tally): string[] {
    * it cost -- a reader who stops after three clauses should have the three
    * that bear on trust.
    */
-  return [t.verdict, t.selfCheck, t.horizon, t.elapsed, t.cost].filter((c): c is string =>
-    Boolean(c),
+  /*
+   * `declined` sits after the self-check and before the horizon, on the same
+   * argument the self-check's own note makes: the clauses that bear on whether
+   * the work can be BELIEVED come before the ones that say what it cost, so a
+   * reader who stops after three has the three that matter.
+   */
+  return [t.verdict, t.selfCheck, t.declined, t.horizon, t.elapsed, t.cost].filter(
+    (c): c is string => Boolean(c),
   );
 }
 

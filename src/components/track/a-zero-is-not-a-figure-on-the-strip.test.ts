@@ -288,6 +288,10 @@ describe("a read that has not answered claims nothing", () => {
       pr: null,
       verdict: null,
       horizon: null,
+      /* `declined` joined `Tally` on 2026-09-09 and defaults to null the way
+         this test asks every field to: nothing was read, so nothing is claimed
+         about how the decisions went. */
+      declined: null,
       // The whole-object comparison is the point of this test: a field added to
       // `Tally` that does not default to null shows up HERE rather than as a
       // template on somebody's screen. `selfCheck` is one such field.
@@ -296,5 +300,77 @@ describe("a read that has not answered claims nothing", () => {
       cost: null,
     });
     expect(hasAnything(t)).toBe(false);
+  });
+});
+
+describe("how the decisions went, said only when it discriminates", () => {
+  /*
+   * A DECLINE IS AN OUTCOME AND IT IS NOT THE SAME OUTCOME. The chip says
+   * "14 decisions"; on `d2263583` thirteen of those fourteen were declined,
+   * because the strategist proposed and the critic refused for want of A/B
+   * evidence, and the two repeated that exchange for three hours and fifty-one
+   * minutes. The run's product is one refusal and the strip led with a count
+   * that reads as fourteen pieces of work.
+   *
+   * Measured 2026-09-09: 60 decision rows across 29 tracks, 20 declined, on 8
+   * tracks. So the clause is silent on 21 of 29, which is the point.
+   */
+  const decision = (status: string, id: string) => ({
+    kind: "decision",
+    word: "decision",
+    artifactId: id,
+    createdAt: "2026-08-31T13:40:00.000Z",
+    title: "A call",
+    missing: false,
+    fields: { status },
+  });
+  const stopWith = (items: ReturnType<typeof decision>[]) =>
+    [{ station: "decide", label: "Decide", items }] as never;
+
+  it("says nothing at all when nothing was declined", () => {
+    const t = runTally({
+      stops: stopWith([decision("approved", "a"), decision("approved", "b")]),
+      turns: null,
+      now: NOW,
+    });
+    expect(t.declined).toBeNull();
+  });
+
+  it("names the share when some were declined", () => {
+    const t = runTally({
+      stops: stopWith([decision("approved", "a"), decision("declined", "b"), decision("declined", "c")]),
+      turns: null,
+      now: NOW,
+    });
+    expect(t.declined).toBe("2 of the 3 decisions were declined.");
+  });
+
+  it("says it plainly when every one of them was", () => {
+    // "3 of the 3" is a sentence that makes a reader do arithmetic to reach
+    // "all", and the whole point of the clause is that it is read at a glance.
+    const t = runTally({
+      stops: stopWith([decision("declined", "a"), decision("declined", "b"), decision("declined", "c")]),
+      turns: null,
+      now: NOW,
+    });
+    expect(t.declined).toBe("All 3 were declined.");
+  });
+
+  it("counts only decisions, because `status` means something else on every other kind", () => {
+    const t = runTally({
+      stops: [
+        {
+          station: "define",
+          label: "Plan",
+          items: [
+            { ...decision("declined", "d"), kind: "prd", word: "spec" },
+            decision("approved", "a"),
+          ],
+        },
+      ] as never,
+      turns: null,
+      now: NOW,
+    });
+    expect(t.declined).toBeNull();
   });
 });
