@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { describe, test, expect } from "bun:test";
+import { describe, test, it, expect } from "bun:test";
 import {
   whatLearnIsWaitingFor,
   whatLearnNeedsFromYou,

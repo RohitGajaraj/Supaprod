@@ -355,14 +355,16 @@ function Node({
            value beside it and breathes around that. */
         <span
           className="absolute inset-0 rounded-full"
-          style={{
-            boxShadow: `0 0 0 ${size === "full" ? 4 : 2}px var(--mrd-agent-dim)`,
-            opacity: 0.55,
-            "--mrd-halo-rest": 0.55,
-            animation: "mrd-halo 2400ms var(--mrd-ease-soft) infinite",
-            /* React.CSSProperties has no slot for a custom property; the
+          style={
+            {
+              boxShadow: `0 0 0 ${size === "full" ? 4 : 2}px var(--mrd-agent-dim)`,
+              opacity: 0.55,
+              "--mrd-halo-rest": 0.55,
+              animation: "mrd-halo 2400ms var(--mrd-ease-soft) infinite",
+              /* React.CSSProperties has no slot for a custom property; the
                assertion is the documented way to set one inline. */
-          } as React.CSSProperties}
+            } as React.CSSProperties
+          }
         />
       ) : null}
       {size === "full" ? (

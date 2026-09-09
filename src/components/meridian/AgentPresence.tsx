@@ -79,18 +79,20 @@ export function PresenceDot({
       {alive ? (
         <span
           className="absolute inset-0 rounded-full"
-          style={{
-            boxShadow: `0 0 0 ${Math.max(2, Math.round(size / 3))}px var(${colour})`,
-            /* `mrd-halo`, not `mrd-attention`: the latter drives opacity from 1
+          style={
+            {
+              boxShadow: `0 0 0 ${Math.max(2, Math.round(size / 3))}px var(${colour})`,
+              /* `mrd-halo`, not `mrd-attention`: the latter drives opacity from 1
                and so OVERRODE the 0.35 below, peaking this halo at nearly three
                times its own value. `mrd-halo` breathes around 0.35 on the same
                amplitude ratio. See the keyframes in meridian.css. */
-            opacity: 0.35,
-            "--mrd-halo-rest": 0.35,
-            animation: "mrd-halo 2400ms var(--mrd-ease-soft) infinite",
-            /* React.CSSProperties has no slot for a custom property; the
+              opacity: 0.35,
+              "--mrd-halo-rest": 0.35,
+              animation: "mrd-halo 2400ms var(--mrd-ease-soft) infinite",
+              /* React.CSSProperties has no slot for a custom property; the
                assertion is the documented way to set one inline. */
-          } as React.CSSProperties}
+            } as React.CSSProperties
+          }
         />
       ) : null}
     </span>
