@@ -39,8 +39,32 @@ export function CallContext({
   agentSlug: string | null | undefined;
   /** The agent's display name, resolved by the caller from the catalog. */
   agentName: string;
-  /** The project or mission the call sits in, already resolved to a name. */
-  where: string;
+  /**
+   * The project or run the call sits in, already resolved to a name — or null
+   * when it sits in neither, which is an ordinary case rather than a hole.
+   *
+   * ── NULLABLE BECAUSE THE ALTERNATIVE WAS AN INVENTION (Lane 2, 2026-09-09) ─
+   * This was `string`, so the one caller had to supply something, and it
+   * supplied `subjectOf(focused) ?? "This workspace"`. `subjectOf` is four
+   * hundred lines above that call site in the same file, and its docstring
+   * forbids exactly the sentence the call site wrote:
+   *
+   *   *"Null on the families that are workspace wide (memory, house rules,
+   *    trust, assumption challenges, playbooks), and null is drawn as nothing
+   *    rather than as 'Workspace', because inventing a container for a call
+   *    that has none says something the read never said."*
+   *
+   * Measured on production: 17 of Helio Labs' 57 pending design gates carry no
+   * project, and every one of them was being told it came from "This
+   * workspace" — a container the read never mentioned, under a heading that
+   * promises to say where the call came from.
+   *
+   * A REQUIRED PROP IS WHY IT HAPPENED. The type asked for a string and the
+   * caller had a null, so the fallback was written at the call site where no
+   * reviewer would meet the rule it broke. Making the prop nullable moves the
+   * decision here, next to the rendering that acts on it.
+   */
+  where: string | null;
   /** What answering it costs or touches. Absent on families that carry none. */
   impact?: string | null;
   /** The keyboard, drawn by the file that binds it. */
@@ -58,7 +82,13 @@ export function CallContext({
           </span>
           <span className="min-w-0">
             <span className="block text-mrd-label text-mrd-ink">{agentName}</span>
-            <span className="mt-0.5 block text-mrd-tiny text-mrd-mute">{where}</span>
+            {/* Nothing at all when the call sits in no project and no run.
+                The agent's name above is a complete answer on its own; a second
+                line naming a container that does not exist is worse than one
+                line, not better. */}
+            {where ? (
+              <span className="mt-0.5 block text-mrd-tiny text-mrd-mute">{where}</span>
+            ) : null}
           </span>
         </div>
       </Section>

@@ -1600,8 +1600,49 @@ export const HOLD_LINE: Record<HoldReason, string> = {
    * run, which is the best validation an instrument can have.
    */
   "corrections-spent": "Nothing further will be spent on this until you look.",
-  "given-up":
-    "This station was corrected, came back, and still cannot finish with everything it needs on the record. Nothing more will be tried on it automatically.",
+  /*
+   * ── THE THIRD TIME THIS DEFECT WAS FOUND IN THIS MAP, AND THE ONE THAT WAS
+   *    LEFT BEHIND (Lane 2, 2026-09-09) ───────────────────────────────────────
+   *
+   * Was: *"This station was corrected, came back, and still cannot finish with
+   * everything it needs on the record. Nothing more will be tried on it
+   * automatically."*
+   *
+   * F-177 removed exactly this shape from `station-cannot-finish` and F-137
+   * from `corrections-spent`, both two entries above. `given-up` carried it
+   * untouched, and it is the worst instance of the three because the reason it
+   * restates is not a sibling constant but `last_hold_because` — the driver's
+   * OWN sentence, written by `decideCorrection`'s give-up branch
+   * (`correction.ts:678`) and stored on the row. Read live on `ce846e9b`:
+   *
+   *   "Build was corrected, came back, and still cannot finish with everything
+   *    it needs on the record. Nothing more will be tried on it automatically."
+   *   "Build has a spec or the tasks to build from, has been corrected 2 times,
+   *    and still cannot finish. Nothing more will be tried on this
+   *    automatically."
+   *
+   * Three facts each; the second states all three precisely — the missing thing
+   * by name, the count as a number — and the first states them vaguely and then
+   * closes on the same clause with one pronoun changed. S2's rule applies
+   * unchanged: two sentences AGREEING a few lines apart leave a reader unable to
+   * tell which line is the surface's own claim.
+   *
+   * WHY THE STRUCTURAL GUARD MISSED IT. `two-lines-on-one-screen-must-not-
+   * restate-each-other.test.ts` compares this map against `wayOut` only, and
+   * never reads `last_hold_because`. Scored by that test's own metric, the pair
+   * above shares the significant run "more tried automatically" — a fail it had
+   * no way to see. `given-up` was also absent from `ALWAYS_HAS_A_REASON` in
+   * `the-hold-line-carries-the-effect-not-the-door.test.ts`, whose 120-character
+   * cap this entry missed by thirty; it is on that list now.
+   *
+   * SO THIS KEEPS THE EFFECT AND NOTHING ELSE, and the effect for `given-up` is
+   * not "it stopped" — every hold means that — but that THE AUTOMATIC PART IS
+   * OVER and the next move is a person's. The cause stays on the reason line
+   * and the door stays in the way out. "This station" leads, because
+   * `STATION_SPECIFIC` lists this hold and `holdLine` substitutes on that exact
+   * phrase (K-18); dropping it silently disables the substitution.
+   */
+  "given-up": "This station will not be tried again without you.",
 };
 
 /**

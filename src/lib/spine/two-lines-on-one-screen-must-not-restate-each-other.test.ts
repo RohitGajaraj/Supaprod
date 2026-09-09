@@ -55,6 +55,9 @@
  * complete alone. The division they enforce together is: **the hold line says
  * WHAT IS HAPPENING, the way out says WHY and WHAT TO DO.**
  */
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+
 import { describe, expect, it } from "bun:test";
 
 import { HOLD_LINE, type HoldReason } from "@/lib/spine/driver";
@@ -194,6 +197,81 @@ describe("THE PROPERTY: no hold says the same thing twice on one screen", () => 
         "and the door, so they compose instead of repeating.",
       ].join("\n"),
     ).toEqual([]);
+  });
+});
+
+/*
+ * ── THE THIRD SENTENCE ON THE SCREEN, WHICH THIS GUARD COULD NOT SEE ────────
+ *
+ * The property above compares `HOLD_LINE` against `wayOut`. On a stopped run
+ * the left pane draws a THIRD sentence between them — `last_hold_because`, the
+ * driver's own reason, written by `decideCorrection` and stored on the row —
+ * and nothing compared the hold line to it.
+ *
+ * That is not a hypothetical gap. Read live on `ce846e9b`, 2026-09-09:
+ *
+ *   hold line : Build was corrected, came back, and still cannot finish with
+ *               everything it needs on the record. Nothing more will be tried
+ *               on it automatically.
+ *   reason    : Build has a spec or the tasks to build from, has been corrected
+ *               2 times, and still cannot finish. Nothing more will be tried on
+ *               this automatically.
+ *
+ * Scored by the very metric above, that pair shares "more tried automatically"
+ * — a fail this file's own rule had no way to reach, because it was looking at
+ * the wrong two of the three sentences.
+ *
+ * ── WHY IT READS THE SOURCE RATHER THAN CALLING `decideCorrection` ──────────
+ * The reasons are template literals assembled from a station name, a missing
+ * thing and a count, and driving the decision function into each branch means
+ * standing up an input shaped like a live track — which is how a guard ends up
+ * asserting its own fixture. Reading the templates out of `correction.ts` has
+ * neither problem: the interpolations drop out (they are names and numbers,
+ * never claim words), the surrounding prose is exactly what a person reads, and
+ * a rewrite on EITHER side is scored the next time this runs. It is the same
+ * move `one-station-display-on-the-run-screen.test.ts` makes for the same
+ * reason.
+ */
+/* `fileURLToPath`, not `.pathname`: this repo lives under a path with spaces,
+   and a URL's pathname keeps them percent-encoded, so the read fails with
+   ENOENT on a file that is plainly there. */
+const CORRECTION_SRC = readFileSync(
+  fileURLToPath(new URL("./correction.ts", import.meta.url)),
+  "utf8",
+);
+
+/** Every `because:` template in `decideCorrection`, with `${...}` removed. */
+const REASON_TEMPLATES: string[] = [
+  ...CORRECTION_SRC.matchAll(/because:\s*`([^`]*)`/g),
+].map((m) => (m[1] ?? "").replace(/\$\{[^}]*\}/g, " "));
+
+describe("THE PROPERTY: the hold line does not restate the driver's own reason", () => {
+  it("finds reason templates to check, so this scan covers something", () => {
+    // If `decideCorrection` stops building its reasons as template literals
+    // this drops to zero and silently passes. It must fail instead.
+    expect(REASON_TEMPLATES.length).toBeGreaterThan(2);
+  });
+
+  it.each(HOLDS)("%s", (hold) => {
+    const line = HOLD_LINE[hold];
+    for (const reason of REASON_TEMPLATES) {
+      const shared = [...runs(line)].filter((r) => runs(reason).has(r));
+      expect(
+        shared,
+        [
+          `The hold line and a reason the driver writes both say: "${shared[0] ?? ""}"`,
+          "",
+          `  hold line : ${line}`,
+          `  reason    : ${reason.trim()}`,
+          "",
+          "These render one under the other in the run screen's hold card, and",
+          "the reason is the better of the two by construction: it names the",
+          "station, the missing thing and the real count, while the hold line",
+          "can only speak from the slug. So the hold line carries the EFFECT",
+          "and gives the facts up to the sentence that states them precisely.",
+        ].join("\n"),
+      ).toEqual([]);
+    }
   });
 });
 

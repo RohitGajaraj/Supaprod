@@ -49,7 +49,7 @@ import { useCurrentTool, useNewestCallByRun } from "@/components/track/LiveWork"
 import { objectOf } from "@/components/track/live-station";
 import { ArtifactPane } from "@/components/track/ArtifactPane";
 import { TrackConsent } from "@/components/track/TrackConsent";
-import { Action, Door } from "@/components/meridian/surface-parts";
+import { Action, Door, RecordSpeaks } from "@/components/meridian/surface-parts";
 import { Row } from "@/components/meridian/rows";
 import { Receipt } from "@/components/meridian/Receipt";
 import {
@@ -90,6 +90,8 @@ import type { SpineRoute } from "@/lib/spine/route";
 import { RunProof } from "@/components/track/RunProof";
 import { proofRows } from "@/components/track/run-proof";
 import { useRunTally } from "@/components/track/run-tally";
+import { useRefrain } from "@/components/track/run-refrain";
+import { refrainLead } from "@/lib/spine/what-it-keeps-saying";
 import { stoppedByYou } from "@/components/track/footer-mode";
 import {
   waitingOnTime,
@@ -1118,6 +1120,13 @@ export function TrackRunLeft({
   const askIsUp = callIsYours || answerTheCall;
   /* The facts a hold used to carry as rows under "Why it stopped". */
   const holdFacts = track && (now.register === "held" || now.register === "stopped");
+
+  /*
+   * Off the SAME cache entry the transcript and the tally already hold, so this
+   * costs no round trip; see `run-refrain.ts` for why it is a hook rather than a
+   * callback lifted out of `TrackActivity`.
+   */
+  const refrain = useRefrain(trackId);
   /* The station's own retry stands down wherever pressing it changes nothing:
      a call is in front of the person, the preview is what stopped Ship, or
      nothing will pick the work up again. */
@@ -1147,6 +1156,36 @@ export function TrackRunLeft({
 
       {askIsUp ? null : (
         <RunNow now={now}>
+          {/*
+           * ── WHY IT STOPPED, IN THE RUN'S OWN WORDS, FIRST ────────────────
+           *
+           * Read live on `ce846e9b`, 2026-09-09: this card opened with "Build
+           * was corrected, came back, and still cannot finish" while every one
+           * of the eighteen turns underneath it had written the same plain
+           * sentence into its own row — *"This repository contains only the
+           * checkout module for Relay, not the full Relay homeowner app that
+           * renders status tiles."* The run was pointed at the wrong
+           * repository and said so eighteen times; the card described the
+           * machinery giving up and never reached the reason.
+           *
+           * FIRST CHILD, so it sits directly under `now.line` and above the
+           * driver's own `holdBecause`. That is the order of a reader's
+           * questions — what state is this in, why, then what do I do — and
+           * the refrain is the only one of the three that a person can act on
+           * without opening anything.
+           *
+           * QUOTED AND ATTRIBUTED, NEVER ASSERTED (F-54). The record's verdict
+           * is unchanged and still says those turns filed nothing. This is
+           * what the seats CLAIMED, in quotation marks, with the count that
+           * makes it a finding rather than a remark — so a reader who thinks
+           * the claim is wrong is looking at a disagreement rather than at
+           * this surface's opinion of one.
+           */}
+          {refrain ? (
+            <RecordSpeaks evidence={refrainLead(refrain)}>
+              &ldquo;{refrain.saying}&rdquo;
+            </RecordSpeaks>
+          ) : null}
           {now.register === "working" && presences.length > 0 ? (
             <ul aria-label="Working on this now" className="flex flex-col gap-mrd-2">
               {presences.map((a) => {

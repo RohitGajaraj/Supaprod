@@ -940,7 +940,12 @@ function ApprovalsSurface() {
           <CallContext
             agentSlug={focused.agentSlug}
             agentName={agentDisplayName(focused.agentSlug)}
-            where={subjectOf(focused) ?? "This workspace"}
+            /* NO FALLBACK. `subjectOf` returns null when the call belongs to
+               no project, and its own docstring four hundred lines up forbids
+               naming one anyway; this used to write "This workspace" here,
+               which is the invention that rule exists to stop. `CallContext`
+               now takes the null and draws the line away. */
+            where={subjectOf(focused)}
             impact={focused.impact}
             keys={
               /* SAID `r` UNTIL 2026-08-10, AND `r` DOES NOTHING. The decline key

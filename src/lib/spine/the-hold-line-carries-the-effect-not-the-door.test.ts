@@ -39,12 +39,29 @@ import { HOLD_LINE } from "./driver";
  * taken the specific sentence's job — which is how all three drifted.
  */
 
-/** Holds where `decideCorrection` always supplies a specific reason. */
+/**
+ * Holds where `decideCorrection` always supplies a specific reason.
+ *
+ * ── `given-up` WAS MISSING FROM THIS LIST AND BELONGED ON IT ALL ALONG ──────
+ * Both of `decideCorrection`'s give-up branches write a `because`
+ * (`correction.ts:678` and `:728`) and `driver.server.ts:1578` persists it, so
+ * this hold has met the list's entry condition since the day it existed. It was
+ * simply not added, and the cost was exact: `HOLD_LINE["given-up"]` stood at 150
+ * characters — thirty over the cap below, the longest entry in the map — and
+ * carried a vaguer copy of every fact its own reason line states precisely.
+ *
+ * It is the third entry here to have drifted the same way (F-177 took the shape
+ * out of `station-cannot-finish`, F-137 out of `corrections-spent`), which is
+ * what makes the omission worth a paragraph rather than a line: this list is the
+ * only thing that stops the drift, so a hold left off it is not covered by
+ * anything.
+ */
 const ALWAYS_HAS_A_REASON = [
   "needs-evidence",
   "needs-a-waived-station",
   "station-cannot-finish",
   "corrections-spent",
+  "given-up",
 ] as const;
 
 /**
@@ -79,7 +96,16 @@ describe("the hold line carries the effect, not the door", () => {
      * went red. They were right and this guard was not watching, which is why
      * the constraint now lives beside the rule that caused the edit.
      */
-    for (const hold of ["needs-evidence", "needs-a-waived-station", "station-cannot-finish"]) {
+    /* `given-up` joined this loop with the list above: it is in
+       `STATION_SPECIFIC` too, so its trim had the same way to go wrong, and
+       "This station will not be tried again without you." renders as "Build
+       will not be tried again without you." only while the phrase survives. */
+    for (const hold of [
+      "needs-evidence",
+      "needs-a-waived-station",
+      "station-cannot-finish",
+      "given-up",
+    ]) {
       expect(HOLD_LINE[hold].startsWith("This station")).toBe(true);
     }
   });

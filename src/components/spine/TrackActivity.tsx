@@ -60,6 +60,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 import { getTrackActivity, getTrackChain, getTrackToolCalls } from "@/lib/spine/track.functions";
 import { countKinds, type Turn } from "@/lib/spine/activity";
+import { whatItKeepsSaying, refrainLead } from "@/lib/spine/what-it-keeps-saying";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { handoffLine, turnsAtStation, whatCameWith } from "@/components/spine/handed-over";
 import { carriedByMission, oncePerId } from "@/components/spine/what-a-mission-carries";
@@ -1101,6 +1102,34 @@ export function TrackActivity({
     },
   );
 
+  /*
+   * ── WHAT THE RUN KEEPS SAYING, SAID ONCE ────────────────────────────────
+   *
+   * Read live on `ce846e9b`, 2026-09-09: six rows of "Filed nothing." over a
+   * stopwatch, while every one of those seats had written the same completely
+   * actionable sentence into its own row — *"This repository contains only the
+   * checkout module for Relay, not the full Relay homeowner app that renders
+   * status tiles."* The run was pointed at the wrong repository, it said so
+   * eighteen times, and no surface in this product read the words.
+   *
+   * It is NOT put back on every row. P-105 took the prose off the closed row
+   * because seven paragraphs stacked is the "dump of text" the founder named,
+   * and that ruling stands. This is the other answer: n turns saying one thing
+   * is ONE fact, so it is stated once, above the column, and the rows below
+   * stay short. Same rule the chips follow — say it where it DISCRIMINATES.
+   *
+   * Above `ranLine` rather than below it because it is the more consequential
+   * of the two standing summaries: how a run was driven is provenance, and
+   * this is the reason it is not moving.
+   *
+   * NOT MEMOISED, and that is deliberate rather than an oversight: this line
+   * sits below three early returns, so a hook here would be a conditional hook.
+   * It is also cheap by construction — the walk stops at the FIRST turn that
+   * does not join, which on a healthy run is the newest one, so the common case
+   * is a single `claimOf` and no comparison at all.
+   */
+  const refrain = whatItKeepsSaying(turns);
+
   const rowFor = (row: ActivityRow, i: number, last: boolean) => {
     if (row.kind === "move") {
       // WHO CAUSED THIS LEG (queue 65). press names the person, sweep
@@ -1620,6 +1649,27 @@ export function TrackActivity({
 
   return (
     <>
+      {/*
+       * THE ONE FACT THAT IS NOT AN ENTRY. Outside the log for the same reason
+       * `ranLine` and `coverageLine` are — it is a standing statement about the
+       * whole column, and inside a `role="log"` a screen reader would re-read
+       * it on every ten-second poll as though it had just happened.
+       *
+       * REPORTED SPEECH, NEVER A VERDICT (F-54). The record's own answer is
+       * already on every row below: those turns filed nothing, and no prose
+       * changes that. This says what the seats CLAIMED, in quotation marks,
+       * attributed and counted — so a reader who finds the claim untrue is
+       * looking at the disagreement rather than at this file's opinion of it.
+       */}
+      {refrain ? (
+        <RecordSpeaks
+          evidence={`${refrainLead(refrain)} Between ${clockOf(Date.parse(refrain.from))} and ${clockOf(
+            Date.parse(refrain.to),
+          )}.`}
+        >
+          &ldquo;{refrain.saying}&rdquo;
+        </RecordSpeaks>
+      ) : null}
       {ranLine ? <p className="mrd-meta">{ranLine}</p> : null}
       {/* OUTSIDE the log, for the same reason `ranLine` is: it is a standing
           summary of the whole column rather than an entry, and inside it a
