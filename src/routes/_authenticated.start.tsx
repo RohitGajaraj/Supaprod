@@ -51,6 +51,7 @@ import { WhetherItWorked } from "@/components/start/WhetherItWorked";
 import { BetStillOpen } from "@/components/start/BetStillOpen";
 import { theBetStillOpen } from "@/components/start/the-bet-still-open";
 import { whatThisDoesForYou } from "@/components/start/what-this-does-for-you";
+import { theWorkMoved } from "@/components/start/the-work-moved";
 import { whetherItWorked } from "@/components/start/whether-it-worked";
 import { getApprovalsQueue } from "@/lib/approvals-queue.functions";
 import { APPROVALS_QUEUE_PREFIX } from "@/lib/query-keys";
@@ -507,6 +508,27 @@ function StartLanding() {
    */
   const heroReady = heroCanDraw({ workspaceLoading, seeded, queue: queueRead, runs });
 
+  /*
+   * ── WHAT MOVED, WITH THE RUN NAMED FROM ROWS THE PAGE ALREADY HAS ────────
+   *
+   * `stage_events` carries the station change and the track id; `runs` carries
+   * every open track's title. Joining them here costs no read -- which is why
+   * the server function deliberately does not fetch titles for a line that may
+   * name at most one.
+   *
+   * A move whose track is not in the list is dropped rather than named "a run":
+   * it is a track that has since closed or left this workspace's open set, and
+   * a sentence about work a person cannot see on the page below is a sentence
+   * they cannot check.
+   */
+  const moved = useMemo(() => {
+    if (!homeReads.isSuccess || !homeReads.data.moved) return null;
+    const titleOf = new Map((runs.data ?? []).map((r) => [r.id, r.title]));
+    return homeReads.data.moved
+      .map((m) => ({ from: m.from, to: m.to, title: titleOf.get(m.trackId) ?? "", at: m.at }))
+      .filter((m) => m.title.length > 0);
+  }, [homeReads.isSuccess, homeReads.data, runs.data]);
+
   const sinceYouLooked = homeAnswers({
     waitingShape: null,
     arrivingCount: homeReads.isSuccess ? homeReads.data.arrivingCount : null,
@@ -514,6 +536,10 @@ function StartLanding() {
     learnedCount: homeReads.isSuccess ? homeReads.data.learnedCount : null,
     rescoredCount: homeReads.isSuccess ? homeReads.data.rescoredCount : null,
     releases: homeReads.isSuccess ? homeReads.data.releases : null,
+    moved: theWorkMoved({
+      moves: moved,
+      since: homeReads.isSuccess ? homeReads.data.lastLookedAt : null,
+    }),
     zone: timezone,
     nowIso: new Date().toISOString(),
   }).filter((a) => a.read === "answered");

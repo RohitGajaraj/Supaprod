@@ -26,6 +26,16 @@ export type HomeAnswerReads = {
   /** The person's own last read of the arriving surface. Null = never, or
    *  unknown; `arrivingCount` is withheld when it is unknown. */
   lastLookedAt: string | null;
+  /**
+   * Station changes on this workspace's RUNS since the last look, newest
+   * first. Null = the read did not answer, which `theWorkMoved` turns into
+   * silence rather than "nothing moved".
+   *
+   * The title is not here on purpose: `listRunsForStart` already carries every
+   * open track's title, so the caller resolves it from rows it holds and this
+   * read stays one narrow query.
+   */
+  moved: ReadonlyArray<{ from: string | null; to: string; trackId: string; at: string }> | null;
   /** Calls graded in the last seven days. */
   learnedCount: number | null;
   /**
@@ -164,6 +174,7 @@ export async function readAnswers(
       return {
         arrivingCount: null,
         lastLookedAt: null,
+        moved: null,
         learnedCount: null,
         rescoredCount: null,
         releases: null,
@@ -224,86 +235,116 @@ export async function readAnswers(
       .limit(20);
     if (lastLookedAt) releasedQ = releasedQ.gt("released_at", lastLookedAt);
 
-    const [arriving, learned, rescored, closedQ, openBetQ, released] = await Promise.all([
-      arrivingQ,
-      supabase
-        .from("decisions")
-        .select("id", head)
-        .eq("workspace_id", wid)
-        .not("forecast_resolved_at", "is", null)
-        .gte("forecast_resolved_at", weekAgo),
-      /*
-       * The re-score lives on `learnings`, not on `decisions`, so it is its own
-       * head count rather than a field on the one beside it. A row counts only
-       * when BOTH scores are present: half a re-score is not a movement, which
-       * is the same rule the evidence region's own line holds to.
-       */
-      supabase
-        .from("learnings")
-        .select("id", head)
-        .eq("workspace_id", wid)
-        .not("prior_ice", "is", null)
-        .not("new_ice", "is", null)
-        .gte("created_at", weekAgo),
-      /*
-       * THE NEWEST CLOSED LOOP, ordered by when the row was written. Its own
-       * read and its own null, like the counts beside it: a refused `learnings`
-       * table must not blank the arriving count.
-       */
-      supabase
-        .from("learnings")
-        .select(
-          "verdict,summary,prior_ice,new_ice,is_sample,created_at,decisions(title,forecast_resolved_at)",
-        )
-        .eq("workspace_id", wid)
-        .not("verdict", "is", null)
-        .not("summary", "is", null)
-        .order("created_at", { ascending: false })
-        .limit(1),
-      /*
-       * ── THE BET THAT IS STILL OPEN ───────────────────────────────────────
-       *
-       * MEASURED 2026-09-09 on the live database, and this is the reason the
-       * read exists rather than a nicety:
-       *
-       *   Every workspace holding a graded outcome is a seed or a sample.
-       *   The founder's two own workspaces hold 16 runs between them and
-       *   ZERO graded outcomes. Of those 16, two reached Learn and are
-       *   waiting on a forecast date; the other fourteen stopped at a hold.
-       *
-       * So `WhetherItWorked` -- the region built to answer "I cannot feel the
-       * value" -- cannot draw for the person who said it. It needs a CLOSED
-       * loop and he has never had one. The entry then has nothing to say about
-       * value at all: a debt count, a composer, a road and a list.
-       *
-       * This is the honest thing the record CAN say in that state. A forecast
-       * is a falsifiable claim the machine made on his work before the answer
-       * was known, and it carries the date he will find out. That is the
-       * product's whole positioning in the state before knowing, and it is his
-       * own work rather than a sample.
-       *
-       * SOONEST DUE, not newest written. The useful ordering is "what you will
-       * learn next", and a bet due tomorrow matters more than one filed
-       * yesterday that comes due in six weeks.
-       *
-       * UNRESOLVED AND NOT YET DUE, both. A resolved forecast belongs to the
-       * closed loop above and would be this region contradicting that one; a
-       * horizon already passed is overdue rather than pending, which is a
-       * different sentence and one `/outcomes` already owns ("10 are past the
-       * dates they set and have not been graded").
-       */
-      supabase
-        .from("decisions")
-        .select("title,forecast_claim,forecast_how_we_will_know,forecast_horizon_date,is_sample")
-        .eq("workspace_id", wid)
-        .not("forecast_claim", "is", null)
-        .not("forecast_horizon_date", "is", null)
-        .is("forecast_resolved_at", null)
-        .gt("forecast_horizon_date", new Date().toISOString())
-        .order("forecast_horizon_date", { ascending: true })
-        .limit(1),
-      releasedQ,
-    ]);
+    /*
+     * ── WHAT MOVED, WHICH NOTHING HERE HAS EVER READ ────────────────────────
+     *
+     * The four answers above say what is WAITING, what ARRIVED, what SHIPPED
+     * and what was LEARNED. A run advancing a station was in none of them.
+     *
+     * MEASURED 2026-09-10: the loop dispatched nothing for nineteen hours, then
+     * at 23:00 UTC a track stuck since 09-06 was driven and moved
+     * `define -> design`. `stage_events` recorded it a minute later. That was
+     * the most significant event in the product that day, on the founder's own
+     * workspace, and the home had no sentence for it.
+     *
+     * Rides the same concurrent block: one head-free read of a narrow table,
+     * bounded by the same `lastLookedAt` the arriving and released reads use,
+     * so a person who has never looked gets silence rather than a history.
+     * `spine_track` only -- opportunities and themes have their own stages and
+     * this line is about RUNS.
+     */
+    let movedQ = supabase
+      .from("stage_events")
+      .select("entity_id, from_stage, to_stage, at")
+      .eq("workspace_id", wid)
+      .eq("entity_type", "spine_track")
+      .order("at", { ascending: false })
+      .limit(40);
+    if (lastLookedAt) movedQ = movedQ.gt("at", lastLookedAt);
+
+    const [arriving, learned, rescored, closedQ, openBetQ, released, movedRows] = await Promise.all(
+      [
+        arrivingQ,
+        supabase
+          .from("decisions")
+          .select("id", head)
+          .eq("workspace_id", wid)
+          .not("forecast_resolved_at", "is", null)
+          .gte("forecast_resolved_at", weekAgo),
+        /*
+         * The re-score lives on `learnings`, not on `decisions`, so it is its own
+         * head count rather than a field on the one beside it. A row counts only
+         * when BOTH scores are present: half a re-score is not a movement, which
+         * is the same rule the evidence region's own line holds to.
+         */
+        supabase
+          .from("learnings")
+          .select("id", head)
+          .eq("workspace_id", wid)
+          .not("prior_ice", "is", null)
+          .not("new_ice", "is", null)
+          .gte("created_at", weekAgo),
+        /*
+         * THE NEWEST CLOSED LOOP, ordered by when the row was written. Its own
+         * read and its own null, like the counts beside it: a refused `learnings`
+         * table must not blank the arriving count.
+         */
+        supabase
+          .from("learnings")
+          .select(
+            "verdict,summary,prior_ice,new_ice,is_sample,created_at,decisions(title,forecast_resolved_at)",
+          )
+          .eq("workspace_id", wid)
+          .not("verdict", "is", null)
+          .not("summary", "is", null)
+          .order("created_at", { ascending: false })
+          .limit(1),
+        /*
+         * ── THE BET THAT IS STILL OPEN ───────────────────────────────────────
+         *
+         * MEASURED 2026-09-09 on the live database, and this is the reason the
+         * read exists rather than a nicety:
+         *
+         *   Every workspace holding a graded outcome is a seed or a sample.
+         *   The founder's two own workspaces hold 16 runs between them and
+         *   ZERO graded outcomes. Of those 16, two reached Learn and are
+         *   waiting on a forecast date; the other fourteen stopped at a hold.
+         *
+         * So `WhetherItWorked` -- the region built to answer "I cannot feel the
+         * value" -- cannot draw for the person who said it. It needs a CLOSED
+         * loop and he has never had one. The entry then has nothing to say about
+         * value at all: a debt count, a composer, a road and a list.
+         *
+         * This is the honest thing the record CAN say in that state. A forecast
+         * is a falsifiable claim the machine made on his work before the answer
+         * was known, and it carries the date he will find out. That is the
+         * product's whole positioning in the state before knowing, and it is his
+         * own work rather than a sample.
+         *
+         * SOONEST DUE, not newest written. The useful ordering is "what you will
+         * learn next", and a bet due tomorrow matters more than one filed
+         * yesterday that comes due in six weeks.
+         *
+         * UNRESOLVED AND NOT YET DUE, both. A resolved forecast belongs to the
+         * closed loop above and would be this region contradicting that one; a
+         * horizon already passed is overdue rather than pending, which is a
+         * different sentence and one `/outcomes` already owns ("10 are past the
+         * dates they set and have not been graded").
+         */
+        supabase
+          .from("decisions")
+          .select("title,forecast_claim,forecast_how_we_will_know,forecast_horizon_date,is_sample")
+          .eq("workspace_id", wid)
+          .not("forecast_claim", "is", null)
+          .not("forecast_horizon_date", "is", null)
+          .is("forecast_resolved_at", null)
+          .gt("forecast_horizon_date", new Date().toISOString())
+          .order("forecast_horizon_date", { ascending: true })
+          .limit(1),
+        releasedQ,
+        movedQ,
+      ],
+    );
 
     /*
      * WHAT WENT LIVE SINCE YOU LAST LOOKED (P-126). `changelog_entries` HAS NO
@@ -436,6 +477,31 @@ export async function readAnswers(
           isSample: Boolean(row.is_sample),
         };
       })(),
+      /*
+       * A REFUSED READ IS NO MOVES, NEVER "NOTHING MOVED". `theWorkMoved`
+       * turns a null into silence, which is the same fail direction every
+       * other answer here takes.
+       */
+      moved: movedRows.error
+        ? null
+        : (
+            (movedRows.data ?? []) as Array<{
+              entity_id: string;
+              from_stage: string | null;
+              to_stage: string | null;
+              at: string;
+            }>
+          )
+            .filter((m) => typeof m.to_stage === "string" && m.to_stage.length > 0)
+            .map((m) => ({
+              from: m.from_stage,
+              to: m.to_stage as string,
+              /* The title is resolved by the caller from rows it already holds:
+                 `listRunsForStart` carries every open track's title, so naming
+                 the run costs this read nothing. */
+              trackId: m.entity_id,
+              at: m.at,
+            })),
       closedRead: !closedQ.error,
       closed:
         closedQ.error || !closedRow || !closedRow.verdict || !closedRow.summary

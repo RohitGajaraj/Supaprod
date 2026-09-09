@@ -19,6 +19,7 @@
  * not a zero, not a reassurance.
  */
 
+import type { WorkMoved } from "@/components/start/the-work-moved";
 import { dateTimeInZone } from "@/lib/time-of-day";
 
 /**
@@ -195,6 +196,60 @@ export function learnedAnswer(count: number | null, rescored: number | null = nu
 /** The three, in the order a person needs them: what stops work, what is new,
  *  what was learned. Unread ones are dropped by the component rather than here,
  *  so a test can see which read failed. */
+/**
+ * YOUR WORK MOVED, which is the one thing this product exists to do and the
+ * one thing this line-up could not say.
+ *
+ * The other four answer what is WAITING, what ARRIVED, what SHIPPED and what
+ * was LEARNED. A run advancing a station was in none of them, so on the day the
+ * loop finally moved a track that had been stuck since 2026-09-06, a person
+ * returning to the home would have seen a road in a different shape and no
+ * sentence telling them anything had happened. A road shows the new STATE; only
+ * "since you last looked" can show the CHANGE.
+ *
+ * It leads the four, deliberately. What is waiting is a debt; this is the
+ * product having done something, and a home that opens on debt when it has news
+ * is the "dump of data" reading of this page.
+ *
+ * See `the-work-moved.ts` for why forward and backward are never one count.
+ */
+export function movedAnswer(moved: WorkMoved): Answer {
+  switch (moved.kind) {
+    case "one":
+      /* NAMED, NOT COUNTED. "One run moved on" is a tally; the title and the
+         station are the product telling you what it did. Same rule
+         `WhetherItWorked` follows one region down. */
+      return {
+        read: "answered",
+        line: `${moved.title} reached ${moved.station}.`,
+        door: { label: "See where it stands", to: "/start" },
+      };
+    case "many":
+      return {
+        read: "answered",
+        line: `${moved.forward} runs moved on.`,
+        door: { label: "See where they stand", to: "/start" },
+      };
+    case "back":
+      /* A send-back with no forward move is the state a person most needs to
+         know about, because it is the one they may want to argue with. */
+      return {
+        read: "answered",
+        line:
+          moved.sentBack === 1
+            ? "A run was sent back a step."
+            : `${moved.sentBack} runs were sent back a step.`,
+        door: { label: "See why", to: "/start" },
+      };
+    case "none":
+      /* Silence, never "nothing moved". This shares `lastLookedAt` with
+         `arrivingAnswer`, and that field's own rule is that no last-look is not
+         a zero -- so a `none` that came from a missing `since` must not be
+         rendered as news that nothing happened. */
+      return UNREAD;
+  }
+}
+
 export function homeAnswers(input: {
   waitingShape: ReadonlyArray<{ n: number; label: string }> | null;
   arrivingCount: number | null;
@@ -203,6 +258,8 @@ export function homeAnswers(input: {
   /** How many of those moved the record. Null withholds the clause. */
   rescoredCount?: number | null;
   releases: readonly ReleasedItem[] | null;
+  /** What advanced a station since the last look. Absent withholds the line. */
+  moved?: WorkMoved | null;
   /** The person's own zone (P-130), and the instant "today" is judged
    *  against -- both threaded in rather than read here, so this stays pure
    *  and testable without a clock or a profile. */
@@ -210,6 +267,10 @@ export function homeAnswers(input: {
   nowIso: string;
 }): Answer[] {
   return [
+    /* THE NEWS BEFORE THE DEBT. A home that opens on what is owed when the
+       product has just done something is the "dump of data" reading of this
+       page; what moved is the answer to "I cannot feel the value". */
+    movedAnswer(input.moved ?? { kind: "none" }),
     waitingAnswer(input.waitingShape),
     arrivingAnswer(input.arrivingCount, input.lastLookedAt),
     releasedAnswer(input.releases, input.lastLookedAt, input.zone, input.nowIso),

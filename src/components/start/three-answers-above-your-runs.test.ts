@@ -284,11 +284,44 @@ describe("the four, together", () => {
       zone: ZONE,
       nowIso: NOW,
     });
-    expect(a).toHaveLength(4);
-    expect(a[0]).toMatchObject({ door: { to: "/approvals" } });
-    expect(a[1]).toMatchObject({ door: { to: "/arriving" } });
-    expect(a[2]).toMatchObject({ door: { href: "https://cad-60000000.deno.net" } });
-    expect(a[3]).toMatchObject({ door: { to: "/outcomes" } });
+    /*
+     * FIVE SINCE 2026-09-10, AND THE NEW ONE LEADS. "Your work moved" was in
+     * none of these: they say what is WAITING, what ARRIVED, what SHIPPED and
+     * what was LEARNED, and a run advancing a station is the one thing this
+     * product exists to do. It goes first because a home that opens on what is
+     * OWED when the product has just done something is the "dump of data"
+     * reading of the page.
+     *
+     * `moved` is absent here, so it is unread and the four keep their order
+     * behind it -- which is the property this test was written for and still
+     * holds.
+     */
+    expect(a).toHaveLength(5);
+    expect(a[0]).toEqual({ read: "unread" });
+    expect(a[1]).toMatchObject({ door: { to: "/approvals" } });
+    expect(a[2]).toMatchObject({ door: { to: "/arriving" } });
+    expect(a[3]).toMatchObject({ door: { href: "https://cad-60000000.deno.net" } });
+    expect(a[4]).toMatchObject({ door: { to: "/outcomes" } });
+  });
+
+  it("leads with what moved when something did, ahead of what is owed", () => {
+    const a = homeAnswers({
+      waitingShape: HELIO,
+      arrivingCount: 2,
+      lastLookedAt: "2026-09-01T00:00:00Z",
+      learnedCount: 1,
+      releases: [],
+      moved: { kind: "one", title: "Warn a homeowner before a visit is cancelled", station: "Design" },
+      zone: ZONE,
+      nowIso: NOW,
+    });
+    expect(a[0]).toMatchObject({
+      read: "answered",
+      line: "Warn a homeowner before a visit is cancelled reached Design.",
+    });
+    /* The debt is still there, one line down. Leading with the news does not
+       mean hiding what is waiting. */
+    expect(a[1]).toMatchObject({ door: { to: "/approvals" } });
   });
 
   it("keeps an unread one in the list, so a test can see which read failed", () => {
@@ -302,8 +335,11 @@ describe("the four, together", () => {
       zone: ZONE,
       nowIso: NOW,
     });
-    expect(a).toHaveLength(4);
+    expect(a).toHaveLength(5);
+    /* `moved` unread at 0, and the refused `waitingShape` unread at 1: both
+       stay in the list so a test can see WHICH read failed. */
     expect(a[0]).toEqual({ read: "unread" });
+    expect(a[1]).toEqual({ read: "unread" });
   });
 
   it("renders nothing at all when no read answered", () => {
