@@ -129,6 +129,7 @@ import {
   Reading,
   Region,
 } from "@/components/meridian/surface-parts";
+import { readModelStep, actionLine } from "@/components/traces/what-the-model-said";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import * as React from "react";
@@ -221,6 +222,46 @@ function fmtUsd(n: number) {
 
 function clip(s: string, n = 180) {
   return s.length > n ? `${s.slice(0, n)}…` : s;
+}
+
+/**
+ * ── THE MODEL EXPLAINS EVERY STEP, AND THIS ROW USED TO DRAW THE JSON ──────
+ *
+ * Read live on `/traces/899baa5a`, 2026-09-09. Seven model calls, each rendered
+ * as `clip(s.output_preview)`, so each row read:
+ *
+ *   Critique called qwen/qwen-plus                                    4.72s
+ *   {"thought":"I need to review the standing design system and the spec to
+ *    evaluate the provi...
+ *
+ * Inside that string, on all seven, was a paragraph of the model's own
+ * reasoning and -- on the complete ones -- a `reason` field saying WHY it chose
+ * the next tool. The deepest surface in a product whose claim is that you can
+ * watch an agent work was drawing the punctuation around the answer.
+ *
+ * `readModelStep` scans rather than parses, because these are `*_preview`
+ * columns and `JSON.parse` throws on essentially every row of a busy trace --
+ * see `what-the-model-said.ts` for the cut sample that proves it. When the row
+ * is not that shape it returns null and this falls back to `clip`, which is
+ * what every non-agent writer on this page still gets.
+ *
+ * THE THOUGHT LEADS AND THE TOOL FOLLOWS. The row's own lead already says who
+ * acted and on which model, so this line is for what it was thinking; the tool
+ * it then reached for is the consequence and sits after it, in the data face,
+ * under its real name. `reason` is deliberately NOT here: it is a second
+ * paragraph, and the detail pane beside this row is where a paragraph belongs.
+ */
+function modelSaid(preview: string): React.ReactNode {
+  const step = readModelStep(preview);
+  if (!step || (!step.thought && !step.action)) return clip(preview);
+  const act = actionLine(step);
+  return (
+    <>
+      {step.thought ? clip(step.thought) : null}
+      {step.thought && act ? " · " : null}
+      {act ? <Num>{act}</Num> : null}
+    </>
+  );
 }
 
 /** Plain-words clock for the one whole-trace timestamp in the head. */
@@ -848,7 +889,7 @@ export function TraceDetail({ id }: { id: string }) {
                     {s.error_message ? clip(s.error_message) : "Stopped by a guardrail"}
                   </span>
                 ) : s.output_preview ? (
-                  clip(s.output_preview)
+                  modelSaid(s.output_preview)
                 ) : (
                   "No output recorded"
                 );
