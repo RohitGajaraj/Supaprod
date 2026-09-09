@@ -1123,7 +1123,20 @@ export type TrackDecision = {
   /** The options the agent weighed, as it recorded them (jsonb). */
   alternatives_considered: Json;
   decided_by_agent_slug: string | null;
+  /** The approval state of the RECORD. Not which way the call went. */
   status: string;
+  /**
+   * WHICH WAY THE CALL WENT: `build`, `do-not-build`, or null where nobody
+   * recorded one.
+   *
+   * Null is not `build`. 33 agent decisions carry null because they were
+   * written before the direction had a column of its own, and the only place
+   * their direction survives is the title's first word, which is exactly what
+   * a reader must not be asked to parse (worktree-1-68, 2026-09-09: 41 of 61
+   * agent decisions were `approved` and 16 of those read as refusals). A
+   * surface that cannot say the direction should say nothing, never "build".
+   */
+  call: "build" | "do-not-build" | null;
   source_kind: string | null;
   created_at: string;
   /** How this decision reached the run: written on it, or made on one of its missions. */
@@ -1148,6 +1161,17 @@ export type TrackDecision = {
  * why are on getTrackActivity as selfChecks; the two together are what the
  * agent decided and why.
  */
+/**
+ * The direction, asked of the list rather than cast into it. A CHECK
+ * constraint holds the column to two values, but a column is not a type and
+ * the row arrives as text; anything else becomes null, which is the honest
+ * answer for "the direction was never recorded" and the one every reader here
+ * already has to handle.
+ */
+function decisionCall(value: unknown): TrackDecision["call"] {
+  return value === "build" || value === "do-not-build" ? value : null;
+}
+
 export async function readTrackDecisions(
   supabase: SupabaseClient<Database>,
   trackId: string,
@@ -1171,7 +1195,7 @@ export async function readTrackDecisions(
   if (decisionIds.length === 0 && missionIds.length === 0) return { decisions: [] };
 
   const COLUMNS =
-    "id,title,rationale,alternatives_considered,decided_by_agent_slug,status,source_kind,mission_id,created_at,forecast_claim,forecast_how_we_will_know,forecast_horizon_date,forecast_resolution,forecast_resolution_rationale,forecast_resolved_at";
+    "id,title,rationale,alternatives_considered,decided_by_agent_slug,status,call,source_kind,mission_id,created_at,forecast_claim,forecast_how_we_will_know,forecast_horizon_date,forecast_resolution,forecast_resolution_rationale,forecast_resolved_at";
   type Row = {
     id: string;
     title: string;
@@ -1179,6 +1203,7 @@ export async function readTrackDecisions(
     alternatives_considered: Json;
     decided_by_agent_slug: string | null;
     status: string;
+    call: string | null;
     source_kind: string | null;
     mission_id: string | null;
     created_at: string;
@@ -1214,6 +1239,7 @@ export async function readTrackDecisions(
       alternatives_considered: r.alternatives_considered ?? null,
       decided_by_agent_slug: r.decided_by_agent_slug,
       status: r.status,
+      call: decisionCall(r.call),
       source_kind: r.source_kind,
       created_at: r.created_at,
       via,

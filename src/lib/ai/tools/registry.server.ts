@@ -6450,6 +6450,26 @@ const decisionRecord = def({
          * provenance problem is not more trustworthy for being a no. `declined` is
          * new and nothing constrains `status`, so no migration is needed.
          */
+        /*
+         * ── THE DIRECTION IS ITS OWN COLUMN, AND STATUS IS NOT IT ──────────
+         *
+         * `status` answers whether the RECORD was approved. It was also being
+         * asked which way the CALL went, and it could only answer that when
+         * the gate happened to approve: a `do-not-build` written while the gate
+         * was pending lost its direction entirely, and an approved refusal was
+         * structurally identical to an approval of a yes. The direction lived
+         * in the title's first word, and reading it back out of prose is the
+         * trap this repo has been bitten by twice.
+         *
+         * Measured 2026-09-09: 41 of 61 agent decisions were `approved` and 16
+         * of those have a title that reads as a refusal. `intent` was non-null
+         * on 5 rows in 422, so it was never this field. `call` is now written
+         * here, from the argument, unconditionally, and `status` keeps its own
+         * question. Migration 20260909101200, which also recovered 28 rows
+         * from the tool calls that wrote them and left 33 NULL rather than
+         * guessing at them.
+         */
+        call: a.call,
         status: a.call === "do-not-build" && gate.status === "approved" ? "declined" : gate.status,
         decided_by_agent_slug: agentSlug ?? null,
         /**

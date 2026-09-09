@@ -5866,6 +5866,10 @@ export const buildOnYourWord = createServerFn({ method: "POST" })
         workspace_id: track.workspace_id,
         product_id: track.product_id,
         title: claim,
+        /* A person recording their own claim on a run they asked for is a bet
+           ON the thing, so the direction is not in doubt and is not left NULL:
+           NULL means nobody recorded one, which would be false here. */
+        call: "build",
         status: "approved",
         rationale:
           "You chose to build this on your word. Nothing in this workspace bore on it, so the " +

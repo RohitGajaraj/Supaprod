@@ -2724,6 +2724,7 @@ export type Database = {
         Row: {
           alternatives_considered: Json
           auto_origin: boolean
+          call: string | null
           cited_by_count: number
           created_at: string
           decided_by_agent_slug: string | null
@@ -2772,6 +2773,7 @@ export type Database = {
         Insert: {
           alternatives_considered?: Json
           auto_origin?: boolean
+          call?: string | null
           cited_by_count?: number
           created_at?: string
           decided_by_agent_slug?: string | null
@@ -2820,6 +2822,7 @@ export type Database = {
         Update: {
           alternatives_considered?: Json
           auto_origin?: boolean
+          call?: string | null
           cited_by_count?: number
           created_at?: string
           decided_by_agent_slug?: string | null
