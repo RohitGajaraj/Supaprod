@@ -42,7 +42,19 @@ export const stampLastLook = createServerFn({ method: "POST" })
     let workspaceId = data?.workspaceId ?? null;
     if (!workspaceId) {
       const { data: def } = await supabase.rpc("current_user_default_workspace");
-      workspaceId = (def as string | null) ?? null;
+      /*
+       * CHECKED, NOT CAST. `(def as string | null) ?? null` is an assertion
+       * plus a nullish guard, and `??` catches only null and undefined, so any
+       * OTHER shape passes through wearing the type of an id. An empty array is
+       * truthy, so it would clear the `!workspaceId` guard below and this
+       * handler would STAMP against it, which is precisely what the comment
+       * under that guard says must never happen.
+       *
+       * Lane 3 found 52 call sites of this shape on 2026-09-09; this was one of
+       * two on this lane. See the design contract's law 10: a cast is a claim
+       * about a value, never a check of it.
+       */
+      workspaceId = typeof def === "string" && def.length > 0 ? def : null;
     }
     /*
      * NO WORKSPACE, NO STAMP. The row is keyed (user_id, workspace_id) and a

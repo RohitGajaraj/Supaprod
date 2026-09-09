@@ -421,6 +421,28 @@ The driver's closed-correction memory records what fixed a track only *after* th
 not finish has finished. Until then the hypothesis is not written at all, so nothing downstream can
 read it as a fact. A sentence can be argued with; a write either records the guess or it waits.
 
+**THE SHARPEST FORM OF IT IS FOUR CHARACTERS WIDE: A CAST IS NOT A CHECK.**
+
+`(value as string | null) ?? null` reads like a guard and is not one. The `as` asserts a type the
+compiler then stops questioning, and `??` catches only `null` and `undefined`, so **any other shape
+passes straight through wearing the type of an id.** An empty array is truthy, so it survives the
+`if (!workspaceId)` written to catch exactly this, and everything downstream filters on it. The
+counts then answer **zero** rather than null, which is the one answer those readers must never
+invent.
+
+Found once on the entry's own read, then swept: **52 call sites of that shape across the codebase**,
+all of them taking the same default-workspace lookup, and two more on this lane. One of the two was
+worse than a count, because it WRITES: the last-look stamp would have marked another desk's findings
+as seen, under a comment saying that must never happen. The fix everywhere is the same and it is
+narrower than it looks: `typeof x === "string" && x.length > 0 ? x : null`.
+
+The same shape wears other clothes. `sourceMark` read `(explicit as SourceMark) ?? "unknown"` inside
+an `if (explicit)`, so the fallback was unreachable and the cast was doing all the work: any string a
+caller put in `mark` came back typed as a mark, and two lookups indexed on it. It tests membership in
+that union's own exhaustive record now, **so the runtime check cannot drift from the type.** That is
+the pattern worth copying: check against the map the type already requires, not against a list you
+write out again.
+
 **And it applies underneath the copy too.** Auditing this lane's own surfaces against it turned up
 no bad sentence and two bad reads: an embed whose generated type and actual shape disagree, read
 without handling both; and a default-workspace lookup taken with `?? null`, which accepts any shape
@@ -443,6 +465,7 @@ Each of these has been found more than once, by people who knew the rule. Check 
 | A focus utility that paints nothing | 6 files | Unlayered CSS beats every `@layer`, and Tailwind emits utilities into a layer. Inherit the ring via `data-mrd` rather than declaring a per-component constant. |
 | Identity painted as a colour ramp | 3 | Law 4. |
 | A `100vh` child inside a taller document | 1, shipped | One ancestor owns the viewport; everything below takes shares. `min-height: 0` on the flex child is the part people leave out. |
+| `as T` plus `??` read as a guard | **54**, swept in one day | A cast is a claim about a value, never a check of it, and `??` catches only null and undefined. Any other shape passes through typed. `typeof x === "string" && x.length > 0 ? x : null`, or test membership in the union's own exhaustive record. |
 | A clause welded to a sentence that never reads it | 1, on the entry | "and the record was re-scored" was part of the sentence for every graded decision and nothing in that read looked at a score. A surface that states a consequence must read the consequence. |
 | A qualifier left behind when its branch's source changed | **3**, in one day | The guard, the keyframes and the "at least" floor all belonged to a read that had been swapped underneath them. Nothing fails when a qualifier outlives its reason. When you change what a branch reads, grep for every hedge, guard and dependency written for the old read. |
 | An animation that SETS a property the element already declares | 2 | `mrd-attention` drives opacity from 1, so it overrides a resting `opacity: 0.35` and the element peaks at nearly three times its designed weight. An envelope reads the value (`var(--mrd-halo-rest)`) and scales it. Use `mrd-halo` on anything with a resting opacity. |

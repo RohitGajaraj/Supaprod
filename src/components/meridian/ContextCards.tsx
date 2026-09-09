@@ -186,7 +186,18 @@ type SourceMark =
  */
 export function sourceMark(source: ContextSource): SourceMark {
   const explicit = (source.mark ?? "").toLowerCase();
-  if (explicit) return (explicit as SourceMark) ?? "unknown";
+  /*
+   * CHECKED AGAINST THE MAP, NOT CAST. This read `(explicit as SourceMark) ??
+   * "unknown"`, inside an `if (explicit)`, so the fallback was unreachable and
+   * the cast was doing all the work: ANY string a caller put in `mark` came
+   * back typed as a mark, and `SourceGlyph` and `MARK_NAME` below both index on
+   * it. A source marked "banana" would have drawn nothing and named nothing.
+   *
+   * `MARK_NAME` is the exhaustive record for this union, so testing membership
+   * in it means the runtime check cannot drift from the type: add a mark and
+   * the map must gain a key or the compiler objects.
+   */
+  if (explicit && explicit in MARK_NAME) return explicit as SourceMark;
 
   const label = source.label.toLowerCase();
   const hint = `${label} ${(source.kind ?? "").toLowerCase()}`;
