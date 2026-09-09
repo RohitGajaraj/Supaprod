@@ -377,3 +377,60 @@ describe("a decision's line says which way the call went", () => {
     expect(l?.did).toBe('filed "Reschedule from the order page"');
   });
 });
+
+/**
+ * THE STORY, THE ROAD AND THE PANE AGREE ABOUT WHAT COUNTS AS ONE THING.
+ *
+ * The road began folding repeats through `foldVersions` an hour before this,
+ * so its Discover node on `47dcbf3c` reads "4 findings, 67 times" while this
+ * line still counted filings and said "Discover filed 67 findings". Two numbers
+ * for one set on one screen, and the change that created the gap was mine.
+ *
+ * Law 20 on my own work: the road's count was reviewed against its own reason,
+ * the reason was right, and nothing in that diff showed the sentence it now
+ * stood beside.
+ */
+describe("the story counts things, not filings", () => {
+  const item = (n: number, kind: string, title: string) => ({
+    kind,
+    artifactId: `${kind}-${n}`,
+    title,
+    missing: false,
+    createdAt: `2026-09-04T02:0${n}:00Z`,
+  });
+  const line = (items: ReturnType<typeof item>[]) =>
+    throughLine({ stops: [{ station: "sense", items }], standing: "sense" })[0];
+
+  it("says four findings and how often, not sixty-seven", () => {
+    const many = Array.from({ length: 8 }, (_, i) =>
+      item(i, "signal", `Homeowners cannot tell a reboot from an outage ${i % 4}`),
+    );
+    expect(line(many)?.did).toBe("filed 4 findings, 8 times");
+  });
+
+  it("leaves the clause alone when every one is its own thing", () => {
+    const three = [1, 2, 3].map((n) => item(n, "signal", `Finding ${n}`));
+    expect(line(three)?.did).toBe("filed 3 findings");
+  });
+
+  it("folds each kind on its own", () => {
+    // Two findings filed four times, and two genuinely different specs.
+    const mixed = [
+      item(1, "signal", "One thing"),
+      item(2, "signal", "One thing"),
+      item(3, "signal", "Another thing"),
+      item(4, "signal", "Another thing"),
+      item(5, "prd", "Spec A"),
+      item(6, "prd", "Spec B"),
+    ];
+    expect(line(mixed)?.did).toBe("filed 2 findings, 4 times and 2 specs");
+  });
+
+  it("and a single titled thing still takes the title slot", () => {
+    // The rule above the count is untouched: one thing with a name says the
+    // name, which is more informative than "1 finding".
+    expect(line([item(1, "signal", "Homeowners cannot tell a reboot")])?.did).toBe(
+      'filed "Homeowners cannot tell a reboot"',
+    );
+  });
+});

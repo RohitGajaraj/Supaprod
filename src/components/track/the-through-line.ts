@@ -47,6 +47,7 @@
  */
 import { AGENT_STATIONS, type AgentStation } from "@/lib/agent-vocabulary";
 import { KIND_WORD } from "@/lib/spine/attach";
+import { foldVersions } from "@/components/track/versions-of-one-thing";
 
 /** One artifact a station filed, as the pane already holds it. */
 export type LineItem = {
@@ -208,11 +209,43 @@ function didClause(items: LineItem[]): string | null {
      of a title. This also puts the story back in step with the road, which has
      always read a mission as a STATE rather than a product
      (`run-journey.ts`: a mission at Build renders as "building"). */
-  const byKind = new Map<string, number>();
-  for (const i of made) byKind.set(i.kind, (byKind.get(i.kind) ?? 0) + 1);
-  const parts = [...byKind.entries()].map(([kind, n]) => {
+  /*
+   * ── FOLDED THE WAY THE ROAD AND THE PANE FOLD, AND I BROKE THIS MYSELF ──
+   *
+   * The road counts DISTINCT things through `foldVersions` as of tonight, so on
+   * `47dcbf3c` its Discover node reads "4 findings, 67 times". This line still
+   * counted filings, so the story two inches away read "Discover filed 67
+   * findings". Two numbers for one set, on one screen, and the change that
+   * created the gap was mine an hour earlier.
+   *
+   * That is law 20 on my own work for the third time tonight: the road's count
+   * was reviewed against its own reason, the reason was right, and nothing in
+   * that diff showed the sentence it now stands beside.
+   *
+   * `foldVersions` is the artifact pane's own fold, so all three surfaces on
+   * this screen now answer "what counts as one thing" identically.
+   */
+  const byKind = new Map<string, { filed: number; distinct: number }>();
+  for (const i of made) {
+    const seen = byKind.get(i.kind) ?? { filed: 0, distinct: 0 };
+    byKind.set(i.kind, { filed: seen.filed + 1, distinct: 0 });
+  }
+  for (const kind of byKind.keys()) {
+    const ofKind = made.filter((i) => i.kind === kind);
+    byKind.set(kind, {
+      filed: ofKind.length,
+      distinct: foldVersions(
+        ofKind.map((i) => ({ ...i, createdAt: (i as { createdAt?: string }).createdAt ?? "" })),
+      ).length,
+    });
+  }
+  const parts = [...byKind.entries()].map(([kind, { filed, distinct }]) => {
     const word = KIND_WORD[kind] ?? { one: kind, many: `${kind}s` };
-    return `${n} ${n === 1 ? word.one : word.many}`;
+    const n = distinct > 0 ? distinct : filed;
+    const counted = `${n} ${n === 1 ? word.one : word.many}`;
+    /* The repetition survives, for the road's reason: a station that drew one
+       screen five times did not draw one screen. */
+    return n === filed ? counted : `${counted}, ${filed} times`;
   });
   const list =
     parts.length === 1
