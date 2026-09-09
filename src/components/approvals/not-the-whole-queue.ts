@@ -71,3 +71,35 @@ export function notTheWholeQueue(
   }
   return "Part of your queue did not load, so this is not everything waiting on you.";
 }
+
+/**
+ * ── AND THE SIBLING THIS MODULE'S HEADER WAS WRITTEN FOR: NO READ AT ALL ────
+ *
+ * A family that degraded leaves a gap and the queue still answers. A read that
+ * THREW leaves no queue: the callers that fold it into their own answer, the
+ * briefing and the loop state, caught the throw into an empty list, and an
+ * empty list is indistinguishable from a clear queue. So the briefing composed
+ * "Agents are idle. Nothing waits on you." and every gate count on the strip
+ * reported zero, on a read neither of them had got (2026-09-09).
+ *
+ * It lives here for the reason the header already gives: two spellings of one
+ * caveat is how a person gets two answers about the same queue. This is the
+ * third spelling that WOULD have existed, after `/approvals` and the inbox, so
+ * it is the case the module was made for.
+ *
+ * WHAT IT IS NOT. It is not a number and it does not change one. A count that
+ * was never read is not a hedged zero and not a differently drawn glyph: a mark
+ * that changes shape when a read degrades is noise on the surface that most
+ * needs to stay calm (Lane 1's ruling, 2026-09-09, on keeping the rail's digit
+ * plain). The caveat goes in the prose beside the number, or nowhere.
+ */
+export const QUEUE_UNREAD_LINE = "What is waiting on you could not be read, so this does not say.";
+
+/**
+ * The line for a queue that could not be read at all, or null when it was.
+ * Takes the flag the server-side readers carry (`queueUnread`), so a surface
+ * never has to decide what a zero means on its own.
+ */
+export function queueCouldNotBeRead(unread: boolean | null | undefined): string | null {
+  return unread ? QUEUE_UNREAD_LINE : null;
+}

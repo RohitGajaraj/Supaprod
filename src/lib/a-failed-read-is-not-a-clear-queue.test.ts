@@ -16,6 +16,7 @@
 import { describe, expect, it } from "bun:test";
 import { readFileSync } from "node:fs";
 import { composeBriefing } from "./briefing.functions";
+import { QUEUE_UNREAD_LINE, queueCouldNotBeRead } from "@/components/approvals/not-the-whole-queue";
 
 const BRIEFING = readFileSync("src/lib/briefing.functions.ts", "utf8");
 const LOOP = readFileSync("src/lib/loop-state.functions.ts", "utf8");
@@ -50,5 +51,36 @@ describe("a failed read is not a clear queue", () => {
   it("the loop state hands the flag on, so a strip cannot read zero as none", () => {
     expect(LOOP).toContain("queueUnread?: boolean;");
     expect(LOOP).toContain("return { stages, queueUnread:");
+  });
+});
+
+/**
+ * ONE SPELLING OF ONE CAVEAT. `/approvals` and the inbox already share their
+ * "not the whole queue" wording through one module, for the reason its header
+ * gives: two spellings is how a person gets two answers about the same queue.
+ * A read that failed outright is the sibling case that header names, so it
+ * lives there too rather than being invented again in the briefing.
+ */
+describe("the caveat has one spelling", () => {
+  it("the briefing says the module's sentence, not its own", () => {
+    const said = composeBriefing({
+      events: [],
+      inFlightRuns: 0,
+      gateCountByStage: {},
+      queueUnread: true,
+    });
+    expect(said.paragraphs[0]).toContain(QUEUE_UNREAD_LINE);
+  });
+
+  it("and a surface asks the module rather than deciding what a zero means", () => {
+    expect(queueCouldNotBeRead(true)).toBe(QUEUE_UNREAD_LINE);
+    expect(queueCouldNotBeRead(false)).toBeNull();
+    expect(queueCouldNotBeRead(null)).toBeNull();
+    expect(queueCouldNotBeRead(undefined)).toBeNull();
+  });
+
+  it("it is a sentence and never a number, so no count is drawn differently", () => {
+    expect(QUEUE_UNREAD_LINE).not.toMatch(/\d/);
+    expect(QUEUE_UNREAD_LINE).toMatch(/could not be read/);
   });
 });

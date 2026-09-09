@@ -32,6 +32,9 @@ import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { readApprovalsQueue, type ApprovalsQueueResult } from "@/lib/approvals-queue.functions";
+/* One spelling of one caveat: the module that owns what the queue says when it
+   cannot report itself in full owns this sentence too (Lane 1, 2026-09-09). */
+import { QUEUE_UNREAD_LINE } from "@/components/approvals/not-the-whole-queue";
 import { longDayInZone } from "@/lib/time-of-day";
 import { zoneForUser } from "@/lib/profile-zone.server";
 import {
@@ -193,7 +196,7 @@ export function composeBriefing(input: BriefingInput): Briefing {
       dayLabel,
       paragraphs: [
         input.queueUnread
-          ? "Agents are idle. What is waiting on you could not be read, so this does not say."
+          ? `Agents are idle. ${QUEUE_UNREAD_LINE}`
           : "Agents are idle. Nothing waits on you.",
       ],
       receipts: [],
