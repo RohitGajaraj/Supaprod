@@ -1763,3 +1763,49 @@ does real work and the user sees almost none of it", exact and reproducible.
 - A required prop with no null in its type is how an invention gets written at a call site: the
   caller holds a null, the type refuses it, and the fallback goes in the one place no reviewer will
   meet the rule it breaks.
+### Lane 1 · addendum 09:12 IST 09-09 · round five, the through-line
+Round five (four lenses: the session story, the rail's information architecture, dead ends, and
+anticipation; 32 findings, 19 confirmed, 10 refuted or stale) is landed and dispatched.
+
+**On main from this lane.** `495aae117` the composer's route picker (F-222): every sentence typed on
+the home was filed as `new-capability` and walked all seven stations, so "fix the broken login"
+opened a Discover run; a person now picks the shape of the work in their own words and the machine
+answers where it enters and what policy waives, derived from `suggestRoute` so a waiver changed in
+`route.ts` changes the sentence in the same edit. Same commit, F-223: Findings' fallback headline
+("N clusters need your decisions") drew on every new workspace's first visit and claimed a move the
+sweep makes unattended; it reports the machine's state now. `2bc811f08` the dead-ends and
+retired-words batch, eight findings: Outcomes says "decision" for the graded record, the doors named
+for retired places are renamed, the two "Open the specs" doors that landed on Home are gone, the
+graph's opportunity door goes to the ranked bets rather than through a redirect, a spec's "Through
+Design" commits a receipt, a run id that does not exist gets a door instead of two mounted panes, the
+run page's crash state carries a retry, and `LEGACY_REDIRECTS` (thirty doors, none of which exist,
+two pointing at the deleted `/today`) is deleted with the four command-palette entries it was
+propping up. `30532d8b7` the Settings and Team fold: "Who works here" and "What they may do without
+asking" were answered under both, so the Setup tier and Settings could not be told apart; the
+boundary now has one address at `/crew?tab=boundary`, `RosterSection` and `AgentDetail` are deleted
+from the settings route (they held no editor), and four legacy section ids redirect to Team.
+
+**Dispatched, by name.** To Lane 2 (their surfaces): a call raised on a run reaches the Inbox without
+its run, because a gate carries `mission_id` and the spine makes a mission only at Build, so six of
+seven stations raise calls with no subject and the Inbox invents "This workspace" and offers no door
+either way (confirmed twice, from two lenses, the highest thing in the round); one gate with two
+contracts (declining on the run demands a reason, declining in the Inbox with `d` does not); the run
+page cannot say what changed since you last opened it; a run started from the knowledge graph reads
+"The crew is working on..." and lands on "Ready when you are". To Lane 3 (the driver): on the horizon
+day Learn knows only a person can grade the release and burns three attempts instead of filing the
+call; "Let Build try again" promises the next turn and hands the retry to the ten-minute sweep; the
+receipt for letting Findings read on its own says "Nothing is promoted without you" while flipping
+the flag the promotion sweep reads. Also handed to Lane 3 from Lane 2's measurement: the Design
+station files every prototype twice, so 59 filed rows are 36 distinct bodies and a run counting "10
+prototypes" has three designs.
+
+**Refuted, so nobody refiles them.** Do not give clusters a family in `getApprovalsQueue`, the rail
+badge or the hero's shape: clusters are promoted unattended, and counting them would make three
+surfaces claim a block that does not exist. The remaining seven are in the run's own journal.
+
+**Open on this lane.** The Ask pane's "Hand it over" still hard-codes `shape: "new-capability"`, the
+same defect F-222 fixed on the home, on a surface this lane does not own the rest of. The engine
+room's Safety room still holds five of the six views `BoundaryPane` now carries, which is door-level
+duplication removed and view-level duplication left; folding it means restructuring the room set, so
+it is a finding rather than a leftover. `?section=...` ids that are neither a section nor an off-page
+id fall back to the account rather than raising.
