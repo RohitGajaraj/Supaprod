@@ -84,8 +84,32 @@ export function wallIsNewerThanTheRelease(input: ReleaseInput): boolean {
 export function mayRelease(input: ReleaseInput): ReleaseVerdict {
   if (input.status !== "open")
     return { release: false, why: `track is ${input.status ?? "unknown"}` };
-  if (!input.holdIsTerminal)
+  /*
+   * ── AND IT REFUSES A TRACK WITH NO HOLD, WHICH COSTS SOMETHING REAL ────────
+   *
+   * The first version of this repair cleared `last_hold` and nothing else. It
+   * served for about forty minutes on 2026-09-09 and left two tracks in a state
+   * neither mechanism can reach: no terminal hold, so this predicate refuses
+   * them here, AND no hold for `decideDrive`'s money exemption to key on, so
+   * the drives ceiling fires on them unprotected. The predicate that decides
+   * whether to release keys on the very thing the release removes.
+   *
+   * THE GATE IS NOT WIDENED TO CATCH THEM, deliberately. "Unheld, with a wallet
+   * halt as its newest run" is a real signature and it is not a safe one: an
+   * unheld track is not in general a track a wall stopped, and loosening a
+   * repair's own gate to catch a state that a BUG created is how a repair
+   * starts releasing work nobody stopped. The corrected write clears the hold,
+   * the drive count, the seat cursor and the deferral together, so the
+   * half-state cannot be created again; the two rows that carry it were
+   * repaired by hand, once, with the before and after recorded.
+   *
+   * If you are here because a track is stuck and this refused it: check whether
+   * something cleared its hold without clearing the rest. That is the shape,
+   * and the answer is to fix the writer, not this line.
+   */
+  if (!input.holdIsTerminal) {
     return { release: false, why: `hold ${input.lastHold ?? "none"} is not terminal` };
+  }
   if (!newestRunIsAWalletHalt(input)) {
     return {
       release: false,

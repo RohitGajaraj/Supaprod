@@ -181,3 +181,36 @@ describe("the release clears everything the wall wrote, not just the word", () =
     expect(body).toContain("if (!verdict.release) {");
   });
 });
+
+/**
+ * ── THE HALF-RELEASED STATE, AND WHY THE GATE DOES NOT WIDEN TO CATCH IT ─────
+ *
+ * The first version of this repair cleared `last_hold` alone. It served for
+ * about forty minutes on 2026-09-09 and left `6cc7a010` and `0c0db8e6` where
+ * neither mechanism can reach them: no terminal hold, so `mayRelease` refuses
+ * them, and no hold for `decideDrive`'s money exemption to key on either.
+ *
+ * This asserts the refusal ON PURPOSE. A later lane finding those two tracks
+ * stuck will be tempted to accept an unheld track carrying a wallet halt, and
+ * that is a repair releasing work nobody stopped. The fix for a half-release is
+ * the writer, which is now atomic, not this gate.
+ */
+describe("a track whose hold was cleared without the rest is not releasable", () => {
+  it("refuses it, and says the hold is not terminal", () => {
+    const halfReleased = at({ lastHold: null, holdIsTerminal: false });
+    const v = mayRelease(halfReleased);
+    expect(v.release).toBe(false);
+    expect(v.release === false && v.why).toContain("not terminal");
+  });
+
+  /*
+   * THE MIRROR. The refusal must come from the HOLD being gone and not from the
+   * wallet evidence being weak, or this test would pass for the wrong reason
+   * and stop catching the widening it exists to prevent.
+   */
+  it("and the same row with its terminal hold intact still releases", () => {
+    expect(mayRelease(at({ lastHold: "going-in-circles", holdIsTerminal: true })).release).toBe(
+      true,
+    );
+  });
+});
