@@ -29,7 +29,7 @@
 import { describe, expect, it } from "bun:test";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { readAnswers } from "./home-answers.functions";
-import { FakeWire, drive } from "@/__tests__/a-wire-that-counts-rounds";
+import { FakeWire, drive, wireError } from "@/__tests__/a-wire-that-counts-rounds";
 
 describe("the home's answers are three hops", () => {
   it("with a workspace named and no releases, the look and then one group", async () => {
@@ -60,6 +60,54 @@ describe("the home's answers are three hops", () => {
     );
     expect(rounds).toBe(3);
     expect(wire.reads).toContain("deployments");
+  });
+
+  /*
+   * ── ONE READ FAILING MUST BLANK ONLY ITSELF ──────────────────────────────
+   *
+   * This file's own header says each read fails on its own and none may
+   * degrade to zero, because `null` means "we could not find out" and the
+   * shapes draw nothing for it while they draw an ALL-CLEAR for zero. Until
+   * `wireError` existed (Lane 3, 2026-09-09) that could not be tested: a fake
+   * that can only return rows cannot produce the difference between a refusal
+   * and an empty answer, and that difference is what every finding on this
+   * lane today turned on.
+   *
+   * So the hop guard above was measuring the shape of the reads and nothing
+   * about their honesty. This is the half it was missing.
+   */
+  it("a refused learnings table withholds ONLY what it fed, never the counts beside it", async () => {
+    const wire = new FakeWire((table) => (table === "learnings" ? wireError("refused") : []));
+    const { result } = await drive(
+      wire,
+      readAnswers(wire as unknown as SupabaseClient, "user-1", "ws-1"),
+    );
+    const a = result as Awaited<ReturnType<typeof readAnswers>>;
+
+    // What the refusal owns: both learnings reads, withheld rather than zeroed.
+    expect(a.rescoredCount).toBeNull();
+    expect(a.closed).toBeNull();
+    expect(a.closedRead).toBe(false);
+
+    // What it must NOT touch. Zero here is a real answer from a read that
+    // worked, and the shapes are entitled to draw an all-clear for it.
+    expect(a.arrivingCount).toBe(0);
+    expect(a.learnedCount).toBe(0);
+    expect(a.releases).toEqual([]);
+  });
+
+  it("a refused themes table does not blank the graded count or the evidence", async () => {
+    // The mirror, so the test cannot pass by withholding everything.
+    const wire = new FakeWire((table) => (table === "themes" ? wireError("refused") : []));
+    const { result } = await drive(
+      wire,
+      readAnswers(wire as unknown as SupabaseClient, "user-1", "ws-1"),
+    );
+    const a = result as Awaited<ReturnType<typeof readAnswers>>;
+    expect(a.arrivingCount).toBeNull();
+    expect(a.learnedCount).toBe(0);
+    expect(a.rescoredCount).toBe(0);
+    expect(a.closedRead).toBe(true);
   });
 
   it("never reads anything when there is no workspace to read for", async () => {
