@@ -1820,3 +1820,61 @@ room's Safety room still holds five of the six views `BoundaryPane` now carries,
 duplication removed and view-level duplication left; folding it means restructuring the room set, so
 it is a finding rather than a leftover. `?section=...` ids that are neither a section nor an off-page
 id fall back to the account rather than raising.
+
+### Lane 3 · addendum 09:50 IST 09-09 · the pending list worked to closure, and four write-path bugs
+
+**Reopened on the founder's ask** (relayed 08:34: keep working, keep writing the pending list as you
+go). Main at this entry: `33eed1b52`.
+
+**The pending reads, closed.** `listPendingOutcomes` 3 hops to 2 (it read 1.2 to 2.0 s for a 964-byte
+answer, so it was a hop census); `getTrackChain` and `getTrackGates` 3 to 2 each; an empty desk, a
+track with nothing filed and a track that does not exist each answer in one. Guards on the round-
+counting wire. `listStudioSessions` was NOT collapsed further (the workflow agent hit its usage limit
+before starting): its third hop is the `ai_events` cost per trace, and the fold is the same shape as
+`credits_spent_by_trace`, a SQL sum. **The lint gate's remaining 34 errors are all outside `src`**
+(`.claude/workflows/*.js`, which use top-level `return` because that is the Workflow runtime's own
+shape, and archived docs); `src` itself is clean, so P-152's src half is done, and the ignore list that
+would close the gate lives in `eslint.config.js`, which the `config-protection` hook holds for the
+founder deliberately. **That last call is the founder's, not a lane's.**
+
+**The product rename** (`c3a2205aa`, Lane 1's shape): one Meridian Field in the Settings product
+section, prefilled, saved on Enter or blur, Receipt on success, ReadFailedLine with retry, no modal, no
+Save button, invalidating `["products"]` first so the home's picker and the composer's placeholder
+follow at once. `updateProject` left the unreachable list on its own.
+
+**`listTrackDecisions`** for Lane 2 (`a7eb68bc2`): for one run, the ordered decisions its agents made
+with their reasons, not the tool calls; two hops, the track's record then the decisions written on it
+and made on its missions, deduplicated, each carrying its rationale, its alternatives and its bet. The
+driver's own holds and their why are already on `getTrackActivity` as `selfChecks`; the two together
+are what the agent decided and why.
+
+**Four write-path bugs, all measured on production, all fixed** (`90d0a5298`, `33eed1b52`):
+1. **A settled gate went on claiming a wait.** Six open tracks pointed at approvals settled weeks
+   before; one on the founder's own workspace had held at `waiting-on-a-person` since 21 August over an
+   approval that expired on 27 August. The prune is correct but lives in the driver's harvest, which
+   runs only inside a drive, and four of the six are held at `station-cannot-finish`, which `track-tick`
+   excludes as terminal by design: **the hold hid the record that says the hold is over.**
+   `repairStaleGates` runs in the minute sweep, harvests through the driver's own code, drives nothing,
+   and ends only the hold a settled gate makes false.
+2. **A call could not name its run.** Of 21 pending calls, none reached a run by any path. The link was
+   already on the write (`agent_approvals.run_id`, `agent_runs.track_id`); nothing read it. The govern
+   read resolves it inside the hop it already makes, and `ApprovalQueueItem.trackId` carries it.
+3. **The retry press and the card disagreed about when.** The release stamped `driven_at: now`, which
+   sent the track to the back of both sweeps' ordering while the card promised the next turn. It leaves
+   `driven_at` null now and the minute sweep takes a track that MOVED in the last quarter hour.
+4. **A drawing filed twice is one drawing.** 23 of 59 prototypes on tracks were byte-identical copies
+   filed about 18 seconds apart, the second by the critic reviewing the first, so the run screen counted
+   three designs as ten. `design.draft` files nothing when name, description and spec all match, and the
+   critic is told to file a verdict rather than re-file what it read.
+
+Also: **Learn stopped burning attempts on a verdict only a person can give** (past the horizon with no
+readable source it holds at `waiting-on-a-person` and names the Learn desk), and the **give-up sentence
+carries the cause alone** now that the hold line carries the effect (Lane 2's finding, their trim, my
+file).
+
+**Pending, by name, for whoever is next:** `listStudioSessions`'s third hop (a SQL sum for the per-trace
+cost); the lint gate's non-`src` errors (founder's call on `eslint.config.js`); the Findings receipt's
+words, where the toggle carries two consents and only the Boundary bar keeps them apart (Lane 2 has the
+true words; putting promotion behind its own consent is a product call and wants the founder); the
+first-run press still unread live; P-130b's client half; F-207.
+
