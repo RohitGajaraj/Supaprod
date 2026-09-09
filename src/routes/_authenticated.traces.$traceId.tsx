@@ -147,6 +147,7 @@ import { Surface } from "@/components/meridian/Surface";
 import { AgentMark, type MarkState } from "@/components/meridian/marks";
 import { SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
 import { theSameCallAgain, sameCallLead } from "@/components/traces/the-same-call-again";
+import { whatEveryRowRepeats } from "@/components/traces/a-constant-is-not-news";
 
 export const Route = createFileRoute("/_authenticated/traces/$traceId")({
   component: TraceReplayPage,
@@ -653,6 +654,32 @@ export function TraceDetail({ id }: { id: string }) {
      name is resolved from the spans and this sentence says who repeated. */
   const sameCallLine = sameCallLead(repeats, agentDisplayName(traceAgentSlug));
 
+  /*
+   * WHAT EVERY ROW REPEATS, so the lead can stop saying it. Computed over the
+   * same `hopRows` the list draws, rather than over the spans, because the
+   * question is what a READER sees repeated down the column.
+   */
+  const repeatedFacts = React.useMemo(
+    () =>
+      whatEveryRowRepeats(
+        hopRows.map((r) =>
+          r.kind === "event"
+            ? {
+                actor:
+                  r.span.surface === "agent" && r.span.surface_ref
+                    ? agentDisplayName(r.span.surface_ref)
+                    : r.span.surface,
+                model: r.span.model ?? null,
+              }
+            : {
+                actor: traceAgentSlug ? agentDisplayName(traceAgentSlug) : "The engine",
+                model: null,
+              },
+        ),
+      ),
+    [hopRows, traceAgentSlug],
+  );
+
   // Every agent that touched this trace, with how many calls each made. A
   // handoff inside one trace is real and used to render as a single anonymous
   // "who ran it"; two workers now read as two workers.
@@ -937,6 +964,17 @@ export function TraceDetail({ id }: { id: string }) {
            */}
           {sameCallLine ? <p className="mrd-meta mb-mrd-3">{sameCallLine}</p> : null}
           {hopRows.map((r) => {
+            /*
+             * ── THE TWO FACTS THAT NEVER CHANGE DO NOT GET THE LEAD ────────
+             * The header says "Critique's turn at Design", the rail says
+             * "Who ran it - Critique", and the detail pane says the model. A
+             * lead that repeats either of those on every row has spent the
+             * brightest position on the page saying nothing. Measured: 93.8%
+             * of traces that call a model call exactly one. See
+             * `a-constant-is-not-news.ts`; it returns null the moment a trace
+             * has a handoff or a fallback, which is when the fact becomes the
+             * news.
+             */
             const isSel =
               selected != null &&
               (r.kind === "event"
@@ -978,9 +1016,20 @@ export function TraceDetail({ id }: { id: string }) {
                     />
                   }
                   lead={
-                    <>
-                      <Who>{actor}</Who> called <Num>{s.model}</Num>
-                    </>
+                    /*
+                     * THE THOUGHT LEADS when the actor and the model are the
+                     * same on every row. The constant does not move to the
+                     * sub -- it LEAVES, because the header, the rail and the
+                     * detail pane all still carry it, and moving it down
+                     * would only make the row two lines of the same nothing.
+                     */
+                    repeatedFacts.actor && repeatedFacts.model ? (
+                      outcome
+                    ) : (
+                      <>
+                        <Who>{actor}</Who> called <Num>{s.model}</Num>
+                      </>
+                    )
                   }
                   // ONE REGISTER PER LINE. Cost mode replaces the preview with
                   // the numbers rather than prefixing it: five facts in a
@@ -1003,10 +1052,16 @@ export function TraceDetail({ id }: { id: string }) {
                               <Num>{hits.length}</Num>{" "}
                               {hits.length === 1 ? "guardrail hit" : "guardrail hits"}
                             </span>
-                            {" · "}
+                            {hits.length > 0 && !(repeatedFacts.actor && repeatedFacts.model)
+                              ? " · "
+                              : null}
                           </>
                         ) : null}
-                        {outcome}
+                        {/* Never twice. When the lead took the outcome, this
+                            line carries only what the lead cannot: a guardrail
+                            hit, which is a fact ABOUT the call rather than the
+                            call's own words. */}
+                        {repeatedFacts.actor && repeatedFacts.model ? null : outcome}
                       </>
                     )
                   }
@@ -1028,7 +1083,16 @@ export function TraceDetail({ id }: { id: string }) {
                 }
                 lead={
                   <>
-                    <Who>{actor}</Who> ran <Num>{t.tool_name}</Num>
+                    {/* The actor leaves when it is the same on every row; the
+                        verb stays, because a row still has to read as an act
+                        and not as a bare identifier in a list. */}
+                    {repeatedFacts.actor ? "Ran " : null}
+                    {repeatedFacts.actor ? null : (
+                      <>
+                        <Who>{actor}</Who> ran{" "}
+                      </>
+                    )}
+                    <Num>{t.tool_name}</Num>
                     {/*
                      * ── THE SAME CALL AGAIN, MARKED ON THE ROW ─────────────
                      *
