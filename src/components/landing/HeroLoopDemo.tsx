@@ -286,7 +286,7 @@ export function HeroLoopDemo() {
       {/* Key Message */}
       <div className="mt-6 pt-4 border-t border-mrd-line">
         {/* Bounded to the prose measure. Unbounded, this set 122 CHARACTERS on
-            a single line at 1280 wide -- nearly double `--mrd-measure`'s 68ch
+            a single line at 1280 wide -- nearly double `--mrd-measure`'s 32rem
             -- on the first screen a stranger reads. Measured by S4 as rendered
             line boxes rather than container width, which is the distinction
             that makes the number real. */}

@@ -1909,6 +1909,28 @@
   --spacing-mrd-6: var(--mrd-s6);
   --spacing-mrd-7: var(--mrd-s7);
   --spacing-mrd-8: var(--mrd-s8);
+
+  /*
+   * ── THE DEFAULT TRANSITION, WHICH WAS NEVER MERIDIAN'S ──────────────────
+   * Added 2026-09-09, on Lane 2's count: twenty-one bare transitions across the
+   * run screen, three different speeds among them, and not one using this
+   * system's easing. `transition-colors` with no duration takes Tailwind's
+   * 150ms and its own `ease`, both of which are outside the ramp above.
+   *
+   * The alternative was sweeping twenty-one call sites, which fixes those
+   * twenty-one and none of the next twenty-one. These two variables are the
+   * documented Tailwind v4 hook for the bare `transition-*` utilities, so
+   * setting them here makes every unqualified transition in the product
+   * correct at once and keeps it correct.
+   *
+   * `--mrd-d-press` is the right default rather than `--mrd-d-move`: the bare
+   * utilities are overwhelmingly `transition-colors` on a control, which is
+   * the press budget by definition. Anything changing position or size names
+   * `duration-[var(--mrd-d-move)]` and still wins, because a utility with a
+   * value outranks the default.
+   */
+  --default-transition-duration: var(--mrd-d-press);
+  --default-transition-timing-function: var(--mrd-ease);
 }
 
 /*
@@ -2269,6 +2291,50 @@
   }
 }
 
+/*
+ * ── THE HALO'S OWN ENVELOPE, BECAUSE `mrd-attention` SETS RATHER THAN SCALES ─
+ * Added 2026-09-09, on Lane 2's measurement.
+ *
+ * `mrd-attention` drives opacity from 1, which is correct for StatusChip: the
+ * chip has no resting opacity of its own, so the keyframes' 1 IS its normal
+ * value and the animation dips it to 0.32.
+ *
+ * A live seat's halo does have a resting value, `opacity: 0.35`, and an
+ * animation declaring `opacity: 1` at 0% and 100% OVERRIDES it. The halo was
+ * peaking near 1.0 rather than breathing around 0.35: 2.9x its own value, on
+ * the element whose whole job is to be quietly present.
+ *
+ * So the amplitude is kept and the ceiling is not: 0.32 is the ratio
+ * `mrd-attention` was tuned to, applied to the halo's own value rather than
+ * replacing it.
+ *
+ * IT READS THE RESTING VALUE INSTEAD OF NAMING ONE, and that is the part worth
+ * keeping. Lane 2 reported one call site at 0.35. Checking the others turned up
+ * a second at 0.55, on the run road's working ring, with the identical defect
+ * and a different number. A keyframe block hard-coding 0.35 would have fixed
+ * the first and quietly dimmed the second, which is how a system acquires a
+ * third animation. Keyframes resolve `var()` against the element they run on,
+ * so the value stays at the call site where the designer set it and this block
+ * owns only the shape of the breath.
+ *
+ * Any element with a resting opacity wants this one and must set
+ * `--mrd-halo-rest` beside it; anything at full strength wants `mrd-attention`.
+ * The fallback keeps a caller that forgets at the commonest of the two rather
+ * than at an invisible zero.
+ *
+ * It joins both motion lists below. `the-motion-toggle-reaches-the-run-screen.test.ts`
+ * fails if it lands in one and not the other.
+ */
+@keyframes mrd-halo {
+  0%,
+  100% {
+    opacity: var(--mrd-halo-rest, 0.35);
+  }
+  50% {
+    opacity: calc(var(--mrd-halo-rest, 0.35) * 0.32);
+  }
+}
+
 @keyframes mrd-shimmer {
   0% {
     background-position: 200% 0;
@@ -2366,6 +2432,7 @@
 @media (prefers-reduced-motion: reduce) {
   [style*="mrd-pixel-on"],
   [style*="mrd-attention"],
+  [style*="mrd-halo"],
   [style*="mrd-shimmer"],
   [style*="mrd-fade-up"],
   [style*="mrd-fade-in"],
@@ -2375,6 +2442,14 @@
   [style*="mrd-spin"] {
     animation-duration: 1ms !important;
     animation-iteration-count: 1 !important;
+  }
+
+  /* The same stop for the OS switch. See the reasoning under the twin below. */
+  *,
+  *::before,
+  *::after {
+    transition-duration: 1ms !important;
+    transition-delay: 0ms !important;
   }
 
   /*
@@ -2513,6 +2588,7 @@
  */
 html[data-motion="off"] [style*="mrd-pixel-on"],
 html[data-motion="off"] [style*="mrd-attention"],
+html[data-motion="off"] [style*="mrd-halo"],
 html[data-motion="off"] [style*="mrd-shimmer"],
 html[data-motion="off"] [style*="mrd-fade-up"],
 html[data-motion="off"] [style*="mrd-fade-in"],
@@ -2522,6 +2598,39 @@ html[data-motion="off"] [style*="mrd-eq"],
 html[data-motion="off"] [style*="mrd-spin"] {
   animation-duration: 1ms !important;
   animation-iteration-count: 1 !important;
+}
+
+/*
+ * ── AND A TRANSITION IS NOT AN ANIMATION, WHICH BOTH SWITCHES FORGOT ─────
+ * Added 2026-09-09, on Lane 2's report that the in-product switch stops no
+ * transition. Measured before writing this: NEITHER switch did. The lists
+ * above name keyframes, and every `transition-colors`, every fold and every
+ * fade in the product ran at full duration with reduced motion on, under the
+ * OS setting as much as under ours. Lane 2 found the weaker half of a pair
+ * where both halves were missing.
+ *
+ * THE LAW ALREADY DECIDED THIS. "If stopping it removes a fact, it is not
+ * decoration" is why the elapsed timer keeps ticking. A transition removes no
+ * fact when you stop it: it has ONE defined end state and stopping it means
+ * arriving there immediately. That is the difference from a loop, where the
+ * motion IS the message that something is still running.
+ *
+ * `transition-duration: 1ms`, NOT `transition: none`. `none` cancels the
+ * `transitionend` event, so any handler waiting on one to unmount a node would
+ * wait forever. Nothing in this repo listens for one today, checked before
+ * writing this, and a rule that only holds while that stays true is a trap for
+ * whoever adds the first listener. 1ms fires the event and is imperceptible.
+ *
+ * `transition-delay` too: a stopped transition that still waits 200ms to apply
+ * is worse than the animation, because the screen looks frozen rather than
+ * fast.
+ */
+html[data-motion="off"],
+html[data-motion="off"] *,
+html[data-motion="off"] *::before,
+html[data-motion="off"] *::after {
+  transition-duration: 1ms !important;
+  transition-delay: 0ms !important;
 }
 
 /* The lattice keeps its visibility, not just its stillness. See above. */
@@ -2683,6 +2792,34 @@ textarea:not([readonly]):not([disabled]):focus-visible {
  */
 [data-mrd][data-mrd] .mrd-focus-inset:focus-visible {
   outline-offset: -2px;
+}
+
+/*
+ * ── AND ITS OUTSET TWIN, WHICH TEN CALL SITES ALREADY NAMED ─────────────
+ * Added 2026-09-09, on Lane 2's report.
+ *
+ * `.mrd-focus` was written on ten elements and defined nowhere. It was not a
+ * missing ring: the treatment comes from the `[data-mrd][data-mrd]
+ * :focus-visible` rule above and applies whether or not an element names the
+ * class, so every one of those ten was correctly ringed and nothing looked
+ * wrong. That is exactly why it had to be settled rather than left. A word
+ * that reads like a system part, does nothing, and breaks nothing gets copied
+ * onto the eleventh element by someone who believes it is doing the work.
+ *
+ * DEFINED RATHER THAN RETIRED, because the pair is the point. `.mrd-focus-inset`
+ * is meaningful only against a default it can be read as differing from, and
+ * an author choosing between them at a call site is making the real decision:
+ * does this control sit inside something that clips. Retiring the outset half
+ * would leave one class whose name only makes sense if you already know the
+ * other one existed.
+ *
+ * It restates the default deliberately. Naming the offset here means the pair
+ * is one edit away from being re-tuned together, instead of one value living
+ * in a rule three hundred lines up and its sibling living here.
+ */
+[data-mrd][data-mrd] .mrd-focus:focus-visible {
+  outline: 2px solid var(--mrd-focus);
+  outline-offset: 1px;
 }
 
 /*

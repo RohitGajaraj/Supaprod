@@ -347,14 +347,22 @@ function Node({
         /* The breath. One ring, outside the node, on the agent hue, at the
            slow cadence StatusChip already uses for a machine (2400ms). The
            reduced-motion block in meridian.css keys on the keyframe name in
-           the style attribute and stops it. */
+           the style attribute and stops it.
+
+           `mrd-halo`, not `mrd-attention` (2026-09-09): the latter drives
+           opacity from 1, so it overrode the 0.55 below and this ring peaked
+           at nearly twice its designed weight. `mrd-halo` reads the resting
+           value beside it and breathes around that. */
         <span
           className="absolute inset-0 rounded-full"
           style={{
             boxShadow: `0 0 0 ${size === "full" ? 4 : 2}px var(--mrd-agent-dim)`,
             opacity: 0.55,
-            animation: "mrd-attention 2400ms var(--mrd-ease-soft) infinite",
-          }}
+            "--mrd-halo-rest": 0.55,
+            animation: "mrd-halo 2400ms var(--mrd-ease-soft) infinite",
+            /* React.CSSProperties has no slot for a custom property; the
+               assertion is the documented way to set one inline. */
+          } as React.CSSProperties}
         />
       ) : null}
       {size === "full" ? (

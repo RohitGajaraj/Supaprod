@@ -145,12 +145,26 @@ export function Prose({
         data-markdown={markdown ? "true" : undefined}
         className={[
           "mrd-prose text-mrd-body leading-mrd-prose text-mrd-body",
-          /* The markdown container drops the panel, the measure, the pre-wrap AND
-           the outer margin, exactly as `.sp-prose[data-markdown]` did: inside
-           Ask the pane IS the measure, and the turn above already spaced it. */
+          /* Both branches carry the measure. The markdown container still drops
+             the panel, the pre-wrap and the outer margin, because markdown
+             draws its own blocks and the turn above already spaced it.
+
+             THE MEASURE CAME BACK 2026-09-09, on Lane 2's report. It was
+             dropped with the rest on the reasoning that "inside Ask the pane IS
+             the measure", which is true of Ask and of nowhere else: the spec
+             body renders through this same branch on a pane wide enough that
+             the longest document in the product was the one block in it with no
+             cap. A measure is a property of reading, not of the container it
+             happens to be in, so the component carries it and a caller that
+             genuinely wants full bleed overrides it. In a pane narrower than
+             the rung this changes nothing, which is why Ask is unaffected.
+
+             The rung, not `68ch`: a ch is the zero's advance width, so the same
+             number is a different column in every font the product renders. */
+          "max-w-[var(--mrd-measure-prose)]",
           markdown
             ? "mt-0"
-            : "mt-[12px] max-w-[68ch] rounded-mrd-card bg-mrd-sink px-[18px] py-[16px] whitespace-pre-wrap",
+            : "mt-[12px] rounded-mrd-card bg-mrd-sink px-[18px] py-[16px] whitespace-pre-wrap",
         ].join(" ")}
       >
         {children}
