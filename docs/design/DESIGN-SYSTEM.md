@@ -577,6 +577,17 @@ This needs a wire that can REFUSE, not just return rows. A fake that can only an
 produce the difference between a refusal and an empty answer, and that difference is what most of
 this contract's recent findings turned on.
 
+**AND THE TOOL HAS TO CARRY ITS OWN CLAIM SOMEWHERE THAT GOES RED.** Lane 3's, and it is the sharpest
+form of the whole day's lesson. A shared fake that several guards depend on is a claim about
+behaviour, and if that claim lives only in the file defining it, simplifying it back to rows-only
+would let three guards keep passing while measuring nothing. So one test asserts what the WIRE does:
+a refused table answers with an error and a null, and a table beside it still answers with rows.
+Verified by breaking it deliberately: four failures, not zero.
+
+That is the same shape as a stale route exemption, one layer further down. **Whatever everyone
+relies on must state what it does in something that fails when it stops being true** — and a test
+harness is the last place anyone thinks to look for that, which is exactly why it is worth doing.
+
 ---
 
 ## The defects that keep coming back
