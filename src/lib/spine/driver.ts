@@ -1737,6 +1737,20 @@ export function holdLine(
  *
  *   `out-of-credit`, `over-budget`  you top up an account. You do not DECIDE
  *       this track, and no click on this row moves it.
+ *
+ *       RE-EXAMINED 2026-09-10 BY TWO LANES AND IT STANDS — with one fact that
+ *       makes it stronger than when it was written. The wallet repair now
+ *       releases a track whose credit has returned, on the sweep, with nobody
+ *       pressing anything: measured that night, `a30d6b62` moved `define ->
+ *       design` at 23:00 UTC after nineteen hours of product-wide silence. So a
+ *       money hold needs a person only while the wallet is EMPTY, and what they
+ *       do then is top up — still not a decision about this track. The moment
+ *       it is funded the loop clears it alone, which is the opposite of what
+ *       this set is for.
+ *
+ *       That is also why the entry's row says "It ran out of credit and
+ *       stopped. There is credit again." rather than offering a control: the
+ *       sentence is news, and the thing it is news about happens without them.
  *   `needs-evidence`  `StalledWork`'s header argues this one from production:
  *       26 tracks were starved of evidence while the product told their owners
  *       to go and inspect a station. Dressing a setup gap as a decision sends
