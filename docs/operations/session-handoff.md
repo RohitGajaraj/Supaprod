@@ -1732,10 +1732,21 @@ does real work and the user sees almost none of it", exact and reproducible.
    tracks, 36 distinct bodies, 23 byte-identical; every design filed twice about eighteen seconds
    apart, the second on the critic's turn.
 3. **Lane 1's round-five findings [0] and [7]**: a call raised on a run reaches the Inbox with no
-   door back to the run. Measured before starting: `pending_gates` resolves 6 tracks and
-   `spine_track_members` resolves 20 of 107 pending design gates, so the join reaches roughly 26 of
-   636 pending items today. Real and structural, but **cost it against that number** before
-   changing `readApprovalsQueue`, which is hop-pinned and has a careful degradation contract.
+   door back to the run. **Parked deliberately, and the numbers are why.** Lane 1's measurement,
+   which corrects mine: of 21 pending approvals, 0 appear in any track's `pending_gates`; 14 carry a
+   `run_id` matching a real `agent_runs` row and **0 of those rows carry a `track_id`** (2,732 rows
+   in that table do); `trace_id` and `mission_id` each reach a track for 0 of 21. Every pending call
+   in the product was created on 24 or 25 July by `backlog.prioritize`, `mission.dispatch` and
+   `memory.promote`. **The whole `tool_call` family is pre-spine and orphaned from the run world**,
+   so the proposed fix could not have resolved one item. `spine_track_members` on `artifact_id` is
+   the only join with any reach (20 of 107 pending design gates). **The door becomes worth building
+   when the spine writes the run link as it raises a gate**, which is with Lane 3.
+   *My own first pass on this was wrong and is recorded because the mistake is reusable:* I
+   concluded the six `pending_gates` ids "resolve to nothing" after checking eight artifact tables.
+   They are `agent_approvals` rows, settled, four of them expired. **I checked every table except
+   the one the gate actually lives in.** The real bug is sharper than an orphan id: `pending_gates`
+   is written when a gate is raised and never cleared when it settles, so `197769e8` on Helio Labs
+   has held at `waiting-on-a-person` for nineteen days over an approval that expired. With Lane 3.
 4. **The right pane defaults to the CURRENT station**, which on a stopped run is the one that filed
    nothing: `ArtifactPane.tsx:4039`, `chain.stops.find((s) => s.station === current)`. A region
    titled "What it has made" opening on "No code change from Build" fails its own title. The

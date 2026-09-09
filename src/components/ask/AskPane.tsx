@@ -126,6 +126,41 @@ import { useAskStream } from "@/hooks/use-ask-stream";
 import { useApprovalPush } from "@/hooks/use-approval-push";
 import { useAsk, chipLabel, retrievalScope } from "@/lib/ask-context";
 import { defaultIntent, contentForIntent, type AskIntent } from "@/lib/ask-intent";
+import { shapeOfTheWork } from "@/lib/ask/shape-of-the-work";
+import { WORK_SHAPE_LABEL, suggestRoute } from "@/lib/spine/route";
+import { AGENT_STATIONS } from "@/lib/agent-vocabulary";
+
+/**
+ * ── WHAT PRESSING THIS WILL ACTUALLY DO, IN THE LINE THAT ALREADY WARNED ───
+ *
+ * The hint under the composer read "This starts a run and spends credits." on
+ * exactly the drafts that hand over. True, and it named the cost without naming
+ * the thing being bought: F-222 was that every one of those runs walked all
+ * seven stations because the hand-over passed a literal shape.
+ *
+ * SAID, NOT ASKED. Lane 1's home fix is a picker beside the composer, and it is
+ * right there and wrong here: this hand-over fires from intent detection on
+ * submit rather than from a row with space for a control, and a select bolted
+ * onto a conversation pane is interrogation rather than anticipation. So the
+ * machine works it out, states it in the line that was already going to speak,
+ * and the person rewords if it reads wrong. Nothing new is asked of them, and
+ * the shape is no longer a silent constant.
+ *
+ * DERIVED END TO END, so it cannot drift from what actually runs: the shape's
+ * words come from `WORK_SHAPE_LABEL` and the entry station from
+ * `suggestRoute(shape).entry` through the one station display map. Change a
+ * waiver in `route.ts` and this sentence changes in the same edit.
+ */
+function handoverLine(draft: string): string {
+  const shape = shapeOfTheWork(draft);
+  const entry = AGENT_STATIONS[suggestRoute(shape).entry]?.name;
+  const what = WORK_SHAPE_LABEL[shape];
+  /* The station is dropped rather than guessed if the map ever loses it: the
+     cost is the half a person must not miss, and it is said either way. */
+  return entry
+    ? `${what}. It starts at ${entry} and spends credits.`
+    : `${what}. This starts a run and spends credits.`;
+}
 import { openAskConversation } from "@/lib/ask-open";
 import { detectReference } from "@/lib/palette-reference";
 import { OPEN_MODAL_SELECTOR } from "@/lib/overlay";
@@ -231,7 +266,25 @@ function AskPaneOpen() {
             /* Capped at 200 by the validator, which throws rather than
                truncating; the whole sentence is not lost, it is the title. */
             title: text.slice(0, 200),
-            shape: "new-capability",
+            /*
+             * ── DERIVED, NOT A LITERAL (F-222) ──────────────────────────────
+             * This read `shape: "new-capability"`, which is the one shape that
+             * waives nothing, so EVERY sentence typed into Ask opened a full
+             * seven-station run: "fix the broken login" walked Discover,
+             * Decide, Plan and Design before anything touched Build. The
+             * derivation and the reason it will not derive `interface-change`
+             * are in `shape-of-the-work.ts`; the person reads its answer in the
+             * hint line under the composer before they press.
+             */
+            shape: shapeOfTheWork(text),
+            /*
+             * THE ORIGIN WAS NEVER SENT AT ALL, which is the quieter half of
+             * the same defect. `suggestRoute(shape, origin)` carries it onto
+             * the route, and every surface that later asks "where did this work
+             * come from" reads it. The person's own sentence is the answer, and
+             * it was being dropped on the floor.
+             */
+            origin: text,
             productId: activeProductId ?? undefined,
             workspaceId: activeWorkspace?.id ?? undefined,
           },
@@ -1019,7 +1072,7 @@ function AskPaneOpen() {
                 // indicator cannot: how to walk away from it.
                 "Escape leaves it running."
               : draft.trim() && intent === "instruction"
-                ? "This starts a run and spends credits."
+                ? handoverLine(draft)
                 : stream.messages.length > 0
                   ? "Kept. Conversations reopens it."
                   : "Enter sends. Shift and Enter for a new line."}
