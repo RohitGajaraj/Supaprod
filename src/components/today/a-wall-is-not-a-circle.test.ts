@@ -149,7 +149,11 @@ describe("a wall the platform recorded outranks a shape the driver inferred", ()
 describe("a wall that has come down", () => {
   const halted = (gone: boolean): StartRowInput => ({
     ...CIRCLES,
-    stoppedBecause: { kind: "out_of_credit", at: "2026-09-04T05:30:05Z", gone },
+    stoppedBecause: {
+      kind: "out_of_credit",
+      at: "2026-09-04T05:30:05Z",
+      now: gone ? "gone" : "standing",
+    },
   });
 
   it("says there is credit again, because that is what changes what you do", () => {
@@ -183,5 +187,40 @@ describe("a wall that has come down", () => {
   it("fits the one line a row gets", () => {
     // Every sentence here renders as `StartRow.middle`, which is clamped.
     expect(line(halted(true)).length).toBeLessThanOrEqual(ROW_LINE_MAX);
+  });
+});
+
+/*
+ * ── "WE DID NOT LOOK" IS A THIRD STATE, NOT A FALSY SECOND ONE ────────────
+ *
+ * Lane 2's condition on the factored reader, and they were right to insist.
+ * `now` is `gone`, `standing` or `unknown`. A failed wallet read that collapsed
+ * to `gone` would delete a real wall from a card, which is worse than the stale
+ * count it replaced; one that collapsed to `standing` would tell a person the
+ * door is shut when nobody checked.
+ */
+describe("a wall whose standing nobody could read", () => {
+  const at = "2026-09-04T05:30:05Z";
+  const said = (now?: "gone" | "standing" | "unknown") =>
+    startRowMiddle(
+      { ...CIRCLES, stoppedBecause: { kind: "out_of_credit", at, ...(now ? { now } : {}) } },
+      NOW,
+      KIND_WORD,
+      phrase,
+      "UTC",
+    );
+
+  it("names the wall and claims nothing about now", () => {
+    expect(said("unknown")).toBe("Stopped: the account ran out of credit, so the seat never ran.");
+  });
+
+  it("reads an absent `now` the same way, never as an all-clear", () => {
+    // A caller that has not been taught the field yet must fail safe.
+    expect(said()).toBe(said("unknown"));
+  });
+
+  it("still says the change when somebody did look", () => {
+    // The mirror: failing safe everywhere would make the whole read pointless.
+    expect(said("gone")).toBe("It ran out of credit and stopped. There is credit again.");
   });
 });

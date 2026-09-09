@@ -29,6 +29,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { isForecastCheckable } from "./metric-probe.server";
 import { z } from "zod";
 
+import { wallsByTrack, type PlatformWall } from "@/lib/spine/the-wall-the-platform-put-up";
 import { failSoftOrThrow } from "@/lib/read-failure";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
@@ -1362,29 +1363,12 @@ export type StartRun = {
    * times in a row, 612ms each, and the one sentence the home and the run
    * screen gave a person was about the work going round in circles.
    */
-  stoppedBecause: {
-    kind: string;
-    at: string;
-    /**
-     * ── THE WALL CAME DOWN AND NOTHING TOLD ANYBODY ─────────────────────────
-     *
-     * True only for `out_of_credit`, and only when the workspace's account
-     * holds credit NOW. Every other wall stays false: a kill switch and a
-     * spend cap are not undone by a balance.
-     *
-     * MEASURED 2026-09-10. `6cc7a010` halted twelve times on 2026-09-04 with
-     * the account at 13 credits. That account holds 5,249 today, with a 10,000
-     * top-up. The wall is gone, the run has not moved for six days, and it
-     * never will: `going-in-circles` is in `TERMINAL_HOLDS`, so the sweep
-     * refuses it by design and only a person can start it again. Until this
-     * flag there was nothing anywhere that could tell them it was worth it.
-     *
-     * FALSE IS THE SAFE ANSWER AND IT IS THE ONE A REFUSAL GIVES. If RLS
-     * returns no row for an account the reader does not own, the row degrades
-     * to naming the wall without claiming it has lifted, which is still true.
-     */
-    gone: boolean;
-  } | null;
+  /**
+   * What the PLATFORM recorded when it refused to run this, and whether that
+   * wall still stands. `wallsByTrack` owns the read, the slug rule and the
+   * three states of `now`; see `the-wall-the-platform-put-up.ts`.
+   */
+  stoppedBecause: PlatformWall | null;
 };
 
 /**
@@ -1588,8 +1572,7 @@ export const listRunsForStart = createServerFn({ method: "GET" })
           forecastByTrack,
           liveByTrack,
           creditsByTrack,
-          haltByTrack,
-          { byAccount: creditByAccount, accountByWorkspace },
+          wallByTrack,
         ] = await Promise.all([
           (async () => {
             const byTrack = new Map<string, { tool: string }>();
@@ -1918,132 +1901,22 @@ export const listRunsForStart = createServerFn({ method: "GET" })
           })(),
           (async () => {
             /*
-             * ── THE WALL THE PLATFORM PUT UP, WHICH NO SURFACE HAS EVER READ ──
+             * ── THE WALL THE PLATFORM PUT UP, WHICH NO SURFACE HAD EVER READ ──
              *
-             * One round trip, concurrent with the other six, so it lands inside
-             * the slowest branch rather than after it -- and it is the smallest
-             * read in this function by a wide margin: `status = 'halted'` is 46
-             * rows in the ENTIRE product, across eight tracks, measured
-             * 2026-09-10. Scoped to the 50 ids already in hand, it is a handful.
+             * `wallsByTrack` (`the-wall-the-platform-put-up.ts`) owns this and
+             * the run screen calls the same function, so the two cannot drift
+             * about what a halt means. It was inline here for a night; the
+             * reasoning, the slug rule, the account resolution and the three
+             * states of `now` all live with it.
              *
-             * IT CANNOT RIDE THE CREDITS BRANCH'S `agent_runs` READ, which is
-             * where I tried to put it first. That read carries
-             * `.not("trace_id", "is", null)`, and 18 of the 46 halted rows have
-             * no trace at all -- so widening its select would have found 28 of
-             * them and silently missed the rest, which is worse than not
-             * looking.
-             *
-             * NEWEST WINS. A track can hit two different walls weeks apart; the
-             * one still standing in front of it is the last one recorded.
+             * Concurrent with the other six branches, and cheap: `status =
+             * 'halted'` is 46 rows in the ENTIRE product across eight tracks,
+             * and the balance reads happen only when a wallet wall is found.
              */
-            const byTrack = new Map<string, { kind: string; at: string }>();
-            const { data: halts, error: haltErr } = await supabase
-              .from("agent_runs")
-              .select("track_id, halted_reason, created_at")
-              .in("track_id", ids)
-              .eq("status", "halted")
-              .not("halted_reason", "is", null)
-              .order("created_at", { ascending: false });
-            if (haltErr) {
-              // Same fail direction as the credits branch: a refused read must
-              // not read as "this run was never stopped by the platform".
-              console.error(`[listRunsForStart] halts read failed: ${haltErr.message}`);
-              return byTrack;
-            }
-            for (const h of (halts ?? []) as Array<{
-              track_id: string | null;
-              halted_reason: string | null;
-              created_at: string;
-            }>) {
-              if (!h.track_id || !h.halted_reason) continue;
-              // Ordered newest-first, so the first one seen for a track wins.
-              if (!byTrack.has(h.track_id)) {
-                byTrack.set(h.track_id, { kind: h.halted_reason, at: h.created_at });
-              }
-            }
-            return byTrack;
-          })(),
-          (async () => {
-            /*
-             * ── DOES THE WALLET THAT REFUSED THIS RUN HOLD ANYTHING NOW ────
-             *
-             * Two chained round trips, concurrent with the other six branches:
-             * workspace ids to accounts, then accounts to balances. It was one
-             * hop through a `workspaces(account_id)` embed for about an hour,
-             * which is the shape below this comment and the reason it is gone.
-             *
-             * `balance + topup > 0` and nothing cleverer. This answers one
-             * question -- is there money -- and the moment it tried to answer
-             * "is there ENOUGH for the next run" it would need the projected
-             * cost of a run that has not been planned, which is a number
-             * nobody has. Enough-to-try is the honest bar for a sentence whose
-             * whole job is telling a person the door is worth pushing again.
-             *
-             * A REFUSED OR EMPTY READ LEAVES EVERY ACCOUNT ABSENT, which reads
-             * as "no credit known" and suppresses the claim rather than making
-             * it. Naming the wall without saying it lifted is still true.
-             */
-            const byAccount = new Map<string, boolean>();
-            const accountByWorkspace = new Map<string, string>();
-            /*
-             * ── TWO HOPS, BECAUSE THERE IS NO FOREIGN KEY TO EMBED THROUGH ──
-             *
-             * This was `workspaces(account_id)` on the base read, which is
-             * free when PostgREST can resolve the relationship. It cannot:
-             * `spine_tracks` has foreign keys to `learnings`, `opportunities`
-             * and `themes` and NONE to `workspaces` -- `workspace_id` is an
-             * unconstrained uuid. The embed therefore errored, `failSoftOrThrow`
-             * raised, and the home's largest read died on every arrival. Caught
-             * on the served build within minutes and reverted to this.
-             *
-             * THE LESSON IS NOT "AVOID EMBEDS". It is that an embed is a claim
-             * about the SCHEMA, and this file's other embed
-             * (`spine_track_members`) works because that key exists. I checked
-             * that the column existed and inferred the relationship from it,
-             * which is a different thing from checking the relationship.
-             *
-             * Chained rather than concurrent because the second read needs the
-             * first's answer. Both are tiny -- at most 50 workspace rows of two
-             * columns, then a handful of account rows -- and the branch as a
-             * whole still runs beside the other six.
-             */
-            const workspaceIds = [
-              ...new Set(
-                rows
-                  .map((r) => r.workspace_id)
-                  .filter((w): w is string => typeof w === "string" && w.length > 0),
-              ),
-            ];
-            if (workspaceIds.length === 0) return { byAccount, accountByWorkspace };
-            const { data: wsRows, error: wsErr } = await supabase
-              .from("workspaces")
-              .select("id, account_id")
-              .in("id", workspaceIds);
-            if (wsErr) {
-              console.error(`[listRunsForStart] workspace account read failed: ${wsErr.message}`);
-              return { byAccount, accountByWorkspace };
-            }
-            for (const w of (wsRows ?? []) as Array<{ id: string; account_id: string | null }>) {
-              if (w.account_id) accountByWorkspace.set(w.id, w.account_id);
-            }
-            const accountIds = [...new Set(accountByWorkspace.values())];
-            if (accountIds.length === 0) return { byAccount, accountByWorkspace };
-            const { data: creds, error: credErr } = await supabase
-              .from("account_credits")
-              .select("account_id, balance_credits, topup_credits")
-              .in("account_id", accountIds);
-            if (credErr) {
-              console.error(`[listRunsForStart] credit balance read failed: ${credErr.message}`);
-              return { byAccount, accountByWorkspace };
-            }
-            for (const c of (creds ?? []) as Array<{
-              account_id: string;
-              balance_credits: number | null;
-              topup_credits: number | null;
-            }>) {
-              byAccount.set(c.account_id, (c.balance_credits ?? 0) + (c.topup_credits ?? 0) > 0);
-            }
-            return { byAccount, accountByWorkspace };
+            return wallsByTrack(
+              supabase,
+              rows.map((r) => ({ id: r.id, workspaceId: r.workspace_id })),
+            );
           })(),
         ]);
 
@@ -2082,17 +1955,7 @@ export const listRunsForStart = createServerFn({ method: "GET" })
             forecast: forecastByTrack.get(r.id) ?? null,
             liveSince: liveByTrack.get(r.id) ?? null,
             credits: creditsByTrack.get(r.id) ?? null,
-            stoppedBecause: (() => {
-              const halt = haltByTrack.get(r.id);
-              if (!halt) return null;
-              /* ONLY THE WALLET WALL LIFTS WITH A BALANCE. A kill switch and a
-                 spend cap are decisions, not shortages, and topping up undoes
-                 neither. */
-              const account = accountByWorkspace.get(r.workspace_id ?? "") ?? null;
-              const gone =
-                halt.kind === "out_of_credit" && !!account && creditByAccount.get(account) === true;
-              return { ...halt, gone };
-            })(),
+            stoppedBecause: wallByTrack.get(r.id) ?? null,
           };
         });
       } catch (e) {

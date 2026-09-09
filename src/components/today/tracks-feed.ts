@@ -361,12 +361,14 @@ export type StartRowInput = {
    * `agent_runs.halted_reason` (newest first). Null for every track that has
    * never hit a wall, which is almost all of them.
    */
-  stoppedBecause?: {
-    kind: string;
-    at: string;
-    /** The wall has since come down. Only ever true for a wallet wall. */
-    gone?: boolean;
-  } | null;
+  /**
+   * What the PLATFORM recorded when it refused to run this, from
+   * `wallsByTrack`. `now` has THREE states and the third is the point: `gone`,
+   * `standing`, and `unknown` for a wall whose standing nobody could read. A
+   * surface must never treat `unknown` as `gone`, which would delete a real
+   * wall from a person's screen.
+   */
+  stoppedBecause?: { kind: string; at: string; now?: "gone" | "standing" | "unknown" } | null;
   /** When a person said this one goes first, or null. */
   pinnedAt?: string | null;
   /** When this track's own work first reached production, or null (P-126,
@@ -652,7 +654,8 @@ function startRowRest(
    * reads as a dead run and the change without the cause reads as a non
    * sequitur.
    */
-  if (r.stoppedBecause?.gone) return "It ran out of credit and stopped. There is credit again.";
+  if (r.stoppedBecause?.now === "gone")
+    return "It ran out of credit and stopped. There is credit again.";
   if (wall) return wall;
 
   if (r.holdBecause && r.holdBecause.length <= ROW_LINE_MAX) return r.holdBecause;
