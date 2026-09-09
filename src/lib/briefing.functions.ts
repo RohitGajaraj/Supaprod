@@ -95,6 +95,13 @@ export type BriefingInput = {
    * sentence standing on a read that had not answered).
    */
   queueUnread?: boolean;
+  /**
+   * True when the in-flight run count could not be read. `count` comes back
+   * null on a failed head query and `?? 0` turned that into zero, which the
+   * sentences below state as "Agents are idle" (2026-09-09, the same shape one
+   * line along from the queue: a clause asserting what was never measured).
+   */
+  runsUnread?: boolean;
   /** Injectable clock for tests. */
   now?: Date;
   /** The recipient's zone (profiles.timezone), which the day label and every receipt read in. */
@@ -191,13 +198,17 @@ export function composeBriefing(input: BriefingInput): Briefing {
   );
 
   // Full zero state: the one honest sentence pair, never an empty array.
-  if (completions.length === 0 && input.inFlightRuns === 0 && needsYouCount === 0) {
+  /* "Agents are idle" is a claim about the runs read, so it is only said when
+     that read answered. Unread, the sentence says what it knows and no more. */
+  const idle = input.inFlightRuns === 0 && !input.runsUnread;
+  if (completions.length === 0 && (idle || input.runsUnread) && needsYouCount === 0) {
     return {
       dayLabel,
       paragraphs: [
-        input.queueUnread
-          ? `Agents are idle. ${QUEUE_UNREAD_LINE}`
-          : "Agents are idle. Nothing waits on you.",
+        [
+          idle ? "Agents are idle." : "Whether anything is running could not be read.",
+          input.queueUnread ? QUEUE_UNREAD_LINE : "Nothing waits on you.",
+        ].join(" "),
       ],
       receipts: [],
       needsYouCount: 0,
@@ -207,8 +218,12 @@ export function composeBriefing(input: BriefingInput): Briefing {
   const paragraphs: string[] = [];
 
   // 1. What finished.
-  if (completions.length === 0 && input.inFlightRuns === 0) {
-    paragraphs.push("Agents are idle. Nothing new finished in the last 24 hours.");
+  if (completions.length === 0 && (input.inFlightRuns === 0 || input.runsUnread)) {
+    paragraphs.push(
+      input.runsUnread
+        ? "Nothing new finished in the last 24 hours, and whether anything is running could not be read."
+        : "Agents are idle. Nothing new finished in the last 24 hours.",
+    );
   } else if (completions.length === 0) {
     paragraphs.push("Nothing finished in the last 24 hours.");
   } else {
@@ -318,6 +333,9 @@ export const getBriefing = createServerFn({ method: "GET" })
     return composeBriefing({
       events: (eventsRes.data ?? []) as BriefingEvent[],
       inFlightRuns: runsRes.count ?? 0,
+      /* A head query answers `count: null` when it fails, which `?? 0` would
+         otherwise state as idleness. */
+      runsUnread: runsRes.error != null || runsRes.count == null,
       gateCountByStage,
       queueUnread: (queue as { unread?: boolean }).unread === true,
       zone: await zoneForUser(context.supabase as unknown as SupabaseClient, context.userId),
