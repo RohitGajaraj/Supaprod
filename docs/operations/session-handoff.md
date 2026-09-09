@@ -1408,7 +1408,20 @@ sentence), and **`openFirstRun`** (FirstRun's "Open Supaprod" ran seven nested s
 after another; one call now on the request's own client, with `seedWorkspaceCore`,
 `completeOnboardingCore` and `upsertBriefItemCore` as plain functions behind their server functions;
 returns `{ workspaceId, projectId, productId, alreadySeeded }`; Lane 1 mounts it in `FirstRun.tsx`,
-and the unreachable baseline holds the rise by name at 126 until then, `3a5d7513d`). Lane 3 closed here. The guard for all of it is a fake client that counts rounds
+and the unreachable baseline holds the rise by name at 126 until then, `3a5d7513d`).
+
+### Lane 3 · addendum 07:25 IST 09-09 · resumed on the founder's word
+
+Lane 1 mounted `openFirstRun` (`bae976611`), which orphaned the four server functions it replaced.
+`c57182f2c` retires the three whose bodies already live as the cores the door calls
+(`completeOnboarding`, `seedWorkspaceForTrack`, `recordOnboardingMilestone`), re-pins the seed guard
+onto `seedWorkspaceCore` to `completeOnboardingCore`, and re-freezes `check:unreachable` on the
+IMPROVED path at 126 with the names. **`updateProject` stays, on purpose and by name:** it is the only
+writer that renames a product and the Settings surface that will press it does not exist yet; deleting
+the writer before the surface would turn a gap into a loss (the rename surface is tomorrow's question,
+Lane 1's words). Lane 1 presses deploys as the master session from here: push, tell them the sha.
+**Next:** read the first-run press on the build Lane 1 names (one server call, not seven), then the
+same hop census on any read a Server-Timing shows over a second. The guard for all of it is a fake client that counts rounds
 (`src/__tests__/a-wire-that-counts-rounds.ts`, driven by `a-queue-is-two-hops-deep` and
 `a-strip-read-is-three-hops-deep`); "every await outside a Promise.all" is what a person greps for and
 it was wrong twice, so the wire counts what the wire sees.
