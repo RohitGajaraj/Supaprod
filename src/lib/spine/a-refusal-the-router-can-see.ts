@@ -9,12 +9,17 @@
  * nothing, and the track walked on to specify, design and build the thing the
  * station had just refused.
  *
- * ── THE MEASUREMENT THAT FOUND IT (worktree-1-68, 2026-09-09) ───────────────
- * 31 runs decided decline-or-wait at Decide and 11 of them filed a spec, a
- * design or a code change afterwards. Eleven of 121 tracks did work they had
- * already decided against. On production today one decision carries
- * `call = 'do-not-build'` with a status the old check could not see, and 33
- * more carry no direction at all because they predate the column.
+ * ── WHAT IS MEASURED, AND WHAT WAS WITHDRAWN ───────────────────────────────
+ * On production one decision carries `call = 'do-not-build'` with a status the
+ * old check could not see, and 33 more carry no direction at all because they
+ * predate the column. So the blind spot is real.
+ *
+ * A count of tracks that BUILT after a refusal was quoted for this and is
+ * withdrawn: it took the refusal from any decision on the track rather than the
+ * standing one, and clocked "afterwards" by the batch-written attachment time.
+ * Correctly measured, of 29 tracks with a decision, 6 stand on a refusal and
+ * ZERO built after it. This closes a hole nobody has fallen through, which is
+ * still worth closing and is not the same claim.
  *
  * ── SO IT ASKS THE COLUMN THAT MEANS IT ─────────────────────────────────────
  * `call` is the direction, added 2026-09-09 (`20260909101200`), written by the

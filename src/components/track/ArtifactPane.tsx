@@ -2592,10 +2592,12 @@ function NothingToRead({
   const door = oneDoorFor({
     hold: "needs-evidence",
     station,
-    /* A connector exists on this workspace, whatever it points at. */
-    hasConnection: (connections.data?.connections?.length ?? 0) > 0,
-    /* And one of them points at THIS product. */
-    connectionIsBound: (bindings.data?.bindings?.length ?? 0) > 0,
+    /* A connector exists on this workspace, whatever it points at. NULL when
+       the read failed: "we could not find out" is not "there is none", and the
+       door chooser draws nothing rather than the wrong instruction. */
+    hasConnection: connections.isError ? null : (connections.data?.connections?.length ?? 0) > 0,
+    /* And one of them points at THIS product. Same, for the same reason. */
+    connectionIsBound: bindings.isError ? null : (bindings.data?.bindings?.length ?? 0) > 0,
     productName: null,
   });
 

@@ -96,9 +96,14 @@ describe("the direction is written, not inferred", () => {
  *
  * `ARTIFACT_SOURCE.decision.also` feeds two readers: the run screen's stops
  * and the BRIEF a downstream station receives. The second is why the column
- * was worth adding. 31 runs decided decline-or-wait at Decide and 11 filed a
- * spec, a design or a code change afterwards; the seat doing that work could
- * not read the direction because it was not in the row.
+ * was worth adding: the seat doing that work could not read the direction,
+ * because it was not in the row.
+ *
+ * A count of runs that built after a refusal stood here and is WITHDRAWN. It
+ * took the refusal from any decision on the track rather than the standing
+ * one, and it clocked "afterwards" by the batch-written attachment time.
+ * Correctly measured: of 29 tracks with a decision, 6 stand on a refusal and
+ * ZERO built after it.
  */
 describe("the direction reaches the seat that does the next work", () => {
   it("rides the decision's brief columns", () => {

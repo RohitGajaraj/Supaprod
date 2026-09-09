@@ -162,12 +162,15 @@ export const ARTIFACT_SOURCE: Readonly<Record<string, ArtifactSource>> = {
      *
      * `also` feeds two readers: the run screen's stops, and the BRIEF a
      * downstream station receives (`loadUpstream` in driver.server.ts). The
-     * second is the one that matters here. 31 runs decided decline-or-wait at
-     * Decide and 11 of them filed a spec, a design or a code change afterwards
-     * (worktree-1-68, 2026-09-09); the seat that did the work had no way to
-     * read the direction, because until `20260909101200` the direction was
-     * only in `status` when the gate happened to approve, and otherwise only
-     * in the title's first word.
+     * second is the one that matters here. The seat doing the next work had no
+     * way to read the direction at all: until `20260909101200` it was in
+     * `status` only when the gate happened to approve, and otherwise only in
+     * the title's first word.
+     *
+     * (A count of runs that built after a refusal was quoted here and has been
+     * WITHDRAWN: it took the refusal from any decision rather than the standing
+     * one. Correctly measured, of 29 tracks with a decision, 6 stand on a
+     * refusal and zero built after it. The reason above needs no count.)
      *
      * It carries a renderer in `RENDER_FOR`. Without one the seat would read
      * the bare string `do-not-build` in prose written for a person, which is

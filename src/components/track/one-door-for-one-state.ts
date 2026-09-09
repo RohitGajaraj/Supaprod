@@ -50,10 +50,14 @@ export type HoldFacts = {
    * this is here rather than assumed. See `composerPromiseFor`.
    */
   station?: string | null;
-  /** A connector exists on this workspace, whatever it is pointed at. */
-  hasConnection: boolean;
-  /** That connector is pointed at this product. */
-  connectionIsBound: boolean;
+  /**
+   * A connector exists on this workspace, whatever it is pointed at. NULL when
+   * the read that answers this failed, which is not the same as "there is
+   * none" and must not be collapsed into it -- see the door chooser below.
+   */
+  hasConnection: boolean | null;
+  /** That connector is pointed at this product. Null when unread, as above. */
+  connectionIsBound: boolean | null;
   /** The product's name, for the door's own sentence. Null when unknown. */
   productName: string | null;
 };
@@ -73,6 +77,24 @@ export function oneDoorFor(facts: HoldFacts): OneDoor {
   const stuckOnEvidence =
     facts.hold === "needs-evidence" || facts.hold === "carried-on-your-sentence";
   if (!stuckOnEvidence) return { door: "none" };
+
+  /*
+   * ── A READ THAT FAILED DRAWS NO DOOR, BECAUSE THE WRONG DOOR IS THE BUG ──
+   *
+   * These two facts arrive from two queries, and until 2026-09-10 a failed one
+   * arrived here as `false`. Follow that through: `hasConnection: false` sends
+   * this function straight to "Connect a source", which is the exact sentence
+   * this file's own header says is wrong when somebody has already connected
+   * one -- *"a door that says connect to somebody who has connected reads as
+   * the product not knowing what it has"*. The file fixed that for the bound
+   * case and left the UNREAD case producing the same wrong door.
+   *
+   * So an unknown fact draws nothing. Silence says "we are not telling you
+   * what to do", which is true; the alternative says "do this", which may be
+   * a thing they have already done. `none` is a real answer here for the same
+   * reason it is below: not every state gets a door.
+   */
+  if (facts.hasConnection === null || facts.connectionIsBound === null) return { door: "none" };
 
   if (facts.hasConnection && !facts.connectionIsBound) {
     /* The connector exists and is not pointed here. Naming the product is the

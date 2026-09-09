@@ -7,6 +7,7 @@
  * edits.
  */
 import { describe, expect, it } from "bun:test";
+import { readFileSync } from "node:fs";
 
 import { oneDoorFor, composerPromiseFor, type HoldFacts } from "./one-door-for-one-state";
 import { waitingOnTime } from "./a-calendar-wait-is-not-a-stoppage";
@@ -168,5 +169,70 @@ describe("the door is derived from the binding, not from the source count", () =
 
   it("draws nothing when a connector is bound and simply has nothing to say", () => {
     expect(oneDoorFor(facts({ hasConnection: true, connectionIsBound: true })).door).toBe("none");
+  });
+});
+
+/**
+ * ── A READ THAT FAILED IS NOT "THERE IS NONE" ────────────────────────────────
+ *
+ * `hasConnection` and `connectionIsBound` come from two queries on the run
+ * screen, and a failed one used to arrive as `false`. That sends this function
+ * to "Connect a source" -- the exact sentence this file's own header calls
+ * wrong when somebody has already connected one. The bound case was fixed and
+ * the UNREAD case kept producing the same wrong door.
+ */
+describe("a fact nobody could read draws no door", () => {
+  it("draws nothing when the connections read failed", () => {
+    expect(oneDoorFor(facts({ hasConnection: null, connectionIsBound: false }))).toEqual({
+      door: "none",
+    });
+  });
+
+  it("draws nothing when the bindings read failed, even with a connection", () => {
+    expect(oneDoorFor(facts({ hasConnection: true, connectionIsBound: null }))).toEqual({
+      door: "none",
+    });
+  });
+
+  /*
+   * THE MIRROR (law 12). "Null draws nothing" passes just as well if EVERY
+   * input drew nothing, which would remove the door from the one state it
+   * exists for. The two real answers are asserted in the same breath.
+   */
+  it("still draws the right door when both facts were actually read", () => {
+    expect(oneDoorFor(facts({ hasConnection: false, connectionIsBound: false })).door).toBe(
+      "connect-a-source",
+    );
+    expect(oneDoorFor(facts({ hasConnection: true, connectionIsBound: false })).door).toBe(
+      "point-a-source",
+    );
+    expect(oneDoorFor(facts({ hasConnection: true, connectionIsBound: true })).door).toBe("none");
+  });
+
+  it("the composer's promise is untouched by an unread connection", () => {
+    // It offers a sentence, not an instruction about connectors, so a fact
+    // nobody could read does not change what it can honestly say.
+    expect(composerPromiseFor(facts({ hasConnection: null, connectionIsBound: null }))).toBe(
+      "Say what you know, and it carries on from that",
+    );
+  });
+});
+
+/**
+ * THE ONE THING THE PURE FUNCTION CANNOT SAY. `boolean` is assignable to
+ * `boolean | null`, so the pane can drop its failure check and every test
+ * above still passes and tsc still reports zero. The wiring has to be asked
+ * about directly, or the fix is one careless edit from being undone in
+ * silence.
+ */
+describe("the pane passes the failure through, not a false zero", () => {
+  const PANE = readFileSync("src/components/track/ArtifactPane.tsx", "utf8");
+
+  it("reports an unread connection as unknown rather than as none", () => {
+    const at = PANE.indexOf("const door = oneDoorFor({");
+    expect(at).toBeGreaterThan(-1);
+    const call = PANE.slice(at, PANE.indexOf("});", at));
+    expect(call).toContain("connections.isError ? null :");
+    expect(call).toContain("bindings.isError ? null :");
   });
 });
