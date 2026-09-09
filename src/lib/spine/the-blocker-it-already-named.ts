@@ -278,12 +278,37 @@ export function theBlockerItAlreadyNamed(turns: readonly BlockedTurn[]): Blocker
  * second wall would double the card and re-open the ranking argument rules 1
  * and 2 exist to settle; saying one is there costs a clause and removes the
  * surprise, which is the whole of what went wrong for the stranger who read it.
+ *
+ * ── PAST TENSE, AND THAT IS THE WHOLE OF THE CORRECTION ──────────────────
+ * It read *"One more wall is behind this one"*, which is a claim about NOW, and
+ * the record cannot support one. Read live on `6cc7a010`, 2026-09-10:
+ *
+ *   the wall shown     Build, no repository    `connection_bindings` = 0  STILL THERE
+ *   the wall counted   Design, out_of_credit   `balance_credits` = 5,240  GONE
+ *
+ * The account was topped up on 2026-09-09, five days after the halt. So the
+ * card was telling a person to expect a second obstruction that no longer
+ * existed -- and the only reason its DOOR was right is that the repository
+ * happened to be the wall that persisted. That was luck, not design, and it is
+ * worth writing down because the ranking rules above take credit for it.
+ *
+ * WHAT IT WOULD TAKE TO SAY "is": the account's balance, which is two chained
+ * reads from this workspace -- workspace to account, account to balance. Lane 1
+ * built exactly that read for the home's row on 2026-09-10 and WITHDREW it the
+ * same evening: the composite hung on it and the served entry stopped
+ * answering (`3e6d17dba`). So the live claim is not merely unbuilt here, it is
+ * a claim whose read has already cost a production surface once.
+ *
+ * The count is the same count. Only the tense changed, and the tense is the
+ * half the record can actually vouch for: this run HIT another wall. Whether it
+ * is still standing is a question this screen cannot answer, so it stops
+ * answering it.
  */
 export function alsoBehindIt(b: Blocker): string | null {
   if (b.othersBehind < 1) return null;
   return b.othersBehind === 1
-    ? "One more wall is behind this one."
-    : `${b.othersBehind} more walls are behind this one.`;
+    ? "It hit one more wall after this one."
+    : `It hit ${b.othersBehind} more walls after this one.`;
 }
 
 export function blockerLead(b: Blocker): string {

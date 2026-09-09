@@ -109,6 +109,7 @@ import {
 } from "@/components/track/a-calendar-wait-is-not-a-stoppage";
 import { composerPromiseFor } from "@/components/track/one-door-for-one-state";
 import { whyShipStopped } from "@/lib/deployments.functions";
+import { runStatus } from "@/components/track/run-status";
 import { checkForecastObservable } from "@/lib/spine/track.functions";
 import { TheCallIsYours } from "@/components/track/TheCallIsYours";
 import {
@@ -1279,6 +1280,19 @@ export function TrackRunLeft({
   /* A call in front of the person IS the now; the card yields to it. */
   const askIsUp = callIsYours || answerTheCall;
   /* The facts a hold used to carry as rows under "Why it stopped". */
+  /*
+   * THE HEADER'S WORD, so the Now card does not draw a second chip saying it.
+   * The SAME `runStatus(track, crewLive)` the header calls, with the same two
+   * arguments, so the two cannot disagree about what the header is showing --
+   * one function's answer read twice, not two answers kept in step. See
+   * `the-header-already-said-it.ts` for the scroll measurement that settled
+   * which of the two chips goes.
+   */
+  /* `runStatus` returns null when the header draws NO chip, which is a real
+     case and not the same as it showing a different word -- so it collapses to
+     null here and the card keeps its own chip. */
+  const headerSays = track ? (runStatus(track, crewLive)?.word ?? null) : null;
+
   const holdFacts = track && (now.register === "held" || now.register === "stopped");
 
   /* The station's own retry stands down wherever pressing it changes nothing:
@@ -1316,7 +1330,7 @@ export function TrackRunLeft({
       )}
 
       {askIsUp ? null : (
-        <RunNow now={now}>
+        <RunNow now={now} headerSays={headerSays}>
           {/*
            * ── WHY IT STOPPED, IN THE RUN'S OWN WORDS, FIRST ────────────────
            *

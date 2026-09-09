@@ -17,19 +17,35 @@
  * founder's ruling for a wait the machine has in hand, a run live in
  * production waiting for the date its forecast is graded on: nothing is wrong
  * and nobody is needed, so it wears no colour.
+ *
+ * ── AND ITS CHIP GIVES WAY TO THE HEADER'S ───────────────────────────────
+ * The run header draws a status chip that never scrolls away; this card drew a
+ * second one 200px under it, saying the same word. S1 measured both at every
+ * scroll position before either of us cut anything. The rule, and the two cases
+ * where this card KEEPS its chip, are in `the-header-already-said-it.ts`.
  */
 import * as React from "react";
 import { StatusChip } from "@/components/meridian/StatusChip";
 import type { Now } from "@/components/track/run-now";
+import { theCardStillNeedsItsChip } from "@/components/track/the-header-already-said-it";
 
 export function RunNow({
   now,
+  headerSays,
   children,
 }: {
   now: Now;
+  /**
+   * The word the run header's chip is already showing, or null when it is
+   * showing none. When it matches this card's word, this card's chip is the
+   * second of two chips saying one thing 200px apart, and goes -- see
+   * `the-header-already-said-it.ts` for the scroll measurement that settled it.
+   */
+  headerSays?: string | null;
   /** The facts and the one control that belong to this state. */
   children?: React.ReactNode;
 }) {
+  const ownChip = theCardStillNeedsItsChip(headerSays, now);
   return (
     <section
       data-mrd=""
@@ -39,9 +55,11 @@ export function RunNow({
     >
       <div role="status" aria-live="polite" className="flex flex-col gap-mrd-1">
         <div className="flex flex-wrap items-center gap-mrd-3">
-          <StatusChip status={now.status} pulse={now.pulse}>
-            {now.word}
-          </StatusChip>
+          {ownChip ? (
+            <StatusChip status={now.status} pulse={now.pulse}>
+              {now.word}
+            </StatusChip>
+          ) : null}
           {/* Nothing beside the chip when the chip has said the whole fact:
               three of the twelve registers now do that deliberately, and a
               headline restating the word an inch to its left was the defect

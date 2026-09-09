@@ -284,7 +284,27 @@ describe("a reader is told when something else is behind it", () => {
     const b = theBlockerItAlreadyNamed(RUN)!;
     expect(b.station).toBe("build");
     expect(b.othersBehind).toBe(1);
-    expect(alsoBehindIt(b)).toBe("One more wall is behind this one.");
+    expect(alsoBehindIt(b)).toBe("It hit one more wall after this one.");
+  });
+
+  it("in the PAST tense, because the record cannot say a wall is still standing", () => {
+    /*
+     * Read live on `6cc7a010`, 2026-09-10. The wall SHOWN (Build, no
+     * repository) was still there -- `connection_bindings` = 0. The wall
+     * COUNTED (Design, out_of_credit) was gone: the account was topped up on
+     * 2026-09-09 and holds 5,240 credits. The card was telling a person to
+     * expect an obstruction that no longer existed.
+     *
+     * Saying "is behind" needs the account balance, which is two chained reads
+     * that took Lane 1's home surface down the same evening (`3e6d17dba`). So
+     * the count stays and the tense goes: what the record vouches for is that
+     * this run HIT another wall, not that one is waiting.
+     */
+    const b = theBlockerItAlreadyNamed(RUN)!;
+    const said = alsoBehindIt(b)!;
+    expect(said).toContain("hit");
+    expect(said).not.toContain(" is behind");
+    expect(said).not.toContain(" are behind");
   });
 
   it("says nothing when the one shown is the only one", () => {
@@ -346,7 +366,7 @@ describe("a reader is told when something else is behind it", () => {
         said: NO_CREDIT,
       }),
     ])!;
-    expect(alsoBehindIt(three)).toBe("2 more walls are behind this one.");
+    expect(alsoBehindIt(three)).toBe("It hit 2 more walls after this one.");
   });
 
   it("names none of them, and diagnoses nothing", () => {

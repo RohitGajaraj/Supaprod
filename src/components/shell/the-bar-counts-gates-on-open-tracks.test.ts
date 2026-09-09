@@ -122,6 +122,41 @@ describe(
       expect(body).not.toContain("Date.now()");
     });
 
+    it("and neither the bound nor the strip can blunt what the scan looks for", () => {
+      /*
+       * THE RISK IN BOTH HALVES OF THE REPAIR, PINNED.
+       *
+       * Every assertion above passes by finding NOTHING, so anything that
+       * quietly shrinks what is scanned reports a clean read of an empty
+       * string. `gatesBody` already mirrors its own slice; this mirrors the
+       * STRIP, which is the other half and the easier one to get wrong --
+       * "ignore comments" is one careless edit away from "ignore everything".
+       *
+       * So: the four tokens the guard hunts survive the strip when they are
+       * real code, and vanish when they are prose. Both directions, because a
+       * strip that removed nothing would also pass a test that only checked
+       * the first.
+       */
+      const strip = (src: string) =>
+        src
+          .replace(/\/\*[\s\S]*?\*\//g, " ")
+          .split("\n")
+          .filter((l) => !l.trim().startsWith("//"))
+          .join("\n");
+
+      expect(strip('let q = base.gte("updated_at", cutoff);')).toContain("gte(");
+      expect(strip("const now = Date.now();")).toContain("Date.now()");
+      expect(strip("const w = withinTheHour(t);")).toContain("within");
+      expect(strip("/* no window within the last day */")).not.toContain("within");
+      expect(strip("  // q.lte(a, b) would be a window")).not.toContain("lte(");
+
+      /* And the live body is still the RIGHT function after both operations,
+         not a neighbour's tail: this is the bug the bound was fixed for. */
+      const body = gatesBody();
+      expect(body).toContain("listGatesOnTracks");
+      expect(body).not.toContain("export const listTracks");
+    });
+
     it("a track is only ever excluded by its own status, never by staleness", () => {
       expect(gatesBody()).toContain('.eq("status", "open")');
     });
