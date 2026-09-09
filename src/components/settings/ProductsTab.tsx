@@ -1,3 +1,4 @@
+import * as React from "react";
 // OBS-10 - the /product page was retired; this holds its PortfolioBoard
 // (switch/archive/restore/export/delete) inside Settings > Products. Same
 // server functions, same lifecycle logic, same confirm copy.
@@ -23,6 +24,8 @@
 //     star is one click away on the product itself.
 import { useServerFn } from "@tanstack/react-start";
 import { Row, Line } from "@/components/meridian/rows";
+import { Field, Input } from "@/components/meridian/forms";
+import { Receipt } from "@/components/meridian/Receipt";
 import {
   Num,
   Actions,
@@ -43,6 +46,7 @@ import {
   exportProduct,
   deleteProject,
   createProject,
+  updateProject,
   type PortfolioProduct,
 } from "@/lib/projects.functions";
 
@@ -79,6 +83,7 @@ export function ProductsTab() {
   const fExport = useServerFn(exportProduct);
   const fDelete = useServerFn(deleteProject);
   const fCreate = useServerFn(createProject);
+  const fRename = useServerFn(updateProject);
 
   const refresh = () => {
     qc.invalidateQueries({ queryKey: ["portfolio"] });
@@ -187,6 +192,7 @@ export function ProductsTab() {
   const all = portfolio.data?.products ?? [];
   const active = all.filter((p) => !p.archived);
   const archived = all.filter((p) => p.archived);
+  const current = active.find((p) => p.id === activeProductId) ?? active[0] ?? null;
 
   if (all.length === 0) {
     return (
@@ -205,6 +211,25 @@ export function ProductsTab() {
 
   return (
     <>
+      {current ? (
+        <RenameField
+          key={current.id}
+          product={current}
+          rename={async (name) => {
+            await fRename({ data: { id: current.id, name } });
+            /* The home's "This run is for" picker and the composer's placeholder
+               read ["products"]; the portfolio and the project list read the
+               other two. All three follow the new name at once. */
+            await Promise.all([
+              qc.invalidateQueries({ queryKey: ["products"] }),
+              qc.invalidateQueries({ queryKey: ["portfolio"] }),
+              qc.invalidateQueries({ queryKey: ["projects"] }),
+            ]);
+            void refreshProducts();
+          }}
+        />
+      ) : null}
+
       <Region
         title={`Portfolio · ${active.length} product${active.length === 1 ? "" : "s"}`}
         sub={
@@ -280,5 +305,74 @@ export function ProductsTab() {
         </Region>
       ) : null}
     </>
+  );
+}
+
+/**
+ * ── THE PRODUCT'S NAME, WHERE IT IS SETTLED (2026-09-09) ────────────────────
+ *
+ * FirstRun names the product once, and until this field nothing let a person
+ * change that name: `updateProject` had no caller after the first-run press
+ * became one call. One Meridian Field, prefilled with the product the crew
+ * works on, saved on Enter or on blur when it changed; a Receipt says what it
+ * is called now, a ReadFailedLine with retry says when the write did not
+ * land. No modal and no Save button: a name is a sentence, not a form.
+ */
+function RenameField({
+  product,
+  rename,
+}: {
+  product: PortfolioProduct;
+  rename: (name: string) => Promise<void>;
+}) {
+  const [name, setName] = React.useState(product.name);
+  const [saved, setSaved] = React.useState<string | null>(null);
+  const [failed, setFailed] = React.useState<Error | null>(null);
+  const [saving, setSaving] = React.useState(false);
+
+  const commit = async () => {
+    const next = name.trim();
+    if (!next || next === product.name || saving) return;
+    setSaving(true);
+    setFailed(null);
+    try {
+      await rename(next);
+      setSaved(next);
+    } catch (e) {
+      setFailed(e instanceof Error ? e : new Error(String(e)));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Region title="Name" sub="What the home calls this product.">
+      <Field
+        label="Name"
+        htmlFor="product-name"
+        hint="Saved when you press Enter or leave the field."
+      >
+        <Input
+          id="product-name"
+          value={name}
+          maxLength={200}
+          disabled={saving}
+          onChange={(e) => setName(e.target.value)}
+          onBlur={() => void commit()}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              void commit();
+            }
+          }}
+        />
+      </Field>
+      {saved ? <Receipt verb="Renamed" consequence={`to ${saved}`} /> : null}
+      {failed ? (
+        <ReadFailedLine error={failed} onRetry={() => void commit()} retryLabel="Try again">
+          The name did not save.
+        </ReadFailedLine>
+      ) : null}
+    </Region>
   );
 }
