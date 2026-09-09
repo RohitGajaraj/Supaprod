@@ -1203,6 +1203,78 @@ is fixing the data until the demo works**, and at that point nobody can say whet
 
 ---
 
+### 25. A field that never expires needs a rule about when it stops applying
+
+Added 2026-09-10, after the same shape caught me **twice in ninety minutes** on a field I had written
+that night.
+
+`stoppedBecause` reads the newest halted `agent_runs` row for a track. **That row never goes away.**
+So every surface that leans on it is making a claim with no expiry, and the claim goes stale the
+moment anything else happens:
+
+| What was on the row | What was true |
+| --- | --- |
+| *"It ran out of credit and stopped. There is credit again."* | the hold had been **cleared** by a repair — the run was waiting to be picked up, not stopped |
+| the same sentence, an hour later | the track had walked to Build and was held for a **missing repository**; the credit halt was five days old |
+
+Two gates, added one after the other: the hold must **exist**, and the halt must belong to the drive
+that **produced** that hold (`drivenAt` is the discriminator — a hold comes from a drive, so a halt
+older than the last drive cannot have caused it).
+
+**The general rule.** When a surface reads a durable record to explain a current state, the read is
+only half the design. The other half is the condition under which that record stops being the
+explanation — and it has to be written at the same time, because nothing fails when it is missing.
+The sentence stays true and stops being *the answer*, which no test notices and no diff shows.
+
+**The tell:** a field whose value can only ever be added to. `halted_reason`, `last_hold_because`, a
+newest-anything. If you cannot say what makes it stale, you do not yet know what it means.
+
+---
+
+### 26. Count things, not events — and the fold names the furthest point
+
+Added 2026-09-10. Found three times in one night, in three files that do not import each other.
+
+| Said | Meant |
+| --- | --- |
+| "67 findings" | four findings, filed seventeen times each |
+| "1 prototype, 3 times" beside "said this 12 times" | two Design passes: three filings, twelve turns |
+| "3 runs moved on" | **one** run that walked `define → design → build` in twenty minutes |
+
+The third was caught before it rendered, and only because the loop started walking while the code was
+open. All three are the same substitution: **a count of events wearing the clothes of a count of
+things.** `foldVersions` exists for exactly this and its argument generalises past artifacts.
+
+**And the fold usually gives the better sentence, not just the truer one.** A track that moved three
+times has not done three things — it has *got to Build*. Naming the furthest point is both what
+happened and what a person needs, which is why this is a design law and not a correctness note.
+
+**Two rules for doing it.** Fold on the identity a person would use, not on a row id — titles, not
+uuids, which is what makes "4 findings" possible at all. And take the extreme by **value**, never by
+arrival order: a read that is newest-first today must not silently change its answer when a caller
+reverses it.
+
+---
+
+### 27. The emitted CSS confirms a class you can see used; `@theme` confirms a class you can write
+
+Added 2026-09-10, and the correction is Lane 3's.
+
+Before adding a Meridian utility somebody reports missing, the question is whether Tailwind already
+derives it. Grepping the **built** CSS answers a different question: it lists what the current build
+*used*. Lane 3 grepped their build for `.scroll-mt-mrd-7{`, got nothing, and would have concluded the
+utility did not exist — it does, generated from `--spacing-mrd-7`.
+
+**The capability test is the theme namespace.** `--spacing-mrd-7: var(--mrd-s7)` in `@theme inline`
+makes the whole `mt-` / `p-` / `gap-` / `scroll-mt-` family available for that step, for free, for
+every `--spacing-mrd-*` we declare.
+
+**Why it matters more than it sounds.** The failure mode is not a missing class — it is somebody
+adding a duplicate `@utility` beside a generated one. Two rules for one value is precisely the drift
+the ratchet exists to stop, introduced by a person trying to hold the system.
+
+---
+
 ## Open, measured, and deliberately not done tonight
 
 ### The address bar is the one surface still speaking the old vocabulary
