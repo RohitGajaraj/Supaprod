@@ -203,10 +203,16 @@ describe("the rail's ownership is derived, and unambiguous", () => {
      * door under P-60 while also being Discover's surface. The rule that still
      * has to hold is that no row is a STATION door -- named for a step in the
      * route, taking a person to a stage of the machine. "What came in" is the
-     * person's question and the six station-only routes stay out.
+     * person's question and the station-only routes stay out.
+     *
+     * `/outcomes` joined `/arriving` on 2026-09-09 (Lane 2, P-14b): /learn
+     * folded into Outcomes, so Learn's surface is the rail's Outcomes door the
+     * way Discover's is Findings. "What happened" is the person's question;
+     * the door is not named for the station, which the label check below
+     * still holds.
      */
     const stationOnly = new Set<string>(
-      Object.values(STATION_ROUTE).filter((r) => r !== "/arriving"),
+      Object.values(STATION_ROUTE).filter((r) => r !== "/arriving" && r !== "/outcomes"),
     );
     expect(rows.filter((r) => stationOnly.has(r))).toEqual([]);
     expect(rows).not.toContain("/runs");

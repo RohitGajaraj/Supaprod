@@ -70,7 +70,7 @@ const STATION_ROUTE = {
   design: "/start",
   build: "/start",
   ship: "/ship",
-  learn: "/learn",
+  learn: "/outcomes",
 } as const satisfies Record<AgentStation, string>;
 
 /**

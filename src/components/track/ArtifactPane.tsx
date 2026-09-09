@@ -1522,10 +1522,10 @@ function LearningCard({
           Open this verdict on Outcomes
           <DepthArrow />
         </Link>
-        {/* The forecasts desk has had no door from the loop since the rail
-            lost its Learn row; this is the one station whose verdicts it
-            settles, so it is the one place the door belongs. */}
-        <Link to="/learn" className={DEPTH_DOOR_FACE}>
+        {/* The forecasts desk and the settle gate live on Outcomes now
+            (/learn folded, 2026-09-09); this is the one station whose
+            verdicts they settle, so the door stays here. */}
+        <Link to="/outcomes" search={{ tab: "learnings" }} className={DEPTH_DOOR_FACE}>
           Open the forecasts desk
           <DepthArrow />
         </Link>

@@ -46,7 +46,13 @@ const STATIONS: Array<{ station: string; files: string[]; components?: string[] 
     components: ["discover/DiscoverSurface.tsx"],
   },
   { station: "06 Ship", files: ["_authenticated.ship.tsx"] },
-  { station: "07 Learn", files: ["_authenticated.learn.tsx"] },
+  // Learn's record lives on Outcomes since 2026-09-09 (P-14b); the route is a
+  // redirect, and the desk's doors are the component's.
+  {
+    station: "07 Learn",
+    files: ["_authenticated.outcomes.tsx"],
+    components: ["learn/LearnRecord.tsx"],
+  },
 ];
 
 function sourceOf(s: { files: string[]; components?: string[] }): string {
@@ -78,7 +84,8 @@ describe("every station offers somewhere to go", () => {
 });
 
 describe("Learn's empty desk asks a question and answers it with a door", () => {
-  const learn = () => readFileSync(join(ROUTES, "_authenticated.learn.tsx"), "utf8");
+  const learn = () =>
+    readFileSync(join(ROUTES, "..", "components", "learn", "LearnRecord.tsx"), "utf8");
 
   it("puts a Quiet zero state on the nothing-settled branch, not a bare paragraph", () => {
     // THE DEFECT, stated as a property. The branch reached when `outcomes.total`

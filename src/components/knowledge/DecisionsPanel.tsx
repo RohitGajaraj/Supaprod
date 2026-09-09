@@ -460,7 +460,11 @@ export function DecisionsPanel() {
           {overdue.said ? (
             <p className="text-mrd-small text-mrd-mute">
               {overdue.said}{" "}
-              <Link to="/learn" className="underline underline-offset-4">
+              <Link
+                to="/outcomes"
+                search={{ tab: "learnings" }}
+                className="underline underline-offset-4"
+              >
                 Settle them
               </Link>
               .

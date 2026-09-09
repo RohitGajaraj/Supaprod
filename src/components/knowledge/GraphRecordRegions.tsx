@@ -222,7 +222,10 @@ export function GraphRecordRegions({
       <Region title="What this view will answer, once an outcome comes back">
         <NothingYet
           action={
-            <Action variant="primary" onClick={() => navigate({ to: "/learn" })}>
+            <Action
+              variant="primary"
+              onClick={() => navigate({ to: "/outcomes", search: { tab: "learnings" } })}
+            >
               Record an outcome
             </Action>
           }

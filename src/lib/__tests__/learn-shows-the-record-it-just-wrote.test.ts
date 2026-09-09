@@ -59,7 +59,11 @@ const stripComments = (src: string) =>
 
 const OUTCOME = stripComments(read(join("lib", "outcome.functions.ts")));
 const PANEL = stripComments(read(join("components", "learn", "SettlePanel.tsx")));
-const ROUTE = stripComments(read(join("routes", "_authenticated.learn.tsx")));
+/* The record moved from the /learn route into a component mounted on Outcomes
+   (Lane 2, 2026-09-09; P-14b): the route is a redirect now, and every
+   assertion below holds on the component, which carries the same reads under
+   the same keys. */
+const ROUTE = stripComments(read(join("components", "learn", "LearnRecord.tsx")));
 
 const QUEUE = OUTCOME.slice(
   OUTCOME.indexOf("export const listPendingOutcomes"),

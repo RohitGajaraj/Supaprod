@@ -410,7 +410,7 @@ import { TabPanel, Tabs } from "@/components/meridian/Tabs";
 import { NeedsSetup } from "@/components/meridian/NeedsSetup";
 import { Quiet } from "@/components/meridian/Quiet";
 import { ForecastDeskPanel } from "@/components/learn/ForecastDeskPanel";
-import { SettlePanel } from "@/components/learn/SettlePanel";
+import { LearnRecord } from "@/components/learn/LearnRecord";
 import { PageHeading } from "@/components/meridian/surface-parts";
 import { CtxHead, CtxRow } from "@/components/meridian/ContextColumn";
 import { Surface } from "@/components/meridian/Surface";
@@ -2002,11 +2002,11 @@ function MemoryPage() {
                 <LearningDetail id={learning} />
               ) : (
                 <div className="flex flex-col gap-mrd-7">
-                  {/* The write Learn exists for: settle a shipped bet, and see
-                      what settling it changed. It owns its own reads and its
-                      receipts; here so the outcomes tab can close the loop
-                      rather than only report it. */}
-                  <SettlePanel />
+                  {/* The record Learn keeps, folded in from /learn (Lane 2,
+                      2026-09-09): the settle gate, the last verdict, what paid
+                      off, the learned cards, the claim beside the verdict, and
+                      the record as a file. See LearnRecord.tsx. */}
+                  <LearnRecord />
                   {awaiting.length > 0 ? (
                     <Region
                       title="Shipped, waiting for a verdict"

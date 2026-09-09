@@ -140,7 +140,9 @@ const SURFACES = [
   // "Decide" and "Build" left this list (P-14, A-QUEUE.md, R-34): both are
   // now redirect stubs with no loading state of their own to derive.
   ["Ship", "routes/_authenticated.ship.tsx"],
-  ["Learn", "routes/_authenticated.learn.tsx"],
+  // Learn's record lives on Outcomes since 2026-09-09 (P-14b); the route is a
+  // redirect stub and the loading state to derive is the component's.
+  ["Learn", "components/learn/LearnRecord.tsx"],
   // "Today" left this list (P-14, A-QUEUE.md): `components/today/Board.tsx`
   // was unmounted (zero importers) and deleted with the rest of the cluster
   // it alone owned.

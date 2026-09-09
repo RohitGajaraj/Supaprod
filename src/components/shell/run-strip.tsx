@@ -208,7 +208,7 @@ export const STATION_ROUTE: Record<AgentStation, string> = {
   design: "/design",
   build: "/build",
   ship: "/ship",
-  learn: "/learn",
+  learn: "/outcomes",
 };
 
 export type RunStripSpec = {

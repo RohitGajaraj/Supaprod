@@ -99,7 +99,8 @@ const STATIONS = [
   // dispatches a build. See the note above this list.
   "routes/_authenticated.plan.spec.$id.tsx",
   "routes/_authenticated.ship.tsx",
-  "routes/_authenticated.learn.tsx",
+  // "_authenticated.learn.tsx" left this list on 2026-09-09 (P-14b): it is a
+  // redirect to Outcomes, which is already on the list and mounts CrewWorking.
   // Not a station. The company record, where agents write and where a reader
   // is most likely to assume nothing is running.
   // "_authenticated.brain.tsx" -> "_authenticated.outcomes.tsx" (P-14a): the

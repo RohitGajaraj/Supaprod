@@ -158,8 +158,9 @@ export const LEGACY_REDIRECTS: Record<string, RedirectTarget> = {
   "/knowledge": { to: "/outcomes" },
   "/memory": { to: "/outcomes", search: { tab: "memory" } },
   "/docs": { to: "/outcomes", search: { tab: "docs" } },
-  // /learn is now a first-class Loop stage (canonical), not a Brain tab.
-  "/outcome": { to: "/learn" },
+  // /learn folded into Outcomes on 2026-09-09 (its route is a redirect); the
+  // old Brain tab lands on the same page it always meant.
+  "/outcome": { to: "/outcomes", search: { tab: "learnings" } },
   "/calendar": { to: "/outcomes", search: { tab: "calendar" } },
   "/meetings": { to: "/outcomes", search: { tab: "calendar" } },
   "/impact": { to: "/outcomes", search: { tab: "impact" } },

@@ -979,7 +979,7 @@ export function ReleaseDocument({
              nothing has settled it yet, so this is what happens next. */
           <p className="max-w-[68ch] text-mrd-label leading-mrd-prose text-mrd-mute">
             Learn checks this on {doc.checkBack}.{" "}
-            {onNavigate ? <Door onClick={() => onNavigate("/learn")}>Open Learn</Door> : null}
+            {onNavigate ? <Door onClick={() => onNavigate("/outcomes")}>Open Outcomes</Door> : null}
           </p>
         ) : null}
         {doc.outcome ? (

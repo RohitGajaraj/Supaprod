@@ -75,6 +75,7 @@ const ROUTES = [
   "src/routes/_authenticated.start.tsx",
   "src/routes/_authenticated.decide.tsx",
   "src/routes/_authenticated.learn.tsx",
+  "src/components/learn/LearnRecord.tsx",
   "src/routes/_authenticated.discover.tsx",
   "src/routes/_authenticated.track.$trackId.tsx",
 ];
