@@ -1302,6 +1302,33 @@ export function TrackRunLeft({
 
   const holdFacts = track && (now.register === "held" || now.register === "stopped");
 
+  /*
+   * ── A CLEARED HOLD ENDS THE WALL'S CLAIM ────────────────────────────────
+   *
+   * Seen on the served build: `6cc7a010` was released while I was reading it,
+   * the card's headline became "It starts at Design and asks before anything
+   * ships", and underneath it the card went on saying "Engineer and Review
+   * could not start Build" and "It hit one more wall after this one" about a
+   * stoppage that was over.
+   *
+   * `theBlockerItAlreadyNamed` reads the newest failed turns and those rows
+   * NEVER GO AWAY, so a wall drawn above the hold branches outlives every hold
+   * it was written for. A released run is not stopped; it is waiting to be
+   * picked up, and a run somebody took over must not be reported as blocked by
+   * the thing that blocked it last week.
+   *
+   * The discriminator is the HOLD, not the wall's own standing: `now: "gone"`
+   * cannot catch this, because the wall may still be standing while the run is
+   * no longer stopped by it. Lane 1 hit the same shape on the entry an hour
+   * earlier and it is their rule.
+   *
+   * ONE BOOLEAN, READ TWICE. It gates the render AND the door's suppression
+   * below, because "the quote already said it" is a question about what is ON
+   * THE SCREEN, not about what exists in the data -- and a suppression that
+   * kept firing on an unrendered quote would silently delete the door.
+   */
+  const showBlocker = Boolean(blocker) && Boolean(holdFacts);
+
   /* The station's own retry stands down wherever pressing it changes nothing:
      a call is in front of the person, the preview is what stopped Ship, or
      nothing will pick the work up again. */
@@ -1409,7 +1436,7 @@ export function TrackRunLeft({
            * are the SAME station -- then the refrain is this fact again in
            * fewer words, and the count is already in the lead above.
            */}
-          {blocker ? (
+          {showBlocker && blocker ? (
             <HoldFact
               sub={[`“${blocker.said}”`, alsoBehindIt(blocker, setupQ.data?.wall)]
                 .filter(Boolean)
@@ -1446,7 +1473,9 @@ export function TrackRunLeft({
                      and this run stands at Design, so a station comparison said
                      "keep it" and the card printed the same sentence two lines
                      under the quote. */
-                  theQuoteAlreadySaidIt(blocker?.said, setupGap) ? null : setupGap.said,
+                  theQuoteAlreadySaidIt(showBlocker ? blocker?.said : null, setupGap)
+                    ? null
+                    : setupGap.said,
                   /* The scale SURVIVES that suppression, because the agent's
                      quote is about one run and cannot know how many others are
                      standing in the same place. It is the fact that turns a
@@ -1465,7 +1494,12 @@ export function TrackRunLeft({
               </a>
             </HoldFact>
           ) : null}
-          {refrain && refrainStillSaysSomething(blocker, track?.station) ? (
+          {/* The refrain is a fact about a stoppage too -- "said the same thing
+              for 12 turns, and filed nothing" -- so it goes with the wall when
+              the hold clears, for the same reason. */}
+          {holdFacts &&
+          refrain &&
+          refrainStillSaysSomething(showBlocker ? blocker : null, track?.station) ? (
             <HoldFact>{refrainLead(refrain)}</HoldFact>
           ) : null}
           {now.register === "working" && presences.length > 0 ? (

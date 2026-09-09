@@ -40,6 +40,53 @@ describe("the read actually asks for the wall", () => {
   });
 });
 
+describe("a cleared hold ends the wall's claim", () => {
+  /*
+   * ── SEEN ON THE SERVED BUILD, 2026-09-10 ────────────────────────────────
+   * `6cc7a010` was released while I was reading it. The headline became "It
+   * starts at Design and asks before anything ships" and the card went on
+   * saying "Engineer and Review could not start Build" and "It hit one more
+   * wall after this one" about a stoppage that was over.
+   *
+   * `theBlockerItAlreadyNamed` reads failed turns and those rows NEVER GO
+   * AWAY, so a wall drawn above the hold branches outlives every hold it was
+   * written for. `now: "gone"` cannot catch it: the wall may still be standing
+   * while the run is no longer stopped by it.
+   */
+  it("the blocker, the count and the refrain are all gated on the hold", () => {
+    expect(CARD.replace(/\s+/g, " ")).toContain(
+      "const showBlocker = Boolean(blocker) && Boolean(holdFacts)",
+    );
+    expect(CARD).toMatch(/\{showBlocker && blocker \? \(/);
+    /* The refrain is a fact about a stoppage too and goes with the wall.
+       Whitespace-insensitive: prettier breaks a three-clause JSX condition
+       across lines, and a guard that pinned the line breaks would fail on a
+       reformat rather than on a defect. */
+    expect(CARD.replace(/\s+/g, " ")).toContain(
+      "{holdFacts && refrain && refrainStillSaysSomething(",
+    );
+  });
+
+  it("and the door's suppression asks what is ON SCREEN, not what exists", () => {
+    /*
+     * `theQuoteAlreadySaidIt` exists to stop the door repeating the quote
+     * above it. With the quote gated off, a suppression still reading
+     * `blocker.said` would silently delete the door on exactly the runs that
+     * need it -- the between-elements defect, one turn of the screw further
+     * on.
+     */
+    expect(CARD).toContain("theQuoteAlreadySaidIt(showBlocker ? blocker?.said : null");
+    expect(CARD).not.toContain("theQuoteAlreadySaidIt(blocker?.said");
+  });
+
+  it("read through ONE boolean, so the two cannot disagree", () => {
+    // Two conditions spelled out separately is how the render and the
+    // suppression drift apart between deploys.
+    const uses = CARD.split("showBlocker").length - 1;
+    expect(uses).toBeGreaterThanOrEqual(3);
+  });
+});
+
 describe("and the card actually passes it", () => {
   it("hands the wall to alsoBehindIt rather than calling it bare", () => {
     /*
