@@ -28,6 +28,7 @@
  * go, never that policy stopped applying.
  */
 import { trackGoalSentence } from "@/lib/track-origin";
+import { callWasARefusal } from "@/lib/spine/a-refusal-the-router-can-see";
 import { theCallLine } from "@/lib/spine/which-way-the-call-went";
 import {
   metricsForTheBrief,
@@ -5400,9 +5401,29 @@ async function decisionWasRefusal(supabase: SupabaseClient, trackId: string): Pr
       .maybeSingle();
     const id = (member as { artifact_id?: string } | null)?.artifact_id;
     if (!id) return false;
-    const { data } = await supabase.from("decisions").select("status").eq("id", id).maybeSingle();
-    return (data as { status?: string } | null)?.status === "declined";
-  } catch {
+    const { data, error } = await supabase
+      .from("decisions")
+      .select("status,call")
+      .eq("id", id)
+      .maybeSingle();
+    /*
+     * A READ THAT FAILED IS NOT A DECISION THAT SAID BUILD, and it used to
+     * arrive here as one. The direction of the failure is unchanged and now
+     * deliberate: an unreadable decision leaves the route alone, because
+     * waiving four stations on a row nobody could read would stop work that
+     * may never have been refused. What changes is that it says so, where a
+     * bare `catch {}` said nothing and could not be told from a real answer.
+     */
+    if (error) {
+      console.error(
+        `[driver] the decision on track ${trackId} could not be read (${error.message}), so the route was not narrowed; if it was a refusal, the next stations will run anyway`,
+      );
+      return false;
+    }
+    const row = (data as { status?: string | null; call?: string | null } | null) ?? null;
+    return callWasARefusal({ call: row?.call ?? null, status: row?.status ?? null });
+  } catch (e) {
+    console.error(`[driver] reading the decision on track ${trackId} threw`, e);
     return false;
   }
 }
