@@ -548,6 +548,37 @@ moving to three beats one moving on a principle, and it survives even if the pri
 
 ---
 
+### 12. A guard for "only this changed" needs a mirror, or the code can pass it by withholding everything
+
+Added 2026-09-09, after this exact gap appeared in **three** guards in one afternoon, twice in ones
+written that same hour.
+
+The property being guarded is nearly always the same: **one read fails, and only what that read fed
+goes null.** The obvious test refuses a read and asserts that its own fields are withheld. That test
+passes just as happily if the handler panics and withholds EVERYTHING, which is a different and
+worse defect: it turns one refused table into a blank surface.
+
+**So the test comes in pairs.** Refuse read A and assert both that A's fields are withheld AND that
+B's survive at their real values, including a real zero. Then refuse B and assert the reverse.
+Neither test can then pass by withholding everything, and the pair states the property the single
+test only gestured at.
+
+**A real zero is the point of the whole exercise.** `null` means *we could not find out* and the
+surfaces draw nothing for it; `0` means *we looked and there is none* and the surfaces are entitled
+to draw an all-clear. A guard that never asserts a surviving zero has not tested the distinction it
+exists for.
+
+**And fire it in both directions**, with the defect in its natural form rather than a synthetic one:
+change `error ? null : count` to `count ?? 0` and watch the first test name it; make one refusal null
+a neighbour's field and watch the second. See law 10's note on proving a guard, which this is the
+sharpest case of.
+
+This needs a wire that can REFUSE, not just return rows. A fake that can only answer with data cannot
+produce the difference between a refusal and an empty answer, and that difference is what most of
+this contract's recent findings turned on.
+
+---
+
 ## The defects that keep coming back
 
 Each of these has been found more than once, by people who knew the rule. Check for them by name.
@@ -561,6 +592,7 @@ Each of these has been found more than once, by people who knew the rule. Check 
 | Identity painted as a colour ramp | 3 | Law 4. |
 | A `100vh` child inside a taller document | 1, shipped | One ancestor owns the viewport; everything below takes shares. `min-height: 0` on the flex child is the part people leave out. |
 | `as T` plus `??` read as a guard | **54**, swept in one day | A cast is a claim about a value, never a check of it, and `??` catches only null and undefined. Any other shape passes through typed. `typeof x === "string" && x.length > 0 ? x : null`, or test membership in the union's own exhaustive record. |
+| A failure guard with no mirror | **3**, in one afternoon | It passes if the handler withholds everything, which is the worse defect. Refuse A and assert B's real values survive, then refuse B. Law 12. |
 | Every pane reporting its own refused read | **5 on one screen**, 3 on another | Each is correct and nothing owns the composition. Route the failure to the level that owns the cause, and do not mount the panes standing on a read that failed. Law 11. |
 | A clause welded to a sentence that never reads it | 1, on the entry | "and the record was re-scored" was part of the sentence for every graded decision and nothing in that read looked at a score. A surface that states a consequence must read the consequence. |
 | A qualifier left behind when its branch's source changed | **3**, in one day | The guard, the keyframes and the "at least" floor all belonged to a read that had been swapped underneath them. Nothing fails when a qualifier outlives its reason. When you change what a branch reads, grep for every hedge, guard and dependency written for the old read. |
