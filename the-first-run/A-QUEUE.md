@@ -12045,3 +12045,37 @@ recorded from a wallet event (`6cc7a010`: 12 halts, terminal hold, 5,249 credits
 today) -- a repair with blast radius, the shape of `repairStaleGates`; then the 976 KB first-paint
 budget (`7d195c948`).
 
+### A3 · CLAIMED AND CODE DONE · RELEASE THE TRACKS A WALLET STOPPED (A1's packet, 2026-09-10)
+
+`96cdb38f7`, migration `20260910100100` applied and ledgered. Suite 15,667 / 0 fail, tsc 0, build 0,
+unreachable holding.
+
+**Acceptance 1, releases on the RECORD and not on the hold word: MET, and separated on production
+data.** The discriminator is the track's MOST RECENT run. Across every open track carrying a
+terminal hold with any halted run: `6cc7a010` and `0c0db8e6` (12 wallet halts each, newest run is
+one) release; `a30238f5` (2 wallet halts, newest run came **fifteen hours after** them) is left
+alone; `bb405f6c` (terminal hold, no wallet halt at all) is left alone. A rule keyed on "any wallet
+halt on the track" would have released `a30238f5`. Those four rows with their real timestamps ARE
+the test fixture.
+
+**Acceptance 2, bounded and says what it touched: MET.** Ten a pass, and every track it looked at
+comes back with a sentence whether released or not, naming the halt that justified it. Reported on
+the sweep's own response as `walletReleased`, `walletLeftAlone`, `walletFailed`.
+
+**Acceptance 3, releases ONCE: MET.** `spine_tracks.wallet_released_at`, and the release requires
+the wallet halt to be NEWER than it, so a wall that came back up earns a new release and the same
+halt never earns two.
+
+**Acceptance 4, credit checked at release: MET.** Workspace to account to balance, two reads and not
+an embed (`spine_tracks.workspace_id` has no foreign key to `workspaces`). A balance that could not
+be READ refuses the release rather than counting as money.
+
+**Acceptance 5, proved by a track that MOVES: NOT YET MET, and I am not claiming it.** That needs
+this deployed and one sweep tick. What is verified is the release DECISION against production rows;
+what is not is the movement. I will report the station `6cc7a010` reaches, not the row that changed.
+
+Proved by firing four ways with each check actually removed. One of those four did not fire on the
+first attempt because the edit that was supposed to break it did not match -- the guard was fine and
+the probe was wrong, which is worth saying because a probe that misses reads exactly like a guard
+that holds.
+
