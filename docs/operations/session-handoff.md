@@ -2699,3 +2699,60 @@ before recording a thing as impossible; their vantage is cheaper than switching 
 Merged tree verified by Lane 1 at `a33b08189`: tsc 0, 15,328 tests across 1,137 files, 0 fail,
 build 0, unreachable 0, docs clean.
 
+
+
+## Lane 2 · 2026-09-09 evening · one defect family in three costumes
+
+**The pattern, and it is the useful part.** Everything this stretch found was one shape: **a surface
+printing a string that was written for a different job.**
+
+- The transcript's section header restated a count three other surfaces already carry.
+- The Inbox's settled line printed `item.approveConsequence` -- the label under the pending card's
+  Approve **button** -- as the record of a completed judgement: *"You approved · Approve · unblocks
+  Build for this spec · 2:14 PM"*. Present tense, imperative, the card's bullet in prose, still
+  offering the choice the person had just made. Ten past-tense sentences written for that exact slot
+  sat behind `item.approveConsequence ?? SETTLED_APPROVE[kind]` on a non-optional field, so **not one
+  of them had ever rendered.**
+- Every decline in the product printed one string, which is family `decision`'s own consequence
+  generalised to all ten and false of most of them.
+- Three of the twelve Now-card registers put the chip's own word in the headline eight pixels away.
+
+**Two traps, both cheap to inherit.**
+
+1. **A cast fixture does not leave a branch uncovered; it silently covers the wrong one and reports
+   green.** `decideSettledLine` had a suite. Its fixture was five fields `as ApprovalQueueItem`
+   carrying no `approveConsequence`, because the cast made the compiler stop asking -- so every
+   assertion ran the fallback branch production never takes, and the branch production always takes
+   was never once executed.
+2. **A source-scanning guard must strip comments before it scans.** The tally census failed the very
+   file it had just fixed, because the docstring explaining the fix quoted the hand-typed call it had
+   removed.
+
+**The census found more than it was asked to.** Lane 1 and I had counted four station-tally emitters
+by eye on one rendered page. Scanned by mechanism it is **nine** -- the road, the story, the proof
+panel, the artifact pane, Start's row, Start's journey strip, the transcript's turn line, the chain's
+whole-run sentence, and `describeAttachments`. Which is why a fourth copy kept appearing: nobody
+could hold the set in their head, so every new surface reasonably invented its own.
+
+The mirror found three more emitting into **nothing**: `station-outcome.ts` (whose own docstring said
+it "hands it to the map and the strip", true when written and not since), `what-each-station-did.ts`,
+and `what-it-produced.ts` reached only through the first. The two with no contract on them are
+deleted with their suites. **A dead tally emitter is not untidiness -- it is how the fifth sighting
+arrives**, because the next person finds it, it reads as canonical, and they wire it up.
+
+**Measured, and it changes what a screenshot can tell you.** Of 21 pending gates, 14 carry a
+`run_id`, and **all 14 of those runs have a null `track_id`** -- created 16 and 17 July, before the
+loop wrote the link. Modern gates resolve fine (48 of 64 cancelled; 196 of 211 runs in the last
+week). So Lane 1's [0]/[7] run door, on the pending card **and** now on the settled line, is correct
+code that renders on nothing in the queue as it stands today.
+
+**What is open on this lane.**
+
+1. **Re-point the Start-row contract** (`the-row-and-the-strip-agree-on-what-was-produced`) at a live
+   emitter, so `what-it-produced.ts` can leave the tree. It is quarantined, not kept: the live
+   emitters do not share one convention -- `run-tally` deliberately drops the number for a count of
+   one, because a chip is not a sentence -- so this has a decision in it.
+2. **The `failed` node fill in the fail hue** was judged only on a `stopped` node. Lane 1 says
+   nothing rides on it.
+3. **Lane 3's Server-Timing strip read**, offered to this lane when Lane 1's browser was wedged, is
+   still unclaimed.
