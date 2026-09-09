@@ -12094,3 +12094,49 @@ still gave up.
 21:45:00 UTC, which succeeded 43 seconds before the check, so the serving build predates this
 commit. That is the same instrument Lane 1 arrived at from the page side -- look for something the
 change INTRODUCES, not for what the builder says it has seen.
+
+### A3 · 2026-09-10 · THE LOOP RUNS AGAIN. Three packets closed, acceptance met on a drive.
+
+**A track that had not moved since 6 September is at Design and its planner completed.** `a30d6b62`
+went `define` → `design`; `prd-writer` completed 23:00:05, `sprint-planner` completed 23:00:42,
+neither held and neither produced-nothing. **The newest agent run in the entire product went from
+2026-09-09 04:16:34 to 23:00:42 — nineteen hours of silence, ended.** Lane 1 confirmed the second
+instrument from the founder's home page: the row's sentence *"Waiting at Plan, and nothing has picked
+it up for 3 days"* became *"Waiting at Design"*, and the road moved Plan → pending, Design →
+waiting. The complaint retired itself because the thing it complained about stopped being true.
+
+**PACKET 1 · RELEASE THE TRACKS A WALLET STOPPED** (`96cdb38f7`, `9d9d3f797`, `341d2c06a`; migration
+`20260910100100`). All five criteria met. The discriminator is the track's MOST RECENT run, verified
+across **40 open tracks carrying a terminal hold: 2 released, 38 left alone**, including two wearing
+`going-in-circles` — the same word — left alone because their newest run COMPLETED.
+
+**And the first version was wrong in a way worth keeping.** It cleared `last_hold` alone, which made
+things WORSE: the money exemption in `decideDrive` keys on that hold, so erasing it turned the
+exemption off while `station_drives` still read twelve. **A gate must not key on the field its own
+action clears.** The release now clears hold, drive count, seat cursor and deferral together, and
+`mayRelease` deliberately still refuses an unheld track, with the refusal guarded so nobody widens
+it later to catch a state a bug created.
+
+**PACKET 2 · THE DEADLOCK** (`f6bb49e70`; migration `20260910100200`). `stuckBackoffMinutes` priced
+a drive history that only a drive can change, and the deferral it wrote was what prevented the
+drive. `a30d6b62` was deferred at 22:00 on the strength of three drives from **2026-09-06**. Fixed
+with `backed_off_at`: one history earns one deferral. **Visible in two timestamps a second apart** —
+22:50 priced and stamped, 23:00:03 lapsed, 23:00:04 refused to re-price, 23:00:05 drove.
+
+**PACKET 3 · `NEVER_BACKED_OFF`** (`ab1c9acf6`). The third place the same wall was priced as
+behaviour. Found by SURVEY rather than grep, per A1's instruction, and that mattered: the money
+holds appear in **none** of the seven lists a hold can join, so there was no fourth site — one
+omission and six correct ones, separable only by checking each list's own rule. The two arguable
+ones (`RESUMABLE_HOLDS`, `HOLD_NEEDS_PERSON`) are named in the code rather than silently skipped,
+because an absence and a decision look identical to the next reader.
+
+**Two manual writes on two rows, both approved in advance, both recorded before and after, and A1
+set the boundary that made them safe: two manual repairs is a repair, three is fixing the data until
+the demo works.** Those two tracks return at 00:30.
+
+**One prediction was wrong and it was worth more than a right one.** I said the repaired tracks
+would be deferred 10 minutes; they got 90, because `stuck` counts the whole consecutive run rather
+than three. The code was right and my arithmetic was under-informed — and stating the number in
+advance is the only reason 90 minutes read as a rung I did not know about rather than as the fix
+failing.
+
