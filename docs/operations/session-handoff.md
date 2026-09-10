@@ -3261,6 +3261,32 @@ a hand-written list would have been a third source and drifted like the two abov
 *The lesson for me is the one I already had written down: a recorded cause outranks an inferred
 shape. An incomplete grep is an inference.*
 
+**THE ONE OPEN MEASUREMENT, and it is the whole point of the fix.** Deploy `f24558d1` (triggered
+02:26 UTC 2026-09-10) carries the grader fix. **Fourteen of the fifteen carry
+`forecast_next_check_at = 2026-09-10 00:00:32`** — written by the 09-09 run, and today's tick fired
+at 00:00:03, *twenty-nine seconds before they were due*. So they were not re-drafted this morning.
+**The 06:00 UTC run re-drafts those fourteen in one batch, with the fix live.**
+
+Read it with:
+
+```sql
+select forecast_resolution_suggestion -> 'read'     as read,
+       forecast_resolution_suggestion -> 'cited'    as cited,
+       forecast_resolution_suggestion ->> 'verdict' as verdict,
+       forecast_resolution_suggestion ->> 'drafted_at'
+from decisions
+where forecast_claim is not null and forecast_resolved_at is null
+  and forecast_horizon_date < now() and is_sample is not true;
+```
+
+**Non-empty `read`/`cited` on those fourteen is the answer. Still empty and the fix is wrong** — and
+Lane 3 asked to learn that from the data rather than from the tests, which is the right instinct.
+
+**Do not move `canAutoSettle`'s gate before that read.** It exists because eight rows once drafted at
+confidence 1.0 about nothing: a model asked to judge with no evidence still answers. Moving it now
+would be deciding on the same absence that produced those eight. If the batch cites real sources,
+the gate is the only thing left between here and a closed loop, and that is the ruling to make then.
+
 Lane 1's half shipped (`7ccd28bf6`): the entry drew *"you will know in N days"* in two workspaces
 where ten and five earlier bets had lapsed unmentioned, which told the reader the grading works. It
 now says *"10 earlier bets came due and nothing has graded them"* — the fact, never the cause,
