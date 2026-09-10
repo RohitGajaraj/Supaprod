@@ -3208,10 +3208,11 @@ full-width row above the pane and `position: sticky` rode it down over the pane 
 
 ### Open, and deliberately not done
 
-- **The home's rhythm and the verb fix (`4c2a86a17`, `c20d312b8`) are pushed but NOT yet verified
-  live** — deploy `c239eb1e` was building at handoff. Verify: the home's column should read
-  `rowGap: 40px` with every child margin `0px` and gaps `[40,40,40,40,40]`; it read
-  `rowGap: 24px`, margins `0px/16px`, gaps `[24,40,40,40,40]` before.
+- ~~The home's rhythm and the verb fix are pushed but not yet verified live.~~ **CLOSED, verified
+  on `c239eb1e`:** the home's column reads `rowGap: 40px`, every child margin `0px`, gaps
+  `[40,40,40,40,40]`. It read `rowGap: 24px`, margins `0px/16px`, gaps `[24,40,40,40,40]` before.
+  **All six commits are now verified live**, each against something the change introduces rather
+  than against a sha.
 - **`spine_tracks.pending_gates` is jsonb and empty on every track** (0 of 8 in A1 delete probe,
   00:43 UTC) while 4 prds carry `design_gate_status='pending'`. The column that could tell a track
   what it is blocked on has no writer, so every reader re-derives the join. Flagged to Lane 3 as
