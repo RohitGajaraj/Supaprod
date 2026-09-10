@@ -46,32 +46,23 @@ import { Route as AuthenticatedThreadsRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedTeamRouteImport } from './routes/_authenticated.team'
 import { Route as AuthenticatedStartRouteImport } from './routes/_authenticated.start'
 import { Route as AuthenticatedSourcesRouteImport } from './routes/_authenticated.sources'
-import { Route as AuthenticatedShipRouteImport } from './routes/_authenticated.ship'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated.settings'
-import { Route as AuthenticatedPrdsRouteImport } from './routes/_authenticated.prds'
 import { Route as AuthenticatedOutcomesRouteImport } from './routes/_authenticated.outcomes'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated.onboarding'
 import { Route as AuthenticatedMeridianRouteImport } from './routes/_authenticated.meridian'
-import { Route as AuthenticatedLearnRouteImport } from './routes/_authenticated.learn'
 import { Route as AuthenticatedInboxRouteImport } from './routes/_authenticated.inbox'
 import { Route as AuthenticatedEvidenceRouteImport } from './routes/_authenticated.evidence'
 import { Route as AuthenticatedEngineRoomRouteImport } from './routes/_authenticated.engine-room'
-import { Route as AuthenticatedDiscoverRouteImport } from './routes/_authenticated.discover'
-import { Route as AuthenticatedDesignRouteImport } from './routes/_authenticated.design'
-import { Route as AuthenticatedDecideRouteImport } from './routes/_authenticated.decide'
-import { Route as AuthenticatedBrainRouteImport } from './routes/_authenticated.brain'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated.admin'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as AuthenticatedPlanIndexRouteImport } from './routes/_authenticated.plan.index'
-import { Route as AuthenticatedBuildIndexRouteImport } from './routes/_authenticated.build.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated.admin.index'
 import { Route as ApiStripeWebhookRouteImport } from './routes/api/stripe/webhook'
 import { Route as ApiPublicIngestSignalsRouteImport } from './routes/api/public/ingest-signals'
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as AuthenticatedTrackTrackIdRouteImport } from './routes/_authenticated.track.$trackId'
 import { Route as AuthenticatedTracesTraceIdRouteImport } from './routes/_authenticated.traces.$traceId'
-import { Route as AuthenticatedRunsMissionIdRouteImport } from './routes/_authenticated.runs.$missionId'
 import { Route as AuthenticatedAdminWorkspacesRouteImport } from './routes/_authenticated.admin.workspaces'
 import { Route as AuthenticatedAdminRoutingRouteImport } from './routes/_authenticated.admin.routing'
 import { Route as AuthenticatedAdminQualityRouteImport } from './routes/_authenticated.admin.quality'
@@ -333,19 +324,9 @@ const AuthenticatedSourcesRoute = AuthenticatedSourcesRouteImport.update({
   path: '/sources',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedShipRoute = AuthenticatedShipRouteImport.update({
-  id: '/ship',
-  path: '/ship',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedPrdsRoute = AuthenticatedPrdsRouteImport.update({
-  id: '/prds',
-  path: '/prds',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedOutcomesRoute = AuthenticatedOutcomesRouteImport.update({
@@ -363,11 +344,6 @@ const AuthenticatedMeridianRoute = AuthenticatedMeridianRouteImport.update({
   path: '/meridian',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedLearnRoute = AuthenticatedLearnRouteImport.update({
-  id: '/learn',
-  path: '/learn',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
 const AuthenticatedInboxRoute = AuthenticatedInboxRouteImport.update({
   id: '/inbox',
   path: '/inbox',
@@ -381,26 +357,6 @@ const AuthenticatedEvidenceRoute = AuthenticatedEvidenceRouteImport.update({
 const AuthenticatedEngineRoomRoute = AuthenticatedEngineRoomRouteImport.update({
   id: '/engine-room',
   path: '/engine-room',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedDiscoverRoute = AuthenticatedDiscoverRouteImport.update({
-  id: '/discover',
-  path: '/discover',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedDesignRoute = AuthenticatedDesignRouteImport.update({
-  id: '/design',
-  path: '/design',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedDecideRoute = AuthenticatedDecideRouteImport.update({
-  id: '/decide',
-  path: '/decide',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedBrainRoute = AuthenticatedBrainRouteImport.update({
-  id: '/brain',
-  path: '/brain',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
@@ -423,11 +379,6 @@ const Char91DotmcpChar93ListToolsRoute =
 const AuthenticatedPlanIndexRoute = AuthenticatedPlanIndexRouteImport.update({
   id: '/plan/',
   path: '/plan/',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedBuildIndexRoute = AuthenticatedBuildIndexRouteImport.update({
-  id: '/build/',
-  path: '/build/',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
@@ -460,12 +411,6 @@ const AuthenticatedTracesTraceIdRoute =
   AuthenticatedTracesTraceIdRouteImport.update({
     id: '/traces/$traceId',
     path: '/traces/$traceId',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedRunsMissionIdRoute =
-  AuthenticatedRunsMissionIdRouteImport.update({
-    id: '/runs/$missionId',
-    path: '/runs/$missionId',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 const AuthenticatedAdminWorkspacesRoute =
@@ -937,20 +882,13 @@ export interface FileRoutesByFullPath {
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
-  '/brain': typeof AuthenticatedBrainRoute
-  '/decide': typeof AuthenticatedDecideRoute
-  '/design': typeof AuthenticatedDesignRoute
-  '/discover': typeof AuthenticatedDiscoverRoute
   '/engine-room': typeof AuthenticatedEngineRoomRoute
   '/evidence': typeof AuthenticatedEvidenceRoute
   '/inbox': typeof AuthenticatedInboxRoute
-  '/learn': typeof AuthenticatedLearnRoute
   '/meridian': typeof AuthenticatedMeridianRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/outcomes': typeof AuthenticatedOutcomesRoute
-  '/prds': typeof AuthenticatedPrdsRoute
   '/settings': typeof AuthenticatedSettingsRoute
-  '/ship': typeof AuthenticatedShipRoute
   '/sources': typeof AuthenticatedSourcesRoute
   '/start': typeof AuthenticatedStartRoute
   '/team': typeof AuthenticatedTeamRoute
@@ -977,14 +915,12 @@ export interface FileRoutesByFullPath {
   '/admin/quality': typeof AuthenticatedAdminQualityRoute
   '/admin/routing': typeof AuthenticatedAdminRoutingRoute
   '/admin/workspaces': typeof AuthenticatedAdminWorkspacesRoute
-  '/runs/$missionId': typeof AuthenticatedRunsMissionIdRoute
   '/traces/$traceId': typeof AuthenticatedTracesTraceIdRoute
   '/track/$trackId': typeof AuthenticatedTrackTrackIdRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/ingest-signals': typeof ApiPublicIngestSignalsRoute
   '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
-  '/build/': typeof AuthenticatedBuildIndexRoute
   '/plan/': typeof AuthenticatedPlanIndexRoute
   '/plan/spec/$id': typeof AuthenticatedPlanSpecIdRoute
   '/api/public/a2a/tasks': typeof ApiPublicA2aTasksRoute
@@ -1076,20 +1012,13 @@ export interface FileRoutesByTo {
   '/updates': typeof UpdatesRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
-  '/brain': typeof AuthenticatedBrainRoute
-  '/decide': typeof AuthenticatedDecideRoute
-  '/design': typeof AuthenticatedDesignRoute
-  '/discover': typeof AuthenticatedDiscoverRoute
   '/engine-room': typeof AuthenticatedEngineRoomRoute
   '/evidence': typeof AuthenticatedEvidenceRoute
   '/inbox': typeof AuthenticatedInboxRoute
-  '/learn': typeof AuthenticatedLearnRoute
   '/meridian': typeof AuthenticatedMeridianRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/outcomes': typeof AuthenticatedOutcomesRoute
-  '/prds': typeof AuthenticatedPrdsRoute
   '/settings': typeof AuthenticatedSettingsRoute
-  '/ship': typeof AuthenticatedShipRoute
   '/sources': typeof AuthenticatedSourcesRoute
   '/start': typeof AuthenticatedStartRoute
   '/team': typeof AuthenticatedTeamRoute
@@ -1116,14 +1045,12 @@ export interface FileRoutesByTo {
   '/admin/quality': typeof AuthenticatedAdminQualityRoute
   '/admin/routing': typeof AuthenticatedAdminRoutingRoute
   '/admin/workspaces': typeof AuthenticatedAdminWorkspacesRoute
-  '/runs/$missionId': typeof AuthenticatedRunsMissionIdRoute
   '/traces/$traceId': typeof AuthenticatedTracesTraceIdRoute
   '/track/$trackId': typeof AuthenticatedTrackTrackIdRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/ingest-signals': typeof ApiPublicIngestSignalsRoute
   '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
-  '/build': typeof AuthenticatedBuildIndexRoute
   '/plan': typeof AuthenticatedPlanIndexRoute
   '/plan/spec/$id': typeof AuthenticatedPlanSpecIdRoute
   '/api/public/a2a/tasks': typeof ApiPublicA2aTasksRoute
@@ -1218,20 +1145,13 @@ export interface FileRoutesById {
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
-  '/_authenticated/brain': typeof AuthenticatedBrainRoute
-  '/_authenticated/decide': typeof AuthenticatedDecideRoute
-  '/_authenticated/design': typeof AuthenticatedDesignRoute
-  '/_authenticated/discover': typeof AuthenticatedDiscoverRoute
   '/_authenticated/engine-room': typeof AuthenticatedEngineRoomRoute
   '/_authenticated/evidence': typeof AuthenticatedEvidenceRoute
   '/_authenticated/inbox': typeof AuthenticatedInboxRoute
-  '/_authenticated/learn': typeof AuthenticatedLearnRoute
   '/_authenticated/meridian': typeof AuthenticatedMeridianRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/outcomes': typeof AuthenticatedOutcomesRoute
-  '/_authenticated/prds': typeof AuthenticatedPrdsRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
-  '/_authenticated/ship': typeof AuthenticatedShipRoute
   '/_authenticated/sources': typeof AuthenticatedSourcesRoute
   '/_authenticated/start': typeof AuthenticatedStartRoute
   '/_authenticated/team': typeof AuthenticatedTeamRoute
@@ -1258,14 +1178,12 @@ export interface FileRoutesById {
   '/_authenticated/admin/quality': typeof AuthenticatedAdminQualityRoute
   '/_authenticated/admin/routing': typeof AuthenticatedAdminRoutingRoute
   '/_authenticated/admin/workspaces': typeof AuthenticatedAdminWorkspacesRoute
-  '/_authenticated/runs/$missionId': typeof AuthenticatedRunsMissionIdRoute
   '/_authenticated/traces/$traceId': typeof AuthenticatedTracesTraceIdRoute
   '/_authenticated/track/$trackId': typeof AuthenticatedTrackTrackIdRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/ingest-signals': typeof ApiPublicIngestSignalsRoute
   '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
-  '/_authenticated/build/': typeof AuthenticatedBuildIndexRoute
   '/_authenticated/plan/': typeof AuthenticatedPlanIndexRoute
   '/_authenticated/plan/spec/$id': typeof AuthenticatedPlanSpecIdRoute
   '/api/public/a2a/tasks': typeof ApiPublicA2aTasksRoute
@@ -1360,20 +1278,13 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/admin'
-    | '/brain'
-    | '/decide'
-    | '/design'
-    | '/discover'
     | '/engine-room'
     | '/evidence'
     | '/inbox'
-    | '/learn'
     | '/meridian'
     | '/onboarding'
     | '/outcomes'
-    | '/prds'
     | '/settings'
-    | '/ship'
     | '/sources'
     | '/start'
     | '/team'
@@ -1400,14 +1311,12 @@ export interface FileRouteTypes {
     | '/admin/quality'
     | '/admin/routing'
     | '/admin/workspaces'
-    | '/runs/$missionId'
     | '/traces/$traceId'
     | '/track/$trackId'
     | '/api/public/health'
     | '/api/public/ingest-signals'
     | '/api/stripe/webhook'
     | '/admin/'
-    | '/build/'
     | '/plan/'
     | '/plan/spec/$id'
     | '/api/public/a2a/tasks'
@@ -1499,20 +1408,13 @@ export interface FileRouteTypes {
     | '/updates'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
-    | '/brain'
-    | '/decide'
-    | '/design'
-    | '/discover'
     | '/engine-room'
     | '/evidence'
     | '/inbox'
-    | '/learn'
     | '/meridian'
     | '/onboarding'
     | '/outcomes'
-    | '/prds'
     | '/settings'
-    | '/ship'
     | '/sources'
     | '/start'
     | '/team'
@@ -1539,14 +1441,12 @@ export interface FileRouteTypes {
     | '/admin/quality'
     | '/admin/routing'
     | '/admin/workspaces'
-    | '/runs/$missionId'
     | '/traces/$traceId'
     | '/track/$trackId'
     | '/api/public/health'
     | '/api/public/ingest-signals'
     | '/api/stripe/webhook'
     | '/admin'
-    | '/build'
     | '/plan'
     | '/plan/spec/$id'
     | '/api/public/a2a/tasks'
@@ -1640,20 +1540,13 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/_authenticated/admin'
-    | '/_authenticated/brain'
-    | '/_authenticated/decide'
-    | '/_authenticated/design'
-    | '/_authenticated/discover'
     | '/_authenticated/engine-room'
     | '/_authenticated/evidence'
     | '/_authenticated/inbox'
-    | '/_authenticated/learn'
     | '/_authenticated/meridian'
     | '/_authenticated/onboarding'
     | '/_authenticated/outcomes'
-    | '/_authenticated/prds'
     | '/_authenticated/settings'
-    | '/_authenticated/ship'
     | '/_authenticated/sources'
     | '/_authenticated/start'
     | '/_authenticated/team'
@@ -1680,14 +1573,12 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/quality'
     | '/_authenticated/admin/routing'
     | '/_authenticated/admin/workspaces'
-    | '/_authenticated/runs/$missionId'
     | '/_authenticated/traces/$traceId'
     | '/_authenticated/track/$trackId'
     | '/api/public/health'
     | '/api/public/ingest-signals'
     | '/api/stripe/webhook'
     | '/_authenticated/admin/'
-    | '/_authenticated/build/'
     | '/_authenticated/plan/'
     | '/_authenticated/plan/spec/$id'
     | '/api/public/a2a/tasks'
@@ -2119,25 +2010,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSourcesRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/ship': {
-      id: '/_authenticated/ship'
-      path: '/ship'
-      fullPath: '/ship'
-      preLoaderRoute: typeof AuthenticatedShipRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/settings': {
       id: '/_authenticated/settings'
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof AuthenticatedSettingsRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/prds': {
-      id: '/_authenticated/prds'
-      path: '/prds'
-      fullPath: '/prds'
-      preLoaderRoute: typeof AuthenticatedPrdsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/outcomes': {
@@ -2161,13 +2038,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMeridianRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/learn': {
-      id: '/_authenticated/learn'
-      path: '/learn'
-      fullPath: '/learn'
-      preLoaderRoute: typeof AuthenticatedLearnRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/inbox': {
       id: '/_authenticated/inbox'
       path: '/inbox'
@@ -2187,34 +2057,6 @@ declare module '@tanstack/react-router' {
       path: '/engine-room'
       fullPath: '/engine-room'
       preLoaderRoute: typeof AuthenticatedEngineRoomRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/discover': {
-      id: '/_authenticated/discover'
-      path: '/discover'
-      fullPath: '/discover'
-      preLoaderRoute: typeof AuthenticatedDiscoverRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/design': {
-      id: '/_authenticated/design'
-      path: '/design'
-      fullPath: '/design'
-      preLoaderRoute: typeof AuthenticatedDesignRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/decide': {
-      id: '/_authenticated/decide'
-      path: '/decide'
-      fullPath: '/decide'
-      preLoaderRoute: typeof AuthenticatedDecideRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/brain': {
-      id: '/_authenticated/brain'
-      path: '/brain'
-      fullPath: '/brain'
-      preLoaderRoute: typeof AuthenticatedBrainRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/admin': {
@@ -2243,13 +2085,6 @@ declare module '@tanstack/react-router' {
       path: '/plan'
       fullPath: '/plan/'
       preLoaderRoute: typeof AuthenticatedPlanIndexRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/build/': {
-      id: '/_authenticated/build/'
-      path: '/build'
-      fullPath: '/build/'
-      preLoaderRoute: typeof AuthenticatedBuildIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/admin/': {
@@ -2292,13 +2127,6 @@ declare module '@tanstack/react-router' {
       path: '/traces/$traceId'
       fullPath: '/traces/$traceId'
       preLoaderRoute: typeof AuthenticatedTracesTraceIdRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/runs/$missionId': {
-      id: '/_authenticated/runs/$missionId'
-      path: '/runs/$missionId'
-      fullPath: '/runs/$missionId'
-      preLoaderRoute: typeof AuthenticatedRunsMissionIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/admin/workspaces': {
@@ -2871,56 +2699,38 @@ const AuthenticatedAdminRouteWithChildren =
 
 interface AuthenticatedRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
-  AuthenticatedBrainRoute: typeof AuthenticatedBrainRoute
-  AuthenticatedDecideRoute: typeof AuthenticatedDecideRoute
-  AuthenticatedDesignRoute: typeof AuthenticatedDesignRoute
-  AuthenticatedDiscoverRoute: typeof AuthenticatedDiscoverRoute
   AuthenticatedEngineRoomRoute: typeof AuthenticatedEngineRoomRoute
   AuthenticatedEvidenceRoute: typeof AuthenticatedEvidenceRoute
   AuthenticatedInboxRoute: typeof AuthenticatedInboxRoute
-  AuthenticatedLearnRoute: typeof AuthenticatedLearnRoute
   AuthenticatedMeridianRoute: typeof AuthenticatedMeridianRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedOutcomesRoute: typeof AuthenticatedOutcomesRoute
-  AuthenticatedPrdsRoute: typeof AuthenticatedPrdsRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
-  AuthenticatedShipRoute: typeof AuthenticatedShipRoute
   AuthenticatedSourcesRoute: typeof AuthenticatedSourcesRoute
   AuthenticatedStartRoute: typeof AuthenticatedStartRoute
   AuthenticatedTeamRoute: typeof AuthenticatedTeamRoute
   AuthenticatedThreadsRoute: typeof AuthenticatedThreadsRoute
-  AuthenticatedRunsMissionIdRoute: typeof AuthenticatedRunsMissionIdRoute
   AuthenticatedTracesTraceIdRoute: typeof AuthenticatedTracesTraceIdRoute
   AuthenticatedTrackTrackIdRoute: typeof AuthenticatedTrackTrackIdRoute
-  AuthenticatedBuildIndexRoute: typeof AuthenticatedBuildIndexRoute
   AuthenticatedPlanIndexRoute: typeof AuthenticatedPlanIndexRoute
   AuthenticatedPlanSpecIdRoute: typeof AuthenticatedPlanSpecIdRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
-  AuthenticatedBrainRoute: AuthenticatedBrainRoute,
-  AuthenticatedDecideRoute: AuthenticatedDecideRoute,
-  AuthenticatedDesignRoute: AuthenticatedDesignRoute,
-  AuthenticatedDiscoverRoute: AuthenticatedDiscoverRoute,
   AuthenticatedEngineRoomRoute: AuthenticatedEngineRoomRoute,
   AuthenticatedEvidenceRoute: AuthenticatedEvidenceRoute,
   AuthenticatedInboxRoute: AuthenticatedInboxRoute,
-  AuthenticatedLearnRoute: AuthenticatedLearnRoute,
   AuthenticatedMeridianRoute: AuthenticatedMeridianRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedOutcomesRoute: AuthenticatedOutcomesRoute,
-  AuthenticatedPrdsRoute: AuthenticatedPrdsRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
-  AuthenticatedShipRoute: AuthenticatedShipRoute,
   AuthenticatedSourcesRoute: AuthenticatedSourcesRoute,
   AuthenticatedStartRoute: AuthenticatedStartRoute,
   AuthenticatedTeamRoute: AuthenticatedTeamRoute,
   AuthenticatedThreadsRoute: AuthenticatedThreadsRoute,
-  AuthenticatedRunsMissionIdRoute: AuthenticatedRunsMissionIdRoute,
   AuthenticatedTracesTraceIdRoute: AuthenticatedTracesTraceIdRoute,
   AuthenticatedTrackTrackIdRoute: AuthenticatedTrackTrackIdRoute,
-  AuthenticatedBuildIndexRoute: AuthenticatedBuildIndexRoute,
   AuthenticatedPlanIndexRoute: AuthenticatedPlanIndexRoute,
   AuthenticatedPlanSpecIdRoute: AuthenticatedPlanSpecIdRoute,
 }
