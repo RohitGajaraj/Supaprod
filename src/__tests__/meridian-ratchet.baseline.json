@@ -15,8 +15,8 @@
     "src/styles.css",
     "src/styles/**"
   ],
-  "totalOccurrences": 1505,
-  "fileCount": 122,
+  "totalOccurrences": 1493,
+  "fileCount": 121,
   "files": {
     "src/components/admin/VouchersPanel.tsx": {
       "import:components/ui": 1,
@@ -244,10 +244,6 @@
     },
     "src/components/shell/ShortcutSheet.tsx": {
       "class:sp-": 15
-    },
-    "src/components/studio/RepoGateDialog.tsx": {
-      "import:components/ui": 2,
-      "usage:components/ui": 10
     },
     "src/components/supaprod/AuditLineageSheet.tsx": {
       "class:sp-": 1

@@ -78,6 +78,11 @@ const EXEMPT: ReadonlyArray<{ file: string; expr: string; why: string }> = [
     why: "Skip and the three Backs are bystanders blocked during Save-and-continue's versioned upsert; their handlers are synchronous setPhase moves, so busy would announce work they do not perform (answers/UL0-004 C-01 and C-03)",
   },
   {
+    file: "src/components/studio/RepoGateDialog.tsx",
+    expr: "provision.isPending",
+    why: "'Not now' and 'Connect a repo' are bystanders during 'Provision a starter repo'; both handlers are synchronous (onOpenChange, and onOpenChange + navigate), so busy would announce work neither performs. And Connect must stay DISABLED rather than lose the prop: provisionThenRetry re-runs the interrupted act on the surface that mounted this, and navigating to /sources mid-flight fires that retry at an unmounted caller",
+  },
+  {
     file: "src/components/track/ArtifactPane.tsx",
     expr: "del.isPending",
     why: "SignalCard's 'Keep it' is a bystander during its sibling 'Discard it for good'; its handler is a synchronous setConfirmingDiscard(false), so busy would announce work it does not do. And it must stay DISABLED rather than simply lose the prop: deleteSignal is already in flight by then and nothing cancels it, so a clickable 'Keep it' would close the question and let the row be deleted anyway, promising the one thing it cannot deliver",

@@ -3,67 +3,66 @@
 // not-connected refusal), this small choice replaces the raw error toast with
 // the two real paths: connect an existing repo on /sources, or provision a
 // private starter repo for the spec - after which the interrupted act retries
-// automatically and the created repo URL shows in the success toast. Reuses
-// the stock AlertDialog primitives (same idiom as the Build list's delete
-// confirm); no bespoke styling.
+// automatically and the created repo URL shows in the success toast.
 //
 // IT NARRATES THE ACT IT INTERRUPTED, WHICH IS NO LONGER ALWAYS THE DISPATCH.
-// Three callers mount this. Two of them (ReadyToBuild, /runs) are dispatches
-// and always were. The spec page's `createIssue` opens the same gate, because
-// it goes through the same `resolveGitHub`, and its `onRetry` opens the issue
-// rather than sending a build. Every sentence in here said "dispatch" and the
-// success toast said "Build dispatched on the fresh repo", so provisioning
-// from the issue door told the person a build had started that nobody asked
-// for and that no code had started. `act` is what fixes that. It defaults to
-// "dispatch", so the two dispatch callers render exactly the words they
-// rendered before, character for character.
+// The spec page's `createIssue` opens the same gate, because it goes through
+// the same `resolveGitHub`, and its `onRetry` opens the issue rather than
+// sending a build. Every sentence in here said "dispatch" and the success toast
+// said "Build dispatched on the fresh repo", so provisioning from the issue
+// door told the person a build had started that nobody asked for and that no
+// code had started. `act` is what fixes that. It defaults to "dispatch", so the
+// dispatch wording is exactly what it was, character for character.
 //
 // ══════════════════════════════════════════════════════════════════════════
-// NOT PORTED TO MERIDIAN ON 2026-08-18, AND THIS IS A REFUSAL WITH A HOUSE
-// RULING BEHIND IT RATHER THAN A FILE THAT WAS MISSED.
+// PORTED TO MERIDIAN ON 2026-09-10, REVERSING THIS FILE'S OWN WRITTEN REFUSAL,
+// AND THE REFUSAL IS QUOTED HERE RATHER THAN DELETED BECAUSE IT WAS RIGHT WHEN
+// IT WAS WRITTEN AND THE THING THAT CHANGED IS A FACT, NOT AN OPINION.
 //
-// Everything else on station 05 moved: the route, ReadyToBuild, HeldClaims,
-// ChangesPanel, RunReturn, PreviewPanel, studio-ui and CodeDiff. This one is
-// shadcn -- `components/ui/alert-dialog` and `components/ui/button` -- from
-// Tempo v5, a system retired twice over, and MERIDIAN HAS NO DIALOG.
+// The 2026-08-18 block said, in capitals: "MERIDIAN HAS NO DIALOG", and refused
+// the port on the strength of it. Rebuilding this one modal by hand -- on a
+// native `<dialog>` with `showModal`, the only honest way to get an overlay
+// without an overlay primitive -- would have given it focus behaviour that
+// matched nothing else in the product, and "re-implementing a focus trap badly
+// is an accessibility regression wearing a primitive's name" is `use-confirm`'s
+// ruling and it still holds.
 //
-// The house has already decided what to do about that, in writing, in the file
-// that owns the other 32 modals in the product. `src/hooks/use-confirm.tsx`:
+// TWO DAYS LATER MERIDIAN SHIPPED A DIALOG, and it ships the exact contract the
+// refusal was protecting: focus moves in on open, cannot leave while it is
+// open, and RETURNS TO WHATEVER OPENED IT on close, plus Escape, the scrim and
+// the body-scroll lock. So the port is no longer a hand-roll, and the refusal's
+// own stated expiry -- "the debt stays whole and legible until Meridian ships a
+// dialog" -- has arrived. `ConnectTrustDialog`, `CreateRepoModal` and
+// `RailPhoneBar` are already on it; this is the fourth, not the first.
 //
-//     "The Radix AlertDialog/Dialog MECHANISM is kept on purpose. anti-slop
-//      ban 11 is about modal ABUSE ... and its own stated exception is a short
-//      irreversible question, which is precisely this. Radix also brings the
-//      focus trap, the escape key, the focus return and the inert background,
-//      and re-implementing those badly is an accessibility regression wearing a
-//      primitive's name."
+// TWO CORRECTIONS TO WHAT THE OLD BLOCK ASSERTED, both measured today:
 //
-// This dialog is exactly that shape and is mounted by three surfaces
-// (ReadyToBuild, /runs, the spec page). Rebuilding it alone -- on a native
-// `<dialog>` with `showModal`, which is the one honest way to get an overlay
-// without an overlay primitive -- would make it the ONLY modal in the product
-// whose focus behaviour differs from the other 32, which is a fork rather than
-// a port.
+//   1. IT IS MOUNTED ONCE, NOT THREE TIMES. The block named ReadyToBuild, /runs
+//      and the spec page. Only `_authenticated.plan.spec.$id.tsx` mounts it now;
+//      the other two stopped and nobody came back to the comment. The argument
+//      that moving it alone would strand a widely-shared modal was already
+//      resting on a count that had stopped being true.
 //
-// HALF-PORTING WAS ALSO CONSIDERED AND REFUSED. The one paint reference this
-// file owns is `buttonVariants({ variant: "outline" })`; swapping it for a
-// Meridian face would put one Meridian control beside a shadcn Cancel and a
-// shadcn primary inside a shadcn panel, which looks like a defect rather than a
-// migration. The debt stays whole and legible until Meridian ships a dialog,
-// and then this file and `use-confirm.tsx` move together in one commit.
+//   2. THE OTHER HALF OF THE EXIT CONDITION IS NOT DONE AND I AM NOT CLAIMING
+//      IT. The block said this file and `hooks/use-confirm.tsx` "move together
+//      in one commit". `use-confirm` is the confirm that 32 surfaces share, and
+//      swapping the drawing under 32 live surfaces is not a components pass --
+//      Meridian's own Dialog says so in its header. So that stays open, and it
+//      stays open in the queue rather than only here.
+//
+// WHAT CHANGED BEHAVIOURALLY, stated because a port that claims to change
+// nothing should be checked against the one place it does. Radix's AlertDialog
+// blocks dismissal by clicking outside; Meridian's Dialog closes on the scrim.
+// Clicking the scrim mid-provision therefore closes this where it used to not.
+// Nothing is lost when it does: `provisionThenRetry` is already running, the
+// retry still fires, and the toast still reports the repo URL and the act -- the
+// dialog was never the thing carrying the result. Escape behaved this way under
+// Radix too.
 import { useNavigate } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { buttonVariants } from "@/components/ui/button";
+import { Dialog } from "@/components/meridian/Dialog";
+import { Action, Actions } from "@/components/meridian/surface-parts";
 import { toast } from "@/lib/notify";
 import { provisionRepoForSpec } from "@/lib/new-build.functions";
 import { provisionThenRetry } from "@/lib/build/repo-gate";
@@ -120,56 +119,66 @@ export function RepoGateDialog({
   });
 
   return (
-    <AlertDialog open={open} onOpenChange={(o) => !o && onOpenChange(false)}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>
-            {isIssue ? "No repo to open the issue on" : "No repo to build in"}
-          </AlertDialogTitle>
-          <AlertDialogDescription>
-            {reason ??
-              (isIssue
-                ? "The issue could not resolve a repo for this workspace."
-                : "Build could not resolve a repo for this workspace.")}{" "}
-            {prdId
-              ? isIssue
-                ? "Connect an existing repo, or provision a private starter repo and the issue opens on it automatically."
-                : "Connect an existing repo, or provision a private starter repo and the dispatch retries automatically."
-              : isIssue
-                ? "Connect an existing repo, then open the issue again."
-                : "Connect an existing repo, then dispatch again."}
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={provision.isPending}>Not now</AlertDialogCancel>
-          <AlertDialogAction
+    <Dialog
+      open={open}
+      onClose={() => onOpenChange(false)}
+      title={isIssue ? "No repo to open the issue on" : "No repo to build in"}
+      actions={
+        // The way out first and the confirming action last: Meridian's Dialog
+        // right-aligns this row, and the provision path is the one that finishes
+        // what the person came to do.
+        <Actions>
+          {/* Radix's Cancel closed the dialog for us; Meridian's Dialog never
+              closes itself on a decision, so the way out says so out loud. */}
+          <Action
+            variant="quiet"
+            onClick={() => onOpenChange(false)}
+            disabled={provision.isPending}
+          >
+            Not now
+          </Action>
+          <Action
+            // One primary CTA per view: when the provision path is also offered
+            // it is the primary (it auto-retries the act), so Connect steps down.
+            // With nothing to provision from, Connect IS the way forward.
+            variant={prdId ? "default" : "primary"}
             onClick={() => {
               onOpenChange(false);
               navigate({ to: "/sources" });
             }}
             disabled={provision.isPending}
-            // One primary CTA per view: when the provision path is also
-            // offered it is the primary (it auto-retries the dispatch), so
-            // Connect steps down to the outline treatment.
-            className={prdId ? buttonVariants({ variant: "outline" }) : undefined}
           >
             Connect a repo
-          </AlertDialogAction>
+          </Action>
           {prdId ? (
-            <AlertDialogAction
-              onClick={(e) => {
-                // Keep the dialog open while provisioning runs; it closes
-                // itself (or errors in place) when the mutation settles.
-                e.preventDefault();
-                provision.mutate();
-              }}
-              disabled={provision.isPending}
+            <Action
+              variant="primary"
+              // `busy` rather than `disabled`: the old control was disabled for
+              // the whole round trip, so a screen reader heard "unavailable"
+              // where the truth was "working on it".
+              busy={provision.isPending}
+              // No `preventDefault` any more. It existed only to stop Radix
+              // closing the dialog on click; nothing closes it here but the
+              // mutation settling.
+              onClick={() => provision.mutate()}
             >
               {provision.isPending ? "Provisioning…" : "Provision a starter repo"}
-            </AlertDialogAction>
+            </Action>
           ) : null}
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+        </Actions>
+      }
+    >
+      {reason ??
+        (isIssue
+          ? "The issue could not resolve a repo for this workspace."
+          : "Build could not resolve a repo for this workspace.")}{" "}
+      {prdId
+        ? isIssue
+          ? "Connect an existing repo, or provision a private starter repo and the issue opens on it automatically."
+          : "Connect an existing repo, or provision a private starter repo and the dispatch retries automatically."
+        : isIssue
+          ? "Connect an existing repo, then open the issue again."
+          : "Connect an existing repo, then dispatch again."}
+    </Dialog>
   );
 }
