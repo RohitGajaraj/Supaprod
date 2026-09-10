@@ -430,3 +430,30 @@ column holds two live vocabularies (halt-path slugs, sweeper prose).
 the thing it checked — my slice reused the guard's own wrong bound; two successive queries were keyed
 on the same wrong shape (45.6%, then 0.0% from SQL three-valued logic). **The rendered page shares
 nothing with the query, and was the only independent instrument.** Check findings against it.
+
+## LANE 1 — 2026-09-10 ~01:40 UTC — laws 28, 29, 30
+
+**Renamed four jargon routes, joined the queue into the road, and found a two-column layout that had
+never once rendered.** Six commits, all pushed. tsc 0 · 15,779 pass / 0 fail · build clean.
+
+**The lesson that cost the most:** a route path and a module path are the same shape. `/crew` is
+both the URL and a segment of `@/components/crew/CrewMethods`, so a plain `s|/crew|/team|g` renamed
+both and silently repointed 38 imports at directories that do not exist. Only the build caught it,
+after 180 files were already wrong. `perl` with `(?<![A-Za-z0-9_/])/crew(?![A-Za-z0-9_-])` separates
+them; BSD `sed` has neither lookbehind nor `\b`.
+
+**The lesson that generalises furthest:** my rename edited 137 files INCLUDING every test literal, so
+15,803 tests passed while verifying nothing. A guard and the thing it guards, edited by one command,
+cannot disagree. Injecting a dead `/arriving` failed 2 tests; removing the slug migration failed
+`reserved-workspace-slugs` by name. Nothing green means anything until you have watched it go red.
+
+**The find I did not make:** Lane 2 walked `/settings` on the served build and found the nav
+overlaying the work region. `.sp-inner` is `display: grid`, the route wrote flex, and every flex
+utility on it was inert — no error, no console output, the nav highlighting correctly, all content
+in the DOM. The page succeeded at being unreadable. Read `getComputedStyle().display` on the real
+element before trusting any layout utility beside a project class.
+
+**And one I nearly filed wrongly:** I read the road's badges off a screenshot, counted 7 waiting
+against a headline of 6, and started writing up a discrepancy. The accessibility tree said
+2 + 4 = 6. Plan's `1` was a run count top-right, not a waiting badge top-left. Read the labels, not
+the pixels.

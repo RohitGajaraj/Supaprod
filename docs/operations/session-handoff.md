@@ -3151,3 +3151,71 @@ one that tells you whether a deploy can possibly contain your work.**
   Lane 2's card, Lane 2's cut.
 - **Two counts of "times"** on the run screen — road *"1 prototype, 3 times"* against refrain *"said
   this 12 times, and filed nothing"*. Different things counted, nothing on screen saying which.
+
+## LANE 1 — 2026-09-10 ~01:40 UTC (07:10 IST) — the address, the two units, and a layout that never ran
+
+**Six commits, all pushed and all but the last two verified live.** `bunx tsc` 0 · 15,779 pass /
+0 fail · `bun run build` clean · `docs:check` clean.
+
+| commit | what |
+| --- | --- |
+| `a00ddfc87` | Law 28 — four jargon routes renamed |
+| `af0a77e3d` | Law 29 — the road now knows what is waiting for you |
+| `b64742944` | the composer's two controls disagreed |
+| `c648f9263` | Law 30 — Settings' two-column layout had never rendered |
+| `4c2a86a17` | the home states its rhythm once |
+| `c20d312b8` | "Draft is revising the spec the spec" |
+
+### What shipped
+
+**Law 28, the address is part of the name.** `/approvals`→`/inbox`, `/arriving`→`/evidence`,
+`/crew`→`/team`, `/sync`→`/sources`. 147 files. `/start` stays — it is `SIGNED_IN_HOME` and every
+auth redirect resolves through it. **No redirect stubs, and that is `legacy-redirects.ts`'s own
+ruling** (P-10 deleted 49 of them; *"the 404 with a door is the correct landing"*), checked rather
+than assumed: all four are `_authenticated`, and **0 of 234 `messages` rows** carry any of the four
+in a persisted `metadata.href`. Migration `20260910002900` reserves `evidence` and `sources` as
+workspace slugs; `inbox` and `team` already were. **Verified live on `d78afd4b`:** `/evidence` and
+`/inbox` 200, `/arriving` and `/approvals` 404 — an exact inversion of the pre-rename build.
+
+**Law 29, two units never share a mark.** The road drew Design blank while the headline forty pixels
+below counted four design gates standing there. `count` is `spine_tracks.station`; the gates are
+`prds.design_gate_status`; the road never joined the queue. `JourneyStation.waiting` is the second
+unit — solid pill top-right for runs, `you` hue top-**left** for calls. **Verified live on
+`b0a6e0ae`:** *"Design: needs you, 4 waiting on you"*, lit and pressable; *"Decide: needs you, 3
+here, 2 waiting on you"* carries both at once; 2 + 4 = 6 = the headline = the rail.
+
+**Law 30, a class that sets `display` owns the layout.** `.sp-inner` is `display: grid` and
+`/settings` wrote its layout in flex, so `flex: 0 1 240px`, `flex-wrap` and `items-start` were **all
+inert** and the two-column layout its own comment describes had never once rendered. The nav was a
+full-width row above the pane and `position: sticky` rode it down over the pane on scroll. Now
+`.sp-inner:has(> [data-shell-index])`, mirroring `.sp-ctx`. **Verified live on `1d935fe1`:**
+`240px 854.242px`, nav x 258 w 240, pane x 550 w 854, both at y 86.
+
+### Three things worth carrying forward
+
+1. **A guard your own sweep rewrote proves nothing.** The rename edited 137 files including every
+   test literal; 15,803 tests passed and not one had verified anything. Injecting a dead `/arriving`
+   into `nav-model.ts` failed 2; removing the migration failed `reserved-workspace-slugs` naming
+   `"evidence"` and `"sources"`. Every guard this session was made to fail before it was trusted.
+2. **A route path and a module path are the same shape.** `/crew` is both the URL and a segment of
+   `@/components/crew/CrewMethods`. A plain `sed` broke 38 module-path references across 20 files.
+   Use `perl` with `(?<![A-Za-z0-9_/])/crew(?![A-Za-z0-9_-])`; BSD `sed` has neither lookbehind
+   nor `\b`.
+3. **Lovable's `latest_commit_sha` tracks the SYNC, not the publish.** Production served a build
+   predating two lanes' commits for ~40 minutes while that field looked current. `deploy_project`
+   is what publishes, and it builds what Lovable holds when the build STARTS — two of tonight's
+   deploys missed a commit pushed a minute earlier. Verify by something the change introduces.
+
+### Open, and deliberately not done
+
+- **The home's rhythm and the verb fix (`4c2a86a17`, `c20d312b8`) are pushed but NOT yet verified
+  live** — deploy `c239eb1e` was building at handoff. Verify: the home's column should read
+  `rowGap: 40px` with every child margin `0px` and gaps `[40,40,40,40,40]`; it read
+  `rowGap: 24px`, margins `0px/16px`, gaps `[24,40,40,40,40]` before.
+- **`spine_tracks.pending_gates` is jsonb and empty on every track** (0 of 8 in A1 delete probe,
+  00:43 UTC) while 4 prds carry `design_gate_status='pending'`. The column that could tell a track
+  what it is blocked on has no writer, so every reader re-derives the join. Flagged to Lane 3 as
+  architectural, not assigned.
+- **`e2e/surface-baseline.json` keeps the old paths on purpose.** It is *"what each surface measured
+  on 2026-08-27"* and already carries four dead keys. Rewriting a dated measurement's keys makes it
+  claim it measured paths that did not exist yet. Same for the `docs/lanes/verify/S4-*` notes.
