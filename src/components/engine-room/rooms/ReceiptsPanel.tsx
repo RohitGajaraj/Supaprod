@@ -594,8 +594,8 @@ export function ReceiptsPanel() {
                 onClick={() => {
                   // The approvals record lives one sub-tab over in this room.
                   navigate({
-                    to: "/engine-room",
-                    search: { room: "record", view: "approvals" },
+                    to: "/team",
+                    search: { tab: "spend", room: "record", view: "approvals" },
                   });
                 }}
               >

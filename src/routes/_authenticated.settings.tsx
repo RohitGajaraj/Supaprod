@@ -794,7 +794,10 @@ function SettingsPage() {
         {active === "health" && (
           <DiagnosticsMoved
             onOpen={() =>
-              navigate({ to: "/engine-room", search: { room: "quality", view: "diagnostics" } })
+              navigate({
+                to: "/team",
+                search: { tab: "spend", room: "quality", view: "diagnostics" },
+              })
             }
           />
         )}

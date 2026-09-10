@@ -110,7 +110,7 @@ export function StandingRules() {
   const rules = q.data?.rules ?? [];
   const pending = q.data?.pendingRules ?? 0;
   const openDrafts = () =>
-    navigate({ to: "/engine-room", search: { room: "safety", view: "house-rules" } });
+    navigate({ to: "/team", search: { tab: "spend", room: "safety", view: "house-rules" } });
 
   const title = "What the record now tells your agents";
 

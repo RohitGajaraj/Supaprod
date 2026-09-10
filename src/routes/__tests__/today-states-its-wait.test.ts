@@ -73,19 +73,36 @@ function stripComments(source: string): string {
  * place where adding a read means editing a test in another directory.
  */
 describe("no station renders nothing while it reads", () => {
+  /*
+   * ── THE LIST IS THE SURFACES THAT RENDER, NOT THE ADDRESSES (2026-09-10) ─
+   *
+   * Five of these were redirect stubs: `_authenticated.decide.tsx`,
+   * `.design.tsx`, `.build.index.tsx`, `.learn.tsx` and `.discover.tsx`, each
+   * a file whose whole body was a `throw redirect(...)`. A redirect has no
+   * wait branch, so five of the eight entries could never have caught
+   * anything -- the guard read eight files and examined three.
+   *
+   * They had zero inbound links anywhere in the tree and are deleted. The list
+   * now names the surfaces those stations ACTUALLY render on, which is what
+   * the rule was always about: a wait may not resolve to nothing, on a screen
+   * a person can reach.
+   */
   const STATIONS = [
-    "_authenticated.discover.tsx",
-    "_authenticated.decide.tsx",
-    "_authenticated.plan.index.tsx",
-    "_authenticated.design.tsx",
-    "_authenticated.build.index.tsx",
-    // Ship's body moved to a component on 2026-09-09 (P-14b); the route is a
-    // redirect and has no wait of its own left to check.
-    join("..", "components", "ship", "ShipRecord.tsx"),
-    "_authenticated.learn.tsx",
-    // Discover's body lives in a component rather than the route, and it is
-    // where the defect actually was.
+    // 01 Discover: the body lives in the component, and that is where the
+    // defect this file was written for actually was.
     join("..", "components", "discover", "DiscoverSurface.tsx"),
+    // 02 Decide, 04 Design, 05 Build: all three resolve to the home, which is
+    // where a call that needs a person and a run that needs restarting both
+    // stand.
+    "_authenticated.start.tsx",
+    // 03 Plan: the spec is the surface; the index was a stub.
+    "_authenticated.plan.spec.$id.tsx",
+    // 06 Ship and 07 Learn: both records live on Outcomes since P-14b.
+    join("..", "components", "ship", "ShipRecord.tsx"),
+    join("..", "components", "learn", "LearnRecord.tsx"),
+    // The run screen, which is where a station is actually a stop rather than
+    // an address (R-01).
+    "_authenticated.track.$trackId.tsx",
   ];
 
   for (const station of STATIONS) {
@@ -107,10 +124,11 @@ describe("no station renders nothing while it reads", () => {
     });
   }
 
-  it("covers every station, so a new one cannot be added unguarded", () => {
-    // PRIMARY_NAV carries Today plus the seven loop stations. If the spine
-    // grows, this count fails and the list above has to be revisited.
-    expect(STATIONS.length).toBe(8);
+  it("covers every station's real surface, so a new one cannot be added unguarded", () => {
+    /* Six surfaces carry the seven stations: Decide, Design and Build share
+       the home. If the spine grows, or a station gets a surface of its own
+       again, this count fails and the list above has to be revisited. */
+    expect(STATIONS.length).toBe(6);
   });
 });
 

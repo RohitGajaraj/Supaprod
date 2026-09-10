@@ -172,11 +172,24 @@ const RAG_KIND_MAP: Record<
   { kind: ResearchSourceKind; href: (sourceId: string | null) => string }
 > = {
   signal: { kind: "signal", href: () => "/evidence" },
-  doc: { kind: "doc", href: () => "/brain?tab=docs" },
-  note: { kind: "doc", href: () => "/brain?tab=memory" },
-  meeting: { kind: "meeting", href: () => "/brain" },
+  /*
+   * `/brain` LEFT THIS MAP WITH THE STUB IT NAMED (2026-09-10). `/brain` had
+   * not rendered anything since P-14: the route's whole body was
+   * `redirect({ to: "/outcomes" })`, and it carried the LAST inbound link in
+   * the tree, which is why deleting the stub had to start here. Every citation
+   * this map hands back is a link a person follows out of an answer, so a hop
+   * through an address that exists only to bounce them is the one place a dead
+   * address is most expensive: it lands mid-thought.
+   *
+   * The tabs come with it. `/outcomes` carries the record's own tab strip and
+   * `docs` and `memory` are its words, so the query is the same query on the
+   * page that actually reads it.
+   */
+  doc: { kind: "doc", href: () => "/outcomes?tab=docs" },
+  note: { kind: "doc", href: () => "/outcomes?tab=memory" },
+  meeting: { kind: "meeting", href: () => "/outcomes" },
   prd: { kind: "prd", href: (id) => (id ? `/plan/spec/${id}` : "/start") },
-  finding: { kind: "finding", href: () => "/brain?tab=memory" },
+  finding: { kind: "finding", href: () => "/outcomes?tab=memory" },
 };
 
 async function gatherInternal(

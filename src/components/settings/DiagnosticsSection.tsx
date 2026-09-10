@@ -198,8 +198,8 @@ export function DiagnosticsSection() {
             ) : null}
             <Line label="Which runs, and what they cost" sub="Run by run, in the engine room.">
               <Link
-                to="/engine-room"
-                search={{ room: "quality" }}
+                to="/team"
+                search={{ tab: "spend", room: "quality" }}
                 className={ACTION_LINK_FACE.quiet}
               >
                 Open quality

@@ -41,8 +41,11 @@ const ROUTES = join(import.meta.dir, "..");
 const STATIONS: Array<{ station: string; files: string[]; components?: string[] }> = [
   {
     station: "01 Discover",
-    files: ["_authenticated.discover.tsx"],
-    // Discover's route file is an 80-line shell; every control lives here.
+    /* `_authenticated.discover.tsx` was a redirect stub with zero inbound
+       links and it is deleted (2026-09-10). Discover's surface has been
+       `/evidence` since P-14a; the route file is a shell and every control
+       lives in the component. */
+    files: ["_authenticated.evidence.tsx"],
     components: ["discover/DiscoverSurface.tsx"],
   },
   // Ship's record lives on Outcomes since 2026-09-09 (P-14b); the route is a

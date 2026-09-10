@@ -42,7 +42,6 @@ import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
 import { Route as ApiPlanGateRouteImport } from './routes/api/plan-gate'
 import { Route as ApiMcpRouteImport } from './routes/api/mcp'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
-import { Route as AuthenticatedTracesRouteImport } from './routes/_authenticated.traces'
 import { Route as AuthenticatedThreadsRouteImport } from './routes/_authenticated.threads'
 import { Route as AuthenticatedTeamRouteImport } from './routes/_authenticated.team'
 import { Route as AuthenticatedStartRouteImport } from './routes/_authenticated.start'
@@ -314,11 +313,6 @@ const ApiChatRoute = ApiChatRouteImport.update({
   path: '/api/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedTracesRoute = AuthenticatedTracesRouteImport.update({
-  id: '/traces',
-  path: '/traces',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
 const AuthenticatedThreadsRoute = AuthenticatedThreadsRouteImport.update({
   id: '/threads',
   path: '/threads',
@@ -464,9 +458,9 @@ const AuthenticatedTrackTrackIdRoute =
   } as any)
 const AuthenticatedTracesTraceIdRoute =
   AuthenticatedTracesTraceIdRouteImport.update({
-    id: '/$traceId',
-    path: '/$traceId',
-    getParentRoute: () => AuthenticatedTracesRoute,
+    id: '/traces/$traceId',
+    path: '/traces/$traceId',
+    getParentRoute: () => AuthenticatedRoute,
   } as any)
 const AuthenticatedRunsMissionIdRoute =
   AuthenticatedRunsMissionIdRouteImport.update({
@@ -961,7 +955,6 @@ export interface FileRoutesByFullPath {
   '/start': typeof AuthenticatedStartRoute
   '/team': typeof AuthenticatedTeamRoute
   '/threads': typeof AuthenticatedThreadsRoute
-  '/traces': typeof AuthenticatedTracesRouteWithChildren
   '/api/chat': typeof ApiChatRoute
   '/api/mcp': typeof ApiMcpRoute
   '/api/plan-gate': typeof ApiPlanGateRoute
@@ -1101,7 +1094,6 @@ export interface FileRoutesByTo {
   '/start': typeof AuthenticatedStartRoute
   '/team': typeof AuthenticatedTeamRoute
   '/threads': typeof AuthenticatedThreadsRoute
-  '/traces': typeof AuthenticatedTracesRouteWithChildren
   '/api/chat': typeof ApiChatRoute
   '/api/mcp': typeof ApiMcpRoute
   '/api/plan-gate': typeof ApiPlanGateRoute
@@ -1244,7 +1236,6 @@ export interface FileRoutesById {
   '/_authenticated/start': typeof AuthenticatedStartRoute
   '/_authenticated/team': typeof AuthenticatedTeamRoute
   '/_authenticated/threads': typeof AuthenticatedThreadsRoute
-  '/_authenticated/traces': typeof AuthenticatedTracesRouteWithChildren
   '/api/chat': typeof ApiChatRoute
   '/api/mcp': typeof ApiMcpRoute
   '/api/plan-gate': typeof ApiPlanGateRoute
@@ -1387,7 +1378,6 @@ export interface FileRouteTypes {
     | '/start'
     | '/team'
     | '/threads'
-    | '/traces'
     | '/api/chat'
     | '/api/mcp'
     | '/api/plan-gate'
@@ -1527,7 +1517,6 @@ export interface FileRouteTypes {
     | '/start'
     | '/team'
     | '/threads'
-    | '/traces'
     | '/api/chat'
     | '/api/mcp'
     | '/api/plan-gate'
@@ -1669,7 +1658,6 @@ export interface FileRouteTypes {
     | '/_authenticated/start'
     | '/_authenticated/team'
     | '/_authenticated/threads'
-    | '/_authenticated/traces'
     | '/api/chat'
     | '/api/mcp'
     | '/api/plan-gate'
@@ -2103,13 +2091,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiChatRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/traces': {
-      id: '/_authenticated/traces'
-      path: '/traces'
-      fullPath: '/traces'
-      preLoaderRoute: typeof AuthenticatedTracesRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/threads': {
       id: '/_authenticated/threads'
       path: '/threads'
@@ -2308,10 +2289,10 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/traces/$traceId': {
       id: '/_authenticated/traces/$traceId'
-      path: '/$traceId'
+      path: '/traces/$traceId'
       fullPath: '/traces/$traceId'
       preLoaderRoute: typeof AuthenticatedTracesTraceIdRouteImport
-      parentRoute: typeof AuthenticatedTracesRoute
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/runs/$missionId': {
       id: '/_authenticated/runs/$missionId'
@@ -2888,17 +2869,6 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
 const AuthenticatedAdminRouteWithChildren =
   AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
 
-interface AuthenticatedTracesRouteChildren {
-  AuthenticatedTracesTraceIdRoute: typeof AuthenticatedTracesTraceIdRoute
-}
-
-const AuthenticatedTracesRouteChildren: AuthenticatedTracesRouteChildren = {
-  AuthenticatedTracesTraceIdRoute: AuthenticatedTracesTraceIdRoute,
-}
-
-const AuthenticatedTracesRouteWithChildren =
-  AuthenticatedTracesRoute._addFileChildren(AuthenticatedTracesRouteChildren)
-
 interface AuthenticatedRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedBrainRoute: typeof AuthenticatedBrainRoute
@@ -2919,8 +2889,8 @@ interface AuthenticatedRouteChildren {
   AuthenticatedStartRoute: typeof AuthenticatedStartRoute
   AuthenticatedTeamRoute: typeof AuthenticatedTeamRoute
   AuthenticatedThreadsRoute: typeof AuthenticatedThreadsRoute
-  AuthenticatedTracesRoute: typeof AuthenticatedTracesRouteWithChildren
   AuthenticatedRunsMissionIdRoute: typeof AuthenticatedRunsMissionIdRoute
+  AuthenticatedTracesTraceIdRoute: typeof AuthenticatedTracesTraceIdRoute
   AuthenticatedTrackTrackIdRoute: typeof AuthenticatedTrackTrackIdRoute
   AuthenticatedBuildIndexRoute: typeof AuthenticatedBuildIndexRoute
   AuthenticatedPlanIndexRoute: typeof AuthenticatedPlanIndexRoute
@@ -2947,8 +2917,8 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedStartRoute: AuthenticatedStartRoute,
   AuthenticatedTeamRoute: AuthenticatedTeamRoute,
   AuthenticatedThreadsRoute: AuthenticatedThreadsRoute,
-  AuthenticatedTracesRoute: AuthenticatedTracesRouteWithChildren,
   AuthenticatedRunsMissionIdRoute: AuthenticatedRunsMissionIdRoute,
+  AuthenticatedTracesTraceIdRoute: AuthenticatedTracesTraceIdRoute,
   AuthenticatedTrackTrackIdRoute: AuthenticatedTrackTrackIdRoute,
   AuthenticatedBuildIndexRoute: AuthenticatedBuildIndexRoute,
   AuthenticatedPlanIndexRoute: AuthenticatedPlanIndexRoute,

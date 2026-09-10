@@ -126,7 +126,10 @@ export function EvalsPanel({ onOpenSuite }: { onOpenSuite?: (id: string) => void
   const openSuite = (id: string) =>
     onOpenSuite
       ? onOpenSuite(id)
-      : navigate({ to: "/engine-room", search: { room: "quality", view: "suites", suite: id } });
+      : navigate({
+          to: "/team",
+          search: { tab: "spend", room: "quality", view: "suites", suite: id },
+        });
 
   // A read that FAILED is not an empty state. "Nothing here" and "we could not
   // find out" are different facts and you act differently on each.

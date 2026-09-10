@@ -159,8 +159,8 @@ export function StageTimeline({ entityType, entityId, variant = "detailkit" }: S
           ledger shows the machine's whole decision/action record. */}
       <div style={{ marginTop: "10px" }}>
         <Link
-          to="/engine-room"
-          search={{ room: "record" }}
+          to="/team"
+          search={{ tab: "spend", room: "record" }}
           className="text-mrd-label text-mrd-mute underline decoration-dotted underline-offset-2 transition-colors hover:text-mrd-ink hover:decoration-solid"
         >
           See the full chain in the record room

@@ -404,8 +404,8 @@ export function DriftPanel() {
             time={sampledAgo(d.last)}
             onClick={() =>
               navigate({
-                to: "/engine-room",
-                search: { room: "quality", view: "drift", surface: d.surface },
+                to: "/team",
+                search: { tab: "spend", room: "quality", view: "drift", surface: d.surface },
               })
             }
           />

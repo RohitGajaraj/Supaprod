@@ -47,7 +47,6 @@ import { useWorkspace } from "@/hooks/use-workspace";
 import {
   Action,
   Actions,
-  Door,
   Figure,
   PageHeading,
   ReadFailed,
@@ -217,7 +216,6 @@ function EngineRoomOverview({
   openRoom: (key: RoomKey) => void;
   openSync: (conflictId?: string) => void;
 }) {
-  const navigate = useNavigate();
   const reading = rooms.some((r) => r.loading);
   const failed = rooms.filter((r) => r.error !== null);
   const watching = rooms.filter((r) => r.glance !== null && r.glance.state === "watch");
@@ -260,12 +258,25 @@ function EngineRoomOverview({
           <SourcesLine onSync={openSync} />
         </Region>
 
-        <Region
-          title="What it is made of"
-          sub="Every component in the design system, in both grounds, with the states nobody draws composed rather than described."
-        >
-          <Door onClick={() => void navigate({ to: "/meridian" })}>Open the design system</Door>
-        </Region>
+        {/*
+         * ── "OPEN THE DESIGN SYSTEM" WAS A DOOR ONTO THE HOME PAGE ──────────
+         *
+         * Cut 2026-09-10. This Region's Door navigated to `/meridian`, and
+         * that route's own `beforeLoad` throws `redirect({ to: SIGNED_IN_HOME })`
+         * unless `import.meta.env.DEV` (P-10: the gallery renders fabricated
+         * data and a customer must never meet it). So for every person who is
+         * not us, pressing it left Team and landed on Home -- the failure
+         * ApprovalsPanel named on the same day: a link to the home page
+         * silently loses your place and looks like it worked.
+         *
+         * NOT MADE DEV-ONLY, DELETED. `route-inventory.test.ts`'s own
+         * exemption for `/meridian` says it is "reached by typing the URL ON A
+         * DEV SERVER ONLY" and ends "Delete this exemption if it ever gets a
+         * door." This was that door, contradicting the exemption in prose that
+         * nothing could check. The gallery is a workbench, not a region of a
+         * customer's engine room, and typing the URL on a dev server is the
+         * access path the repo has already ruled for it.
+         */}
       </div>
     </Surface>
   );

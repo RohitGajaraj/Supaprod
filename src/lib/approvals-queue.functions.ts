@@ -98,7 +98,6 @@ function approvalAgentSlug(kind: ApprovalKind, explicit: string | null): string 
 import { ACTION_LABEL } from "@/lib/agent-vocabulary";
 import { sourceLabel } from "@/lib/memory-candidates";
 import { toolConsequence, gateHeadline, REVERSIBILITY_LABEL } from "@/lib/tool-consequences";
-import type { ApprovalItem } from "@/components/ink/ApprovalCard";
 import type { VerdictTone } from "@/components/ink/chips";
 import { cleanTitle } from "@/components/plan/format";
 
@@ -126,6 +125,49 @@ export type ApprovalKind = (typeof APPROVAL_KINDS)[number];
  *  "proposals"; an assumption challenge is a "gate" (it reopens a standing
  *  decision, the same shape as a tool-call gate). */
 export type ApprovalFilter = "all" | "proposals" | "gates" | "memory" | "spend";
+
+/**
+ * ── ONE ITEM IN THE QUEUE OF EVERYTHING AWAITING HUMAN JUDGMENT ───────────
+ *
+ * MOVED HERE 2026-09-10, from `components/ink/ApprovalCard.tsx`. That file
+ * held both this type and a card component, and the component had no importer
+ * anywhere in the product: `/inbox` and the Meridian gallery both draw
+ * `components/meridian/ApprovalCard.tsx`, a different file with a different
+ * shape. The only thing left reading the ink file was this `import type`, so
+ * a 220-line component with two `ink-*` classes and a hand-rolled
+ * `shortTime()` was being kept alive by a type alias. The type belongs to the
+ * queue that produces it; the component is deleted.
+ *
+ * Anatomy the type still describes (architecture §5): what the agent proposes
+ * · why, with provenance · cost/impact · one-tap approve / reject / edit.
+ */
+export type ApprovalItem = {
+  id: string;
+  /** Card kind chip, e.g. "PROPOSAL", "PLAN", "SHIP GATE", "SPEND", "MEMORY". */
+  kind: string;
+  kindTone?: VerdictTone;
+  /** The agent that owns this gate; renders the attribution chip. */
+  agentSlug?: string | null;
+  project?: string;
+  /** What the agent proposes, one plain sentence. */
+  title: string;
+  /** Why: evidence lines with provenance ("12 signals point at checkout friction"). */
+  evidence: string[];
+  /** Cost / impact line ("~120 credits · touches checkout flow only"). */
+  impact?: string;
+  /** The belief this decision carries, read straight off the decision row.
+   *  A person approving an agent's bet should see the bet, not just its name. */
+  forecast?: {
+    claim: string;
+    howWeWillKnow?: string | null;
+    horizonDate?: string | null;
+    resolution?: string | null;
+  };
+  /** Consequence phrases (button helper text). */
+  approveConsequence: string;
+  rejectConsequence: string;
+  timestamp?: string;
+};
 
 export type ApprovalQueueItem = ApprovalItem & {
   kindKey: ApprovalKind;

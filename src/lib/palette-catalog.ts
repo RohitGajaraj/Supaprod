@@ -4,6 +4,13 @@
  * target (a route to navigate to, or a client event to dispatch) - never a
  * server call. `palette-catalog.test.ts` guards that every `run.to` is a
  * real canonical route so the catalog never grows a dead link.
+ *
+ * SIX ENTRIES LEFT `/engine-room` FOR `/team?tab=spend` ON 2026-09-10. That
+ * guard checks the destination is KNOWN, not that it is a page: `/engine-room`
+ * is a route file whose whole body is `throw redirect({ to: "/team", search: {
+ * tab: "spend", ... } })`, so every one of these named an address that exists
+ * only to hand you a different one. They spell the real destination now, which
+ * is the same edit twenty other callers took in the same pass.
  */
 
 export type CatalogKind = "CALL" | "MISSION" | "SPEC" | "BELIEF" | "SOURCE";
@@ -95,29 +102,29 @@ export const CATALOG: CatalogEntry[] = [
   {
     id: "check-spend",
     pitch: "See what the agents are spending",
-    run: { to: "/engine-room", search: { room: "spend" } },
+    run: { to: "/team", search: { tab: "spend", room: "spend" } },
   },
   {
     id: "check-quality",
     pitch: "Check if the evals still pass",
-    run: { to: "/engine-room", search: { room: "quality" } },
+    run: { to: "/team", search: { tab: "spend", room: "quality" } },
   },
   // LOOM W1 - the "rare goes to the palette" promise, actually kept: every
   // folded or door-internal surface is indexed here (DESIGN-LOOM §9b).
   {
     id: "check-safety",
     pitch: "Check the guardrails and safety record",
-    run: { to: "/engine-room", search: { room: "safety" } },
+    run: { to: "/team", search: { tab: "spend", room: "safety" } },
   },
   {
     id: "open-record",
     pitch: "Open the record room (traces and runs)",
-    run: { to: "/engine-room", search: { room: "record" } },
+    run: { to: "/team", search: { tab: "spend", room: "record" } },
   },
   {
     id: "trust-ledger",
     pitch: "Verify the audit trail integrity fingerprint",
-    run: { to: "/engine-room", search: { room: "record" } },
+    run: { to: "/team", search: { tab: "spend", room: "record" } },
   },
   /*
    * "Open your meetings and calendar" was removed on 2026-09-09 (fifth review)
@@ -137,7 +144,7 @@ export const CATALOG: CatalogEntry[] = [
   {
     id: "prompt-studio",
     pitch: "Tune the prompts behind the agents",
-    run: { to: "/engine-room", search: { room: "quality", view: "prompts" } },
+    run: { to: "/team", search: { tab: "spend", room: "quality", view: "prompts" } },
   },
   {
     id: "open-settings",

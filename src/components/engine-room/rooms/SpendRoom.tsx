@@ -151,8 +151,8 @@ function ByAgentView({ agent }: { agent?: string }) {
           /* No tone: a share of spend is a measurement, not a verdict. */
           onOpen={() =>
             navigate({
-              to: "/engine-room",
-              search: { room: "spend", view: "by-agent", agent: a.slug },
+              to: "/team",
+              search: { tab: "spend", room: "spend", view: "by-agent", roomAgent: a.slug },
             })
           }
         />

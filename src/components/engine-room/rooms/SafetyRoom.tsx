@@ -67,7 +67,7 @@ export function SafetyRoom({ view }: RoomBodyProps) {
            * descriptor is "Approvals waiting on you".
            */
           onOpenQueue={() =>
-            navigate({ to: "/engine-room", search: { room: "record", view: "verify" } })
+            navigate({ to: "/team", search: { tab: "spend", room: "record", view: "verify" } })
           }
           /* The boundary is the front tab's whole subject now, so the controls
              tab does not state it a second time. */

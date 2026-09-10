@@ -399,8 +399,8 @@ export function AnalyticsPanel() {
                 }
                 onClick={() =>
                   navigate({
-                    to: "/engine-room",
-                    search: { room: "spend", view: "usage", agent: a.slug },
+                    to: "/team",
+                    search: { tab: "spend", room: "spend", view: "usage", roomAgent: a.slug },
                   })
                 }
               />

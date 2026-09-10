@@ -339,10 +339,25 @@ function AppliedChangeRow({ change, onChanged }: { change: AppliedChange; onChan
   const fRollback = useServerFn(rollbackRelease);
   const rollbackMut = useMutation({
     mutationFn: (reason: string) => fRollback({ data: { changesetId: change.id, reason } }),
-    onSuccess: (res) => {
-      toast.success("Rollback opened. Taking you to the revert session.");
+    onSuccess: () => {
+      /*
+       * ── IT SAID IT WAS TAKING YOU SOMEWHERE, AND TOOK YOU TO A 404 ───────
+       *
+       * This did `window.location.href = /build/<revertMissionId>` -- a FULL
+       * page load, so the whole app was thrown away -- and `/build` has never
+       * had a `$missionId` child: `_authenticated.build.index.tsx` is the only
+       * file that segment has ever had. `revertMissionId` is
+       * `studio_changesets.mission_id`, a MISSION id, and the one surface that
+       * reports a run is `/track/$trackId`, which needs a TRACK id.
+       *
+       * ApprovalsPanel.tsx ruled this case on 2026-09-10 against production
+       * counts: cut the control rather than send a person to a page that is
+       * not what it named. So the toast now says only what happened, and the
+       * refetch below puts the revert in the list the person is already
+       * reading. ShipRecord's copy of the same defect went in the same edit.
+       */
+      toast.success("Rollback opened. The revert is staged and its run is waiting on your gates.");
       onChanged();
-      window.location.href = `/build/${res.revertMissionId}`;
     },
     onError: (e: unknown) => toast.error(humanWriteError(e, "Rollback failed.")),
   });
@@ -581,7 +596,11 @@ export function VerifyCockpit(_props: RoomBodyProps) {
       </section>
 
       <div className="self-start">
-        <QuietAction onClick={() => navigate({ to: "/traces" })}>
+        <QuietAction
+          onClick={() =>
+            navigate({ to: "/team", search: { tab: "spend", room: "record", view: "traces" } })
+          }
+        >
           Open the full run record
         </QuietAction>
       </div>

@@ -164,7 +164,7 @@ export function EvalCalibrationPanel() {
   );
 
   const drillToSurface = (surface: string) => {
-    navigate({ to: "/engine-room", search: { room: "quality", view: "suites", surface } });
+    navigate({ to: "/team", search: { tab: "spend", room: "quality", view: "suites", surface } });
   };
 
   if (calibrations.length === 0) {

@@ -134,7 +134,8 @@ export function EvalSuiteDetail({ id }: { id: string }) {
   const [failRunId, setFailRunId] = useState<string | null>(null);
   const [ran, setRan] = useState<Ran[]>([]);
 
-  const back = () => navigate({ to: "/engine-room", search: { room: "quality", view: "suites" } });
+  const back = () =>
+    navigate({ to: "/team", search: { tab: "spend", room: "quality", view: "suites" } });
 
   const suiteQ = useQuery({
     queryKey: ["eval_suite", id],
