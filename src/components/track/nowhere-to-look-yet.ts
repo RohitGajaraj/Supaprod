@@ -144,15 +144,34 @@ const THING: Record<Needed, { absent: string; door: string; href: string }> = {
     door: "Connect a source",
     href: "/sources",
   },
+  /*
+   * ── THE DOOR LANDED ON THE PROFILE PAGE, AND I NEVER OPENED IT ──────────
+   * These read `/settings?tab=connectors` from the day they shipped.
+   * `connectors` is not a `SectionId` and not in `LEGACY_SECTION_MAP`, so
+   * `normalizeSection` fell through to `DEFAULT_SECTION` -- **profile**. The
+   * one actionable control on the hold card, the half the agent's own prose
+   * cannot be, sent a person to their account settings.
+   *
+   * I proved the WALL was real -- `connection_bindings` = 0 on the measured
+   * workspace -- and told Lane 1 the door was right on the strength of it. A
+   * door is a second claim and it needed its own read. `AppFrame.tsx`, one
+   * directory away, had `?tab=connections` and was correct the whole time.
+   *
+   * `?section=` is the canonical param (`?tab=` is a legacy alias kept
+   * landing), and `connections` is a real section that renders Connectors.
+   * `a-door-must-open.test.ts` now resolves every settings link in `src/`
+   * against the section vocabulary, because this class is invisible to
+   * everything except clicking it.
+   */
   repository: {
     absent: "No repository is connected to this workspace.",
     door: "Connect a repository",
-    href: "/settings?tab=connectors",
+    href: "/settings?section=connections",
   },
   deployTarget: {
     absent: "No deployment target is connected to this workspace.",
     door: "Connect a deployment target",
-    href: "/settings?tab=connectors",
+    href: "/settings?section=connections",
   },
 };
 

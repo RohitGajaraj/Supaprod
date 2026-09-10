@@ -87,7 +87,12 @@ describe("searchDoors: P-64's nine doors, matched on their own label and tagline
       zone: "home",
       tagline: "Everything that cannot move until you answer it.",
     },
-    { to: "/sources", label: "Sources", zone: "home", tagline: "What the crew is allowed to read." },
+    {
+      to: "/sources",
+      label: "Sources",
+      zone: "home",
+      tagline: "What the crew is allowed to read.",
+    },
   ];
 
   it("an empty query finds no doors, so a blank field never shows every door as a hit", () => {
