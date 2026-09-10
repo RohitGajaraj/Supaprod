@@ -720,7 +720,22 @@ function StartLanding() {
        one movement from the next. Both steps are the ramp's own; a child that
        does not render carries no margin, so a movement that is absent costs
        nothing. */
-    <div className="mx-auto flex w-full max-w-[62rem] flex-col gap-mrd-6 px-mrd-5 pt-mrd-7 pb-mrd-8">
+    /* THE SURFACE STATES ITS RHYTHM ONCE, which is the founder's own ruling
+       and the rule /settings already follows: "the caller states the rhythm
+       once per surface".
+
+       MEASURED ON THE SERVED HOME, 2026-09-10, computed off the live column:
+       `rowGap: 24px` on this container plus `mt-mrd-5` (16px) on six of its
+       children, so every gap was 40px reached as 24 + 16 -- EXCEPT the one
+       between the road and the hero, which was 24, because the hero is the
+       one child that never carried the margin. One rhythm, stated in two
+       places, disagreeing with itself once.
+
+       40px is `--mrd-s7` and it is a stop on the ramp; 24 + 16 arriving at
+       the same number is an accident that held. Stated here, the six margins
+       go, and a child added tomorrow inherits the rhythm instead of having to
+       remember it. */
+    <div className="mx-auto flex w-full max-w-[62rem] flex-col gap-mrd-7 px-mrd-5 pt-mrd-7 pb-mrd-8">
       {/* THE ONE SENTENCE ABOUT THE PRODUCT ITSELF, until this workspace has
           watched a loop close. See `what-this-does-for-you.ts`: it names a
           mechanism rather than a category, every clause of it points at
@@ -849,7 +864,7 @@ function StartLanding() {
 
       {/* `data-page-composer` stands the ask dock down: one prompt per screen,
           and this is the one. See `one-prompt-per-screen`. */}
-      <div data-page-composer className="mt-mrd-5 flex flex-col gap-mrd-4">
+      <div data-page-composer className="flex flex-col gap-mrd-4">
         <Composer
           value={sentence}
           onChange={setSentence}
@@ -980,21 +995,21 @@ function StartLanding() {
           makes the page a sequence rather than a set of regions: what needs
           you, hand something over, here is what came of the last time, here is
           what is moving, here is your list. */}
-      <HomeAnswers answers={sinceYouLooked} className="mt-mrd-5" />
+      <HomeAnswers answers={sinceYouLooked} />
       {/* THE EVIDENCE, DIRECTLY UNDER THE ANSWERS IT BELONGS TO. The answer
           above says a decision came back this week; this says which one, what
           it committed to, and what came back. Reading them in that order is the
           page going from a count to a fact, which is the whole move. */}
-      <WhetherItWorked it={itWorked} className="mt-mrd-5" />
+      <WhetherItWorked it={itWorked} />
       {/* Its sibling, in the same slot. `theBetStillOpen` returns null when a
           closed loop exists, so exactly one of these ever draws. */}
-      <BetStillOpen it={betOpen} className="mt-mrd-5" />
+      <BetStillOpen it={betOpen} />
       {/* WHAT IS ARRIVING (founder, 2026-09-02 19:12): the
           product's central claim, evidence becomes work on its own, provable
           on the page a person actually lands on. */}
       <Arriving door={!sinceYouLooked.some((a) => "to" in a.door && a.door.to === "/evidence")} />
 
-      <CrewAtWork workspaceId={activeWorkspaceId ?? null} onOpen={openRun} className="mt-mrd-5" />
+      <CrewAtWork workspaceId={activeWorkspaceId ?? null} onOpen={openRun} />
 
       {/*
        * THE FIRST THREE RUNS, when there is nothing yet: an ANSWERED runs
@@ -1025,7 +1040,7 @@ function StartLanding() {
           largest read on the page 170 ms ahead of the seed that carried the
           same rows (read live 2026-09-08). */}
       {seeded && !firstRun ? (
-        <YourRuns station={station} onClearStation={() => setStation(null)} className="mt-mrd-5" />
+        <YourRuns station={station} onClearStation={() => setStation(null)} />
       ) : null}
     </div>
   );
