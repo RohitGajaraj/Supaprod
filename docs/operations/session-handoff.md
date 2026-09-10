@@ -3296,8 +3296,12 @@ when the build *starts* — twice tonight a deploy missed a commit pushed a minu
 (`b0a6e0ae` missed law 30; `1d935fe1` missed the rhythm commit). **The grader fix has no served
 probe**: everything it changed is reachable only through a draft, so a build that missed it reads at
 06:00 exactly like a fix that failed, and the obvious conclusion would be the wrong one drawn from
-the strongest-looking evidence available. Redeployed for this reason; confirm the serving deployment
-id and that `max(wallet_checked_at)` keeps moving.
+the strongest-looking evidence available. Redeployed for this reason as **`6ed82e78`**,
+triggered 02:37 UTC — after `get_project` reported sync at `cec0246b3`, well past the fix.
+**CONFIRMED SERVING at 02:40:56**: the `x-deployment-id` header names it, and
+`max(wallet_checked_at)` was **10 seconds old** across 41 tracks at 02:41:13 — the sweep fired six
+seconds after the build went live, so the build is serving *and* running, which the header alone
+cannot show. **The 06:00 UTC read is now decisive rather than ambiguous.**
 
 **The cheapest deploy probe in the product:** `resume-runs` is cron `* * * * *`, and
 `spine_tracks.wallet_checked_at` moves on *consideration*, so `max(wallet_checked_at)` goes current
