@@ -77,13 +77,13 @@ const DOORS: Record<string, (id: string) => NodeDoor> = {
   signal: (id) => ({
     label: "Open the signal",
     tier: "row",
-    to: "/arriving",
+    to: "/evidence",
     search: { tab: "signals", focus: id },
   }),
   theme: (id) => ({
     label: "Open the cluster",
     tier: "row",
-    to: "/arriving",
+    to: "/evidence",
     search: { tab: "signals", focus: id },
   }),
   /**
@@ -93,7 +93,7 @@ const DOORS: Record<string, (id: string) => NodeDoor> = {
    * rank first with nothing explaining why.
    *
    * FIFTH REVIEW, 2026-09-09. This read "Open the queue" and posted to
-   * `/arriving?tab=queue`, whose own `beforeLoad` throws a redirect to the home
+   * `/evidence?tab=queue`, whose own `beforeLoad` throws a redirect to the home
    * for exactly that key: the reader pressed a button naming a surface that
    * left the product on 2026-07-13 and arrived somewhere with no queue on it.
    * The redirect stays for legacy links; the door stops going through it and

@@ -2,7 +2,7 @@
  * WHETHER ANSWERING THIS CALL STILL RELEASES ANYTHING.
  *
  * ── WHAT A PERSON SEES, AND WHAT IS TRUE ──────────────────────────────────
- * /approvals says "52 decisions are ready for you", lists them oldest first,
+ * /inbox says "52 decisions are ready for you", lists them oldest first,
  * and puts this under the one in front:
  *
  *     Approve · unblocks Build for this spec

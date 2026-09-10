@@ -1,7 +1,7 @@
 /**
  * ── ONE FACT, ONCE, ON THE FIRST SCREEN OF A NEW WORKSPACE ────────────────
  *
- * READ ON THE SERVED /arriving, 2026-09-09, empty workspace. Before a reader
+ * READ ON THE SERVED /evidence, 2026-09-09, empty workspace. Before a reader
  * had scrolled:
  *
  *   Your sources have sent nothing yet.

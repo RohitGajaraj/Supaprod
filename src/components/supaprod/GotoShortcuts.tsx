@@ -220,7 +220,7 @@ export function GotoShortcuts() {
        * not commit: pressing `g` then `d` on /today navigated to Discover AND
        * fired `decideApprovalItem` with `verdict: "reject"` on the waiting
        * call. One keystroke, two acts, and the destructive one was silent and
-       * irreversible. The same shape on /approvals (`g r` rejects the focused
+       * irreversible. The same shape on /inbox (`g r` rejects the focused
        * call), on /decide (`g k` drafts a spec and spends money, `g c` runs the
        * Critic) and on /discover.
        *

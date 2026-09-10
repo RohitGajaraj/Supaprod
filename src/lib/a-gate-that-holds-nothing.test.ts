@@ -1,7 +1,7 @@
 /**
  * F-128: 22 OF 29 PENDING GATES HELD WORK THAT HAD ALREADY FINISHED.
  *
- * S1 measured `/approvals` against the database. The screen says **"52 decisions
+ * S1 measured `/inbox` against the database. The screen says **"52 decisions
  * are ready for you"**, and every row promises **"Approve · unblocks Build for
  * this spec"**. For 22 of the 29 pending tool-call gates **the run they held is
  * over**, so approving cannot unblock anything. Seven more (`memory.promote`)

@@ -112,7 +112,7 @@ describe("useApprovalPush: the live channel widened past agent_approvals alone",
 describe("the approvals page's own copy carries no imperative to refresh", () => {
   it('no live string literal contains "refresh" (comments quoting the retired sentence for history are fine)', () => {
     const source = readFileSync(
-      join(import.meta.dir, "..", "routes", "_authenticated.approvals.tsx"),
+      join(import.meta.dir, "..", "routes", "_authenticated.inbox.tsx"),
       "utf8",
     );
     // Strip /* ... */ and // ... before scanning -- this file's own history

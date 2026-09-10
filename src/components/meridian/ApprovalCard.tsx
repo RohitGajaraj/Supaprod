@@ -14,7 +14,7 @@ import type { ReactNode } from "react";
  * Ported to Meridian tokens. Full record: docs/design/REFERENCE-PATTERNS.md
  *
  * ── WHY THIS EXISTS IN THIS PRODUCT ─────────────────────────────────────
- * /approvals, Today's "Ready for your review" lane and the Decide gate all
+ * /inbox, Today's "Ready for your review" lane and the Decide gate all
  * read the same queue and give it three different keyboards, so one blocked
  * run looks like three unrelated chores. This is the single card, and it
  * carries the fact those three surfaces keep dropping: a machine has stopped,

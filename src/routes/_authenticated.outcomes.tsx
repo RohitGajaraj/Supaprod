@@ -96,7 +96,7 @@
  *    MOVED, by the earlier pass and not re-litigated here: InsightsPanel to
  *      /analytics, ImpactLedgerPanel to /learn, ChangelogPanel and
  *      AnnouncementsPanel and ShipHistoryPanel to /ship, CapabilitiesPanel to
- *      /crew or Settings.
+ *      /team or Settings.
  *
  * 4. WHAT IS ONE CLICK AWAY INSTEAD OF ON THE SURFACE.
  *    The rest of the substrate, the memory composer and its pending queue,
@@ -1442,7 +1442,7 @@ function MemoryPage() {
             value: stats.data.conversations,
             open: () => navigate({ to: "/threads" }),
           },
-          { label: "signals", value: counts.signals, open: () => navigate({ to: "/arriving" }) },
+          { label: "signals", value: counts.signals, open: () => navigate({ to: "/evidence" }) },
           { label: "meetings", value: counts.meetings },
           // P-14 (A-QUEUE.md, R-34): /plan is deleted; specs in flight are
           // Start's own territory now.
@@ -1807,7 +1807,7 @@ function MemoryPage() {
                   // Lands ON the capture box, not merely on Discover: the box is
                   // below the ranked reading there by design, and this control
                   // names it. Same repair as `?focus=` (K-37, 2026-08-21).
-                  onClick={() => navigate({ to: "/arriving", search: { capture: true } })}
+                  onClick={() => navigate({ to: "/evidence", search: { capture: true } })}
                 >
                   Capture a signal
                 </Action>
@@ -1930,7 +1930,7 @@ function MemoryPage() {
             {preview.state === "empty" ? (
               <NothingYet
                 action={
-                  <Action variant="primary" onClick={() => navigate({ to: "/arriving" })}>
+                  <Action variant="primary" onClick={() => navigate({ to: "/evidence" })}>
                     Turn a signal into a bet
                   </Action>
                 }

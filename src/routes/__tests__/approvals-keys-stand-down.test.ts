@@ -5,7 +5,7 @@ import { join } from "node:path";
 /**
  * AN IRREVERSIBLE VERDICT MAY NOT RIDE IN ON SOMEBODY ELSE'S CHORD.
  *
- * THE DEFECT THIS EXISTS TO KILL, found 2026-08-05. /approvals binds bare a, r,
+ * THE DEFECT THIS EXISTS TO KILL, found 2026-08-05. /inbox binds bare a, r,
  * j and k on a window keydown listener, and it was the one gate surface with no
  * modifier guard. `e.key` on a Cmd+R keydown is exactly "r", because the
  * modifier lives on a separate field the handler never read, so Cmd+R and
@@ -48,7 +48,7 @@ import { join } from "node:path";
  * order to ban it.
  */
 
-const ROUTE = join(import.meta.dir, "..", "_authenticated.approvals.tsx");
+const ROUTE = join(import.meta.dir, "..", "_authenticated.inbox.tsx");
 
 /** Blank the comments while keeping every newline, so a failure still points at
  *  the line it means. */
@@ -86,7 +86,7 @@ const MODIFIER_GUARD = "if (e.metaKey || e.ctrlKey || e.altKey) return;";
 const TYPING_GUARD =
   "if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;";
 
-describe("/approvals stands its bare keys down under a modifier", () => {
+describe("/inbox stands its bare keys down under a modifier", () => {
   it("still registers the handler it is guarding (a vacuous pass is not a pass)", () => {
     expect(SOURCE).toContain('window.addEventListener("keydown", onKey)');
     expect(STATEMENTS.length).toBeGreaterThan(5);

@@ -64,7 +64,7 @@
  *
  * ─────────────────────────────────────────────────────────────────────────
  * 2026-08-15: PORTED TO MERIDIAN. Every `--sp-*` shape is gone; only
- * `Surface`, the shell's own region, is kept, exactly as /approvals keeps it.
+ * `Surface`, the shell's own region, is kept, exactly as /inbox keeps it.
  *
  * ONE THING CHANGED THAT IS NOT A RE-SKIN: the middle tone. `methodRecord`
  * returns four tones and the old `Value` painted the middle one amber. Under

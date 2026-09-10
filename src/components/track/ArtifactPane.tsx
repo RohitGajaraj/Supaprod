@@ -199,7 +199,7 @@ function prdTone(status: string | null): "you" | "pass" | null {
  * measured shows no controls at all.
  *
  * ── THE "CONNECT A SOURCE" DOOR IS GONE, AND THAT IS THE HONEST STATE ─────
- * P-137 shipped this with a second press to `/sync`. `/sync` binds a connected
+ * P-137 shipped this with a second press to `/sources`. `/sources` binds a connected
  * account to a repo, a team or a channel -- its own header says it answers
  * "connected to WHICH team" -- and there is no path on it that produces a
  * number for a success metric. So the sentence "nothing is connected that
@@ -2635,7 +2635,7 @@ function NothingToRead({
        * as the product not knowing what it has and sends them to do a thing they
        * have done. That was the honest run's case.
        *
-       * The target is P-44's (`2f8d8631d`): `/sync` takes `?product=` and
+       * The target is P-44's (`2f8d8631d`): `/sources` takes `?product=` and
        * preselects it through the same `setActiveProductId` the switcher uses,
        * so the door lands on the run's own product rather than on a page that
        * asks which one again.
@@ -2646,7 +2646,7 @@ function NothingToRead({
       {door.door !== "none" ? (
         <Actions>
           <Link
-            to="/sync"
+            to="/sources"
             search={productId ? { product: productId } : {}}
             className={ACTION_LINK_FACE.default}
           >

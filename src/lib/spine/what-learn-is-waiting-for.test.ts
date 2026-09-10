@@ -142,8 +142,8 @@ describe("onlyAPersonCanGradeThis", () => {
 describe("the metric press offers only the door that works", () => {
   /**
    * P-137 shipped "Nothing is connected that could measure this" with two
-   * presses: Record a reading, and Connect a source pointing at `/sync`.
-   * `/sync` binds a connected account to a repo, a team or a channel; its own
+   * presses: Record a reading, and Connect a source pointing at `/sources`.
+   * `/sources` binds a connected account to a repo, a team or a channel; its own
    * header says it answers "connected to WHICH team". No path on it produces a
    * number for a success metric, so the second press could not change what the
    * sentence said. A person followed it, found nothing that applied, and came
@@ -153,7 +153,7 @@ describe("the metric press offers only the door that works", () => {
    * and the requirement is about what is NOT offered. It is deliberately
    * narrow: it pins the metric block only, and Discover's own "Connect a
    * source" door lower in the same file is CORRECT -- that one connects the
-   * signal ingestion `/sync` actually does -- and must keep working.
+   * signal ingestion `/sources` actually does -- and must keep working.
    */
   const src = readFileSync(
     join(import.meta.dir, "../../components/track/ArtifactPane.tsx"),
@@ -168,14 +168,14 @@ describe("the metric press offers only the door that works", () => {
   test("the metric press block offers no source door at all", () => {
     expect(recordReading).toContain("Record a reading");
     expect(recordReading).not.toContain("Connect a source");
-    expect(recordReading).not.toContain('to="/sync"');
+    expect(recordReading).not.toContain('to="/sources"');
   });
 
   test("and Discover's source door is untouched", () => {
     // Proves the assertion above is narrow rather than the file having lost
     // every mention, which would pass it vacuously and break a working door.
     expect(src).toContain("Connect a source");
-    expect(src).toContain('to="/sync"');
+    expect(src).toContain('to="/sources"');
   });
 });
 

@@ -107,7 +107,7 @@ describe("the spec page does not say what its code will not do", () => {
 
   it("sends the issue door's not-connected refusal to the same gate the send uses", () => {
     // Two acts, one resolveGitHub, one refusal. The issue door used to write a
-    // dead receipt where the dispatch offered /sync and a starter repo.
+    // dead receipt where the dispatch offered /sources and a starter repo.
     expect(SPEC).toMatch(
       /isRepoNotConnectedError\(e\.message\)\) setRepoGate\(\{ reason: e\.message, retry: "issue" \}\)/,
     );

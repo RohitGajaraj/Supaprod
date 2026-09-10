@@ -68,7 +68,7 @@ describe("every station draws the key that opens it", () => {
     for (const door of STATION_DOORS) {
       /*
        * A STATION'S ROUTE MAY NOW ALSO BE A DOOR, and that is not a violation.
-       * P-60 gave `/arriving` the row "What came in"; `STATION_ROUTE` maps
+       * P-60 gave `/evidence` the row "What came in"; `STATION_ROUTE` maps
        * `sense` to the same URL, because the same surface answers a person's
        * question and shows a station's output. What R-01 forbids is a station
        * CHIP claiming a key, and that is what is asserted.

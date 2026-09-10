@@ -2,7 +2,7 @@
  * A CALL THAT BELONGS TO NOTHING IS NOT TOLD IT BELONGS TO THE WORKSPACE.
  *
  * ── THE RULE WAS WRITTEN DOWN AND THEN BROKEN IN THE SAME FILE ─────────────
- * `subjectOf` in `_authenticated.approvals.tsx` states it in its own docstring:
+ * `subjectOf` in `_authenticated.inbox.tsx` states it in its own docstring:
  *
  *   *"Null on the families that are workspace wide (memory, house rules, trust,
  *    assumption challenges, playbooks), and null is drawn as nothing rather
@@ -38,7 +38,7 @@ import { describe, expect, it } from "bun:test";
 const read = (rel: string): string =>
   readFileSync(fileURLToPath(new URL(rel, import.meta.url)), "utf8");
 
-const ROUTE = read("../../routes/_authenticated.approvals.tsx");
+const ROUTE = read("../../routes/_authenticated.inbox.tsx");
 const CONTEXT = read("./CallContext.tsx");
 
 describe("a call with no container is not given one", () => {

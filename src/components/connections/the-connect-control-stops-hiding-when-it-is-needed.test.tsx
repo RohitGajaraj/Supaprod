@@ -133,7 +133,7 @@ describe("AskInPlace stops hiding when the need is genuinely unmet", () => {
     // point at the account list, which is not where a binding is changed.
     const door = await screen.findByText(/Finish it on Sync/);
     expect(door).toBeTruthy();
-    expect(door.closest("a")?.getAttribute("href")).toBe("/sync");
+    expect(door.closest("a")?.getAttribute("href")).toBe("/sources");
     expect(screen.queryByText(/^Connect GitHub$/)).toBeNull();
     expect(screen.queryByText(/connecting again would change nothing/)).toBeTruthy();
   });

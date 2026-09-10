@@ -19,7 +19,7 @@ import { APPROVALS_QUEUE_PREFIX } from "@/lib/query-keys";
  * WHY THIS SURFACE EXISTS AT ALL. `sendBackApprovalItem` shipped weeks ago,
  * fully guarded, and had ZERO reachable doors: its only caller lived in the
  * retired mission tree, which no route could render. Meanwhile /today drew a
- * "Send back" button that navigated to /approvals, and /approvals had no
+ * "Send back" button that navigated to /inbox, and /inbox had no
  * send-back control and no note field. A capability with no door does not
  * exist, and this one was worse than absent because it was advertised.
  *

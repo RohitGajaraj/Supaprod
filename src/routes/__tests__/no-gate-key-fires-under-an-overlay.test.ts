@@ -41,11 +41,11 @@ const read = (rel: string) => readFileSync(join(ROOT, rel), "utf8");
 // "Decide" and "Design" left this list (P-14, A-QUEUE.md, R-34): each gate
 // and every key it bound are deleted, not rehomed. "Today" left it too
 // (P-14, A-QUEUE.md): `components/today/DecisionQueue.tsx` was Board.tsx's
-// own copy of the same approval queue `/approvals` already gates below --
+// own copy of the same approval queue `/inbox` already gates below --
 // unmounted (zero importers), deleted with the cluster it alone belonged to.
 const GATES = [
-  ["Approvals", "routes/_authenticated.approvals.tsx"],
-  ["Crew", "routes/_authenticated.crew.tsx"],
+  ["Approvals", "routes/_authenticated.inbox.tsx"],
+  ["Crew", "routes/_authenticated.team.tsx"],
   ["Discover", "components/discover/DiscoverSurface.tsx"],
 ] as const;
 

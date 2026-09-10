@@ -193,7 +193,7 @@ Every model call rides the existing chokepoint (`callModel`, surface `'agent'`):
 
 ## Graceful degradation & known windows
 
-- **No GitHub connection** → `repo.*`/`studio.*` tools fail with the `resolveProviderAuth` actionable error (bind a repo on `/sync` or connect GitHub in Settings); dispatch itself still works and the session reports the blocker.
+- **No GitHub connection** → `repo.*`/`studio.*` tools fail with the `resolveProviderAuth` actionable error (bind a repo on `/sources` or connect GitHub in Settings); dispatch itself still works and the session reports the blocker.
 - **Pre-migration window (KI-08 pattern):** until `20260612100000_f_studio_engine` applies via Lovable sync, hosted `/studio` queries and approval inserts error on missing tables/columns. Expected; gates in `active-task.md`.
 - **Sweeper cadence is the heartbeat:** queued start and gate-resume each cost ≤1 sweeper tick (1 min hosted). Local dev without the cron: `curl -X POST <app>/api/public/hooks/resume-runs` with the hook secret drives it manually.
 - **CI never blocks the platform:** `github.ci.read` snapshots persist as `tool_calls`; the PR tab's Refresh re-reads on demand.

@@ -97,7 +97,7 @@ describe("no surface nobody can reach", () => {
      */
     expect(authedRoutes().length).toBeGreaterThan(25);
     expect(linked().size).toBeGreaterThan(10);
-    for (const seg of ["/start", "/approvals", "/outcomes"]) {
+    for (const seg of ["/start", "/inbox", "/outcomes"]) {
       expect({ seg, linked: linked().has(seg) }).toEqual({ seg, linked: true });
     }
   });

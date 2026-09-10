@@ -101,7 +101,7 @@
  *
  * Every `--sp-*` shape is gone from this file. It keeps `Surface` alone, which
  * is the app shell's two-column region and belongs to the shell rather than to
- * this surface, and which /approvals — the house pattern for a ported surface —
+ * this surface, and which /inbox — the house pattern for a ported surface —
  * keeps for the same reason. Everything else is drawn from `--mrd-*` through
  * the parts in components/crew/CrewChrome.tsx.
  *
@@ -230,7 +230,7 @@ export type CrewSearch = {
   surface?: string;
 };
 
-export const Route = createFileRoute("/_authenticated/crew")({
+export const Route = createFileRoute("/_authenticated/team")({
   // One agent open at a time, in the URL, so the browser's own back button
   // closes the detail and a teammate can be sent straight to it. A modal would
   // have neither, and a governance pane with three controls in it is exactly
@@ -252,7 +252,7 @@ export const Route = createFileRoute("/_authenticated/crew")({
     roomAgent: typeof search.roomAgent === "string" ? search.roomAgent : undefined,
     surface: typeof search.surface === "string" ? search.surface : undefined,
   }),
-  component: Crew,
+  component: Team,
   // P-61 (A-QUEUE.md): the tab title is the rail's own word for this door
   // (PRIMARY_NAV's "Team"), not the route's internal name.
   head: () => ({ meta: [{ title: "Team · Supaprod" }] }),
@@ -330,13 +330,13 @@ function lastWorkedLine(iso: string | null | undefined): string | null {
  * The surface
  * ------------------------------------------------------------------ */
 
-function Crew() {
+function Team() {
   const { agent, panel, tab, room, view, suite, roomAgent, surface } = Route.useSearch();
   const navigate = useNavigate();
 
   const open = React.useCallback(
     (slug: string | null) => {
-      void navigate({ to: "/crew", search: slug ? { agent: slug } : {} });
+      void navigate({ to: "/team", search: slug ? { agent: slug } : {} });
     },
     [navigate],
   );
@@ -564,7 +564,7 @@ function Roster({ onOpen }: { onOpen: (slug: string) => void }) {
       {/*
        * ── "ALL" WHEN IT IS ALL, BECAUSE TWO EQUAL COUNTS MAKE A READER COMPARE ──
        *
-       * READ ON THE SERVED /crew, 2026-09-10. The header showed:
+       * READ ON THE SERVED /team, 2026-09-10. The header showed:
        *
        *   16 agents work here.
        *   16 run without asking you.
@@ -727,7 +727,7 @@ function Roster({ onOpen }: { onOpen: (slug: string) => void }) {
           <DoorRow
             lead="Spend and limits"
             sub="What the crew is costing this week, the caps, the costliest model, and what has failed."
-            onClick={() => void navigate({ to: "/crew", search: { tab: "spend" } })}
+            onClick={() => void navigate({ to: "/team", search: { tab: "spend" } })}
           />
           <DoorRow
             lead="The boundary"
@@ -738,12 +738,12 @@ function Roster({ onOpen }: { onOpen: (slug: string) => void }) {
                was drawn a second time under Settings > Autonomy. The Autonomy
                group folded in here, so the boundary has one address and this
                row is it. */
-            onClick={() => void navigate({ to: "/crew", search: { tab: "boundary" } })}
+            onClick={() => void navigate({ to: "/team", search: { tab: "boundary" } })}
           />
           <DoorRow
             lead="The methods"
             sub="The named ways of working the crew draws on, how often each has been used, and what has held up so far."
-            onClick={() => void navigate({ to: "/crew", search: { panel: "methods" } })}
+            onClick={() => void navigate({ to: "/team", search: { panel: "methods" } })}
           />
         </Region>
         {asking.length > 0 ? (
@@ -1083,7 +1083,7 @@ function Proposals({ member, onDecided }: { member: CrewMember; onDecided: () =>
   /**
    * THE SAME TWO KEYS THE OTHER GATES USE, and this station had neither.
    *
-   * A keyboard audit of every binding in the product found /crew and /design
+   * A keyboard audit of every binding in the product found /team and /design
    * running gate QUEUES with no keys bound and none drawn. This surface says
    * "Settle the one above and the next takes its place" over an accept/decline
    * pair, which is the exact shape Today binds `a` and `d` for, on the same

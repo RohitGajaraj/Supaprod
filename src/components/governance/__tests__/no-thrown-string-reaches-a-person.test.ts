@@ -17,7 +17,7 @@
  * That matters beyond tidiness. ReadFailed knows a recognised dead session gets
  * a way to /login, where "Try again" would re-read with the same dead token
  * forever -- an offered control that cannot work, which S1 photographed on
- * /approvals.
+ * /inbox.
  */
 import { describe, it, expect } from "bun:test";
 import { readFileSync, readdirSync, statSync } from "node:fs";

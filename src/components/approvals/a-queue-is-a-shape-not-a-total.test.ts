@@ -161,7 +161,7 @@ describe("one array, both partitions (P-129)", () => {
 });
 
 describe("the page states its obligation once", () => {
-  const ROUTE = readFileSync("src/routes/_authenticated.approvals.tsx", "utf8");
+  const ROUTE = readFileSync("src/routes/_authenticated.inbox.tsx", "utf8");
   const STALLED = readFileSync("src/components/meridian/StalledWork.tsx", "utf8");
   const HEADING = STALLED.slice(STALLED.indexOf("<h2"), STALLED.indexOf("</h2>"));
 

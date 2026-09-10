@@ -123,7 +123,7 @@ const DIAGNOSIS: Partial<Record<HoldReason, string>> = {
    * and no reason to look. So this one now carries only what the line above
    * cannot: WHICH thing is off, and the door that turns it back on.
    *
-   * It says Agents and not Crew on purpose. The route is `/crew` and the label
+   * It says Agents and not Crew on purpose. The route is `/team` and the label
    * has been Agents since 2026-08-15, and a sentence that points at a door by
    * a name the product no longer prints is the same dead end in a nicer coat.
    *

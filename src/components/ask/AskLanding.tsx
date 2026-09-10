@@ -58,7 +58,7 @@ export type LandedArtifact = {
  * id and display name.
  */
 const STATION_ROUTE = {
-  sense: "/arriving",
+  sense: "/evidence",
   // P-14 (A-QUEUE.md, R-34): /decide, /plan, /design and /build are deleted.
   // Their own ruling table names Start as the honest destination for what
   // each used to carry (the ranked queue, work in flight, brand rules and

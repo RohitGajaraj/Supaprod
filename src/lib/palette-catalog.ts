@@ -20,7 +20,7 @@ export const CATALOG: CatalogEntry[] = [
     id: "challenge-belief",
     pitch: "Tear down a belief with evidence",
     kind: "BELIEF",
-    run: { to: "/arriving", search: { tab: "opportunities" } },
+    run: { to: "/evidence", search: { tab: "opportunities" } },
   },
   /*
    * P-14 (A-QUEUE.md ruling, R-34): /plan's Now/Next/Later board is deleted,
@@ -37,7 +37,7 @@ export const CATALOG: CatalogEntry[] = [
     id: "tickets-to-signals",
     pitch: "Turn 48 hours of tickets into signals",
     kind: "SOURCE",
-    run: { to: "/arriving", search: { tab: "signals" } },
+    run: { to: "/evidence", search: { tab: "signals" } },
   },
   {
     id: "export-record",
@@ -71,7 +71,7 @@ export const CATALOG: CatalogEntry[] = [
     id: "answer-call",
     pitch: "Answer the waiting call",
     kind: "CALL",
-    run: { to: "/approvals" },
+    run: { to: "/inbox" },
   },
   /*
    * P-14 (A-QUEUE.md ruling, R-34): /build is deleted -- "there are no

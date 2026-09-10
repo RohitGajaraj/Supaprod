@@ -16,7 +16,7 @@ import { chipLabel, contextForPath, scopeForPath } from "./ask-context";
 describe("ask-context - contextForPath", () => {
   it("maps each canonical destination to its plain-words label", () => {
     expect(contextForPath("/today", null)).toBe("Today");
-    expect(contextForPath("/arriving", null)).toBe("Evidence");
+    expect(contextForPath("/evidence", null)).toBe("Evidence");
     expect(contextForPath("/plan", null)).toBe("Plan");
     expect(contextForPath("/knowledge", null)).toBe("Outcomes");
   });
@@ -110,8 +110,8 @@ describe("ask-context - scopeForPath", () => {
   // nothing here proves signals are chunked, and a scope that returns nothing
   // is worse than no scope.
   it("names Arriving without narrowing retrieval to a kind it cannot prove", () => {
-    expect(scopeForPath("/arriving", null)).toEqual({ label: "Arriving" });
-    expect(scopeForPath("/arriving", null)?.kinds).toBeUndefined();
+    expect(scopeForPath("/evidence", null)).toEqual({ label: "Arriving" });
+    expect(scopeForPath("/evidence", null)?.kinds).toBeUndefined();
   });
 
   it("stays unscoped for screens with nothing to pin to", () => {

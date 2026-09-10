@@ -1,7 +1,7 @@
 // CONNECTORS-V11 (v11 #14) — the pure connector CATALOG model.
 //
 // Connectors are scattered across three surfaces (Settings → Accounts, Settings →
-// Integrations, and /sync) and re-rendered in three different shapes, with no
+// Integrations, and /sources) and re-rendered in three different shapes, with no
 // grouping — so the same providers read as a repetitive, confusing list. This
 // module derives ONE canonical, de-duped, CATEGORIZED catalog from the connector
 // registry: the single source of truth for "what can I connect, what does it do,

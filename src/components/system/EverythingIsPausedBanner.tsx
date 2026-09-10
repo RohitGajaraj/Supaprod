@@ -79,7 +79,7 @@ export function EverythingIsPausedBanner() {
         <Link
           /* The stop switch moved with the Autonomy fold, 2026-09-09: it is
              Team's boundary tab now, not a settings section. */
-          to="/crew"
+          to="/team"
           search={{ tab: "boundary" }}
           className="text-mrd-small underline"
           style={{ marginLeft: "auto", flexShrink: 0, color: "var(--mrd-ink)" }}

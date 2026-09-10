@@ -131,7 +131,7 @@ second homes:
 | [`FineTuneCard`](../../../src/components/meridian/FineTuneCard.tsx) | ~580 | gallery only | `/design` tunables (guardrail weights, eval thresholds) — its header says "the Design station's property inspector"; `/design` has zero references |
 | [`Flowchart`](../../../src/components/meridian/Flowchart.tsx) | ~577 | gallery only | branch previews where a story forks: spec projections (`plan.spec.$id`), driver path consent |
 | [`AgentInbox`](../../../src/components/meridian/AgentInbox.tsx) | ~475 | gallery only | `/inbox` — that route is still a redirect stub to the signed-in home; the component was built for exactly this door |
-| [`ApprovalCard`](../../../src/components/meridian/ApprovalCard.tsx) | — | `/approvals` only | settle asks, memory-review asks — same question-shape, second home |
+| [`ApprovalCard`](../../../src/components/meridian/ApprovalCard.tsx) | — | `/inbox` only | settle asks, memory-review asks — same question-shape, second home |
 | [`ContextCards`](../../../src/components/meridian/ContextCards.tsx) | — | `/decide` only | answer citations in the ask family (`Answer.tsx`) — excerpts-with-source is the same read |
 
 **StatusChip is its own note.** Six importers is healthy for a young chip, but coloured status text

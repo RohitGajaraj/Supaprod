@@ -1,5 +1,5 @@
 /**
- * SOURCES (/sync). Rebuilt around what the person came to learn, 2026-09-08.
+ * SOURCES (/sources). Rebuilt around what the person came to learn, 2026-09-08.
  *
  * ── WHAT WAS WRONG ───────────────────────────────────────────────────────
  * A teammate walked this page live as someone arriving from the rail with ONE
@@ -124,7 +124,7 @@ export type SyncSearch = { conflict?: string; product?: string };
  * TanStack Router route in a test).
  *
  * `product` is the second deep-link param (P-44, A-QUEUE.md), alongside the
- * existing `conflict`: `/sync?product=<id>` is where the "Finish it on Sync"
+ * existing `conflict`: `/sources?product=<id>` is where the "Finish it on Sync"
  * door from a connected-but-unbound need now lands, carrying the run's own
  * product so the per-product region opens already pointed at it.
  */
@@ -139,12 +139,12 @@ export function parseSyncSearch(search: Record<string, unknown>): SyncSearch {
   return out;
 }
 
-export const Route = createFileRoute("/_authenticated/sync")({
-  component: SyncPage,
+export const Route = createFileRoute("/_authenticated/sources")({
+  component: SourcesPage,
   // P-61 (A-QUEUE.md): the tab title is the rail's own word for this door
   // (PRIMARY_NAV's "Sources"), not the route's internal name.
   head: () => ({ meta: [{ title: "Sources · Supaprod" }] }),
-  // Deep-link target for the honest doors to this surface: /sync?conflict=<id>
+  // Deep-link target for the honest doors to this surface: /sources?conflict=<id>
   // lands on the conflict and floats it to the top of the list.
   validateSearch: parseSyncSearch,
   errorComponent: ({ error, reset }) => (
@@ -268,7 +268,7 @@ export function syncHeadline(state: {
   return "Nothing is syncing yet. Point a source at something below and the documents start flowing.";
 }
 
-function SyncPage() {
+function SourcesPage() {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const confirm = useConfirm();

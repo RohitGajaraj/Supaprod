@@ -202,7 +202,7 @@ export type RunStripMode = "tab" | "nav";
  * engine. Same gesture, same promise, different scope.
  */
 export const STATION_ROUTE: Record<AgentStation, string> = {
-  sense: "/arriving",
+  sense: "/evidence",
   decide: "/decide",
   define: "/plan",
   design: "/design",

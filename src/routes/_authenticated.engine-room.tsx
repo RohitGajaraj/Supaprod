@@ -1,6 +1,6 @@
 /**
  * `/engine-room` IS A REDIRECT STUB NOW (P-79, A-QUEUE.md). P-61's ruling:
- * "Crew and spend" is `/crew` with the engine room as its spend tab, and this
+ * "Crew and spend" is `/team` with the engine room as its spend tab, and this
  * is that move. The content itself -- the four rooms, the chassis, the
  * Escape ladder, the sources line -- lives in
  * `components/engine-room/EngineRoomEmbedded.tsx` now, moved whole rather
@@ -29,7 +29,7 @@ export const Route = createFileRoute("/_authenticated/engine-room")({
     const roomAgent = typeof s.agent === "string" ? s.agent : undefined;
     const surface = typeof s.surface === "string" ? s.surface : undefined;
     throw redirect({
-      to: "/crew",
+      to: "/team",
       search: {
         tab: "spend" as const,
         ...(room ? { room } : {}),

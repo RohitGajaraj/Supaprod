@@ -637,7 +637,7 @@ export function DecisionsPanel() {
               This named Today and opened the home with a flag the home no
               longer reads (third review, 2026-09-08). */}
           {waiting > 0 ? (
-            <Action variant="quiet" onClick={() => navigate({ to: "/approvals" })}>
+            <Action variant="quiet" onClick={() => navigate({ to: "/inbox" })}>
               Settle <Num>{waiting}</Num> in Inbox
             </Action>
           ) : null}

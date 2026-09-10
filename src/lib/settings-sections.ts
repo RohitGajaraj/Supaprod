@@ -28,7 +28,7 @@
  *
  * AUTONOMY IS GONE FROM THIS LIST, AND THAT IS THE POINT (2026-09-09).
  * It held two sections, "Who works here" and "What they may do without
- * asking", and Team answered both already: `/crew` IS the roster, and Team's
+ * asking", and Team answered both already: `/team` IS the roster, and Team's
  * own "The boundary" row opens the one set of tool-mode, ceiling and
  * stop-switch editors. Two doors wrote the same rows and neither said so.
  * The rail's claim is that the named Setup tier owns who works here and what
@@ -156,7 +156,7 @@ export type SettingsSection = {
   door?: false;
   /**
    * This address renders another section's pane. `sync` folds into Connectors,
-   * which shows the bindings /sync used to duplicate.
+   * which shows the bindings /sources used to duplicate.
    */
   foldsInto?: SectionId;
   /**
@@ -559,7 +559,7 @@ export const LEGACY_SECTION_MAP: Readonly<Record<string, SectionId>> = {
  *
  * FIFTH REVIEW, 2026-09-09. Settings drew a group called Autonomy holding
  * "Who works here" and "What they may do without asking". Team already owned
- * both: `/crew` is the roster, and its own "The boundary" row is the one set
+ * both: `/team` is the roster, and its own "The boundary" row is the one set
  * of tool-mode, ceiling and stop-switch editors. So a person setting an
  * agent's rope met two doors that wrote the same rows and nothing on either
  * said so, and the rail's own claim - Team owns who works here and their
@@ -577,12 +577,12 @@ export const LEGACY_SECTION_MAP: Readonly<Record<string, SectionId>> = {
  * exactly the second door being removed.
  */
 export const OFF_PAGE_SECTIONS: Readonly<
-  Record<string, { to: "/crew"; search: { tab?: "boundary" } }>
+  Record<string, { to: "/team"; search: { tab?: "boundary" } }>
 > = {
-  agents: { to: "/crew", search: {} },
-  staff: { to: "/crew", search: {} },
-  crew: { to: "/crew", search: { tab: "boundary" } },
-  autonomy: { to: "/crew", search: { tab: "boundary" } },
+  agents: { to: "/team", search: {} },
+  staff: { to: "/team", search: {} },
+  crew: { to: "/team", search: { tab: "boundary" } },
+  autonomy: { to: "/team", search: { tab: "boundary" } },
 };
 
 function isSectionId(raw: string): raw is SectionId {

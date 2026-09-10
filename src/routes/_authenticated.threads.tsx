@@ -496,7 +496,7 @@ function ThreadsSurface() {
         : // A FAILED READ IS NOT AN EMPTY WORKSPACE. This fell through to
           // "Nothing asked yet." whenever the list failed, so a person whose
           // session had ended was told their workspace was empty -- the same
-          // defect fixed on /start and /approvals, still here because a
+          // defect fixed on /start and /inbox, still here because a
           // headline is not where anyone looks for it. Neutral rather than a
           // fourth sentence about the failure: the left pane states it and
           // carries the control, and the right says what follows.

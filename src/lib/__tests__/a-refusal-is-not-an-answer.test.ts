@@ -196,11 +196,11 @@ describe("the words and the button cannot name two different places", () => {
      *
      * THE NOUN COMES FROM THE LABEL, NOT THE URL SEGMENT (P-10, A-QUEUE.md,
      * 2026-09-02). `/agents` and `/runs` were themselves redirect stubs --
-     * `/agents` forwarded to `/crew`, `/runs` to SIGNED_IN_HOME -- deleted
+     * `/agents` forwarded to `/team`, `/runs` to SIGNED_IN_HOME -- deleted
      * along with the other 47 the packet's census found, so `dispatchBlockRoute`
      * now points straight at the live destination. The route slug and the
      * user-facing word are already allowed to differ elsewhere in this repo
-     * (nav-model.ts's Agents/`/crew` split, ruled 2026-08-15): what this test
+     * (nav-model.ts's Agents/`/team` split, ruled 2026-08-15): what this test
      * actually protects is that the button's OWN label is the word the
      * message already used, not that a URL segment spells it.
      */

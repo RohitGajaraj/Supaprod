@@ -1,7 +1,7 @@
 // W5b: the no-repo gate dialog. When an act that needs a repo cannot resolve
 // one (canDispatchToRepo says no, or the act itself throws resolveGitHub's
 // not-connected refusal), this small choice replaces the raw error toast with
-// the two real paths: connect an existing repo on /sync, or provision a
+// the two real paths: connect an existing repo on /sources, or provision a
 // private starter repo for the spec - after which the interrupted act retries
 // automatically and the created repo URL shows in the success toast. Reuses
 // the stock AlertDialog primitives (same idiom as the Build list's delete
@@ -145,7 +145,7 @@ export function RepoGateDialog({
           <AlertDialogAction
             onClick={() => {
               onOpenChange(false);
-              navigate({ to: "/sync" });
+              navigate({ to: "/sources" });
             }}
             disabled={provision.isPending}
             // One primary CTA per view: when the provision path is also

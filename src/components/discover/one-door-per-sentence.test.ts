@@ -1,7 +1,7 @@
 /**
  * ── THE EMPTY FINDINGS PAGE OFFERED THE SAME DOOR TWICE ───────────────────
  *
- * WALKED AS A STRANGER ON THE SERVED /arriving, 2026-09-10, on a workspace
+ * WALKED AS A STRANGER ON THE SERVED /evidence, 2026-09-10, on a workspace
  * with no sources. Two identical **"Connect a source"** buttons, 135px apart
  * (y 339 and y 474), both navigating to `/settings?section=connections`.
  *

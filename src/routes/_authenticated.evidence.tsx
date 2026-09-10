@@ -66,7 +66,7 @@ export type DiscoverTab = "signals" | "queue";
  *  documents it and the surface takes it as a plain prop. Reading the search
  *  from inside the component would mean the component importing the route that
  *  imports the component. */
-function DiscoverRoute() {
+function EvidenceRoute() {
   const { focus, capture } = Route.useSearch();
   /*
    * ── THE VISIT IS STAMPED IN THE SURFACE, AFTER ITS FIRST READ (P-69) ─────
@@ -83,7 +83,7 @@ function DiscoverRoute() {
   return <DiscoverSurface focus={focus} capture={capture} />;
 }
 
-export const Route = createFileRoute("/_authenticated/arriving")({
+export const Route = createFileRoute("/_authenticated/evidence")({
   // Validated so a mangled link degrades to the plain surface rather than
   // crashing. The retired "opportunities" value maps onto the queue token so
   // both legacy spellings take the same redirect below.
@@ -110,7 +110,7 @@ export const Route = createFileRoute("/_authenticated/arriving")({
     // no tab param, so this goes straight there.
     if (search.tab === "queue") throw redirect({ to: "/start" });
   },
-  component: DiscoverRoute,
+  component: EvidenceRoute,
   head: () => ({ meta: [{ title: "Evidence · Supaprod" }] }),
   errorComponent: () => (
     <Surface>

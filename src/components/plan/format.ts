@@ -41,7 +41,7 @@ export function stripAutoPrefix(title: string): string {
  * text the loop composed.** Evidence lines carry the marker mid-sentence -
  * "From [auto] Investigate the ..." - and an anchored strip leaves it there.
  *
- * S1 found this on `/approvals` and fixed it in a function private to that
+ * S1 found this on `/inbox` and fixed it in a function private to that
  * route. THAT ROUTE FOLDS (SURFACE-MAP, R-04), so the fix would have died with
  * the door, which is the thing this lane exists to stop. It lives here now,
  * beside the family it belongs to, and outlives any surface.

@@ -3,7 +3,7 @@
  *
  * ── MOVED INTO MERIDIAN 2026-08-23, AND THE MOVE IS THE POINT ───────────
  * This lived in `components/connections/` while `PlanCard`, `run-rows`, the
- * Meridian gallery route and `/sync` all already imported it. A design-system
+ * Meridian gallery route and `/sources` all already imported it. A design-system
  * component sitting outside the design system, with the system depending on it,
  * is the layering upside down, and it is why nothing OUTSIDE connections ever
  * reached for it: the marks were there and the rail did not know.
@@ -73,7 +73,7 @@
  *     pick one, the provider's own page). Monochrome where the provider is the
  *     CONTEXT and a status, a binding or a conflict is the subject.
  *
- * That is the same argument that lets /crew wear stage hues on the roster and
+ * That is the same argument that lets /team wear stage hues on the roster and
  * stay monochrome in rows, and it is exactly the precedent anti-slop.md §6
  * cites for an identity surface.
  *
@@ -501,7 +501,7 @@ export function ProviderMark({
   const flat = tone === "mono";
   const Mark = MARKS[provider as ProviderId];
   // An id the registry does not know draws NOTHING rather than borrowing
-  // another provider's identity. /sync reads its provider off a sync row,
+  // another provider's identity. /sources reads its provider off a sync row,
   // which is a plain string column and can outlive a registry entry.
   if (!glyph && !Mark) return null;
 

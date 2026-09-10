@@ -735,7 +735,7 @@ that fails on its first run is the only kind anyone trusts afterwards.**
 
 ### 15. A delta needs a whole to be a delta of
 
-Added 2026-09-09. `/arriving` in an empty workspace said, in three consecutive lines: *"Your sources
+Added 2026-09-09. `/evidence` in an empty workspace said, in three consecutive lines: *"Your sources
 have sent nothing yet." / "Nothing new since you last looked." / "Nothing is connected yet, so there
 is nothing to read."*
 
@@ -1042,7 +1042,7 @@ Each of these has been found more than once, by people who knew the rule. Check 
 | Defect | Sightings | The rule |
 | --- | --- | --- |
 | A page whose headline and its list count different populations | 2 | /outcomes said "8 decisions are on the record" over a list reading "57 of 75". The headline was workspace-scoped, the list user-scoped. Ask what population each block describes, not whether each read filters. |
-| An empty state stacking sentences that all say "nothing is here" | 2, one of them 4 deep | /arriving said it four times before a reader scrolled, and the loudest one claimed "your sources" on a workspace with none. Law 15, law 11. |
+| An empty state stacking sentences that all say "nothing is here" | 2, one of them 4 deep | /evidence said it four times before a reader scrolled, and the loudest one claimed "your sources" on a workspace with none. Law 15, law 11. |
 | A provenance line repeating the title it sits under | 1 | Caused by a correct fix upstream that made two previously-different strings identical. Law 16. |
 | A constant reused because it existed, not because it answered the question | 1 | `isOverdue`'s day is about a person being late; the caller was asking whether a machine had stopped. Law 17. |
 | A guard matching a COMMENT about the thing it hunts | 3 | Twice in one day, and one file sat on a debt list for documenting that it does the right thing. Law 18. |
@@ -1275,33 +1275,60 @@ the ratchet exists to stop, introduced by a person trying to hold the system.
 
 ---
 
-## Open, measured, and deliberately not done tonight
+### 28. The address is part of the name
 
-### The address bar is the one surface still speaking the old vocabulary
+**Every destination's URL is the word a person would use for it.** Settled 2026-09-10, when the four
+remaining jargon paths were renamed and the old addresses were left to 404:
 
-**Measured on the served build, 2026-09-10.** Five of the six destinations in the rail have a URL
-that does not match their name:
+| Reads | Lived at | Lives at |
+| --- | --- | --- |
+| Inbox | `/approvals` | `/inbox` |
+| Evidence | `/arriving` | `/evidence` |
+| Team | `/crew` | `/team` |
+| Sources | `/sync` | `/sources` |
 
-| Reads | Lives at |
-| --- | --- |
-| Home | `/start` |
-| Inbox | `/approvals` |
-| Findings | `/arriving` |
-| Outcomes | `/outcomes` |
-| Team | `/crew` |
-| Sources | `/sync` |
+`/start`, `/outcomes`, `/ship`, `/learn` and `/threads` already agreed with their labels and did not
+move. `/start` in particular stays: it is the `SIGNED_IN_HOME` constant every auth redirect resolves
+through, so renaming it widens the blast radius from the rail to sign-in for no legibility gain a
+person ever sees — the home is the one destination nobody navigates to by name.
 
-Every page `<title>` already agrees with its label — *"Inbox · Supaprod"* at `/approvals`,
-*"Findings · Supaprod"* at `/arriving`. So this is not drift between two live surfaces; it is a
-**legacy path layer left under a renamed vocabulary**, and the address bar is the only place it still
-shows. It shows there to anyone who bookmarks a page, copies a link, or reads a destination on hover
-— which is now every run row, since law 22.
+**Why the address bar counts.** A page `<title>` already agreed with its label before this; the path
+did not. The path is what a person bookmarks, copies, sends to a colleague, and reads on hover —
+which since law 22 is every run row on the home. A URL reading `/crew` under a rail reading **Team**
+is the same defect as a heading that outlived its contents, in the one place it cannot be edited
+away.
 
-**Why it is written here rather than fixed.** The router is file-based, so renaming is renaming files
-plus every internal `to=`, plus redirects for links already in the wild, plus whatever deep links the
-other lanes hold. Doing that while two lanes are actively pushing to `main` trades a small, real
-legibility win for a merge collision and a day of broken links. **Worth doing; worth doing when one
-lane owns the tree.**
+**No redirect stubs, and that is deliberate.** `src/lib/legacy-redirects.ts` records the ruling:
+P-10 deleted 49 redirect-only routes, and *"the 404 with a door is the correct landing"* — the root
+`NotFoundComponent` draws "There is no page at this address" with a **Go home** door, so a stale
+bookmark does not dead-end. It was checked rather than assumed: all four are `_authenticated` paths,
+so no crawler or external link ever reached them, and **0 of 234 `messages` rows** carry any of the
+four inside a persisted `metadata.href` (measured 2026-09-10 00:26 UTC), so nothing stored has to be
+migrated. Four stub routes to serve a handful of signed-in bookmarks is a redirect table with almost
+nothing behind it, which is the exact thing that ruling refused.
+
+**A route name is also a workspace slug.** The workspace slug is the *first* segment of
+`/$workspaceSlug/$productSlug`, so every route name takes a name out of that namespace, and a
+workspace slugged `evidence` would still exist, still hold data, and simply be unreachable with no
+error anywhere. `inbox` and `team` were already reserved; `evidence` and `sources` were not, and
+migration `20260910002900_reserve_evidence_and_sources_slugs.sql` closes it.
+`reserved-workspace-slugs.test.ts` derives the namespace from the generated route tree and was made
+to fail without that migration before it was trusted.
+
+**How to rename a path safely.** A route path and a module path are the same shape: `/crew` is both
+the URL and a segment of `@/components/crew/CrewMethods`. A plain `s|/crew|/team|g` renames both and
+silently repoints imports at directories that do not exist. The pattern that separates them is a
+negative lookbehind — `(?<![A-Za-z0-9_/])/crew(?![A-Za-z0-9_-])` — because a route path is always
+preceded by a quote, backtick, space or `(`, never by a word character or another slash. On this
+rename it kept 137 files of correct edits and spared **38 module-path references across 20 files**
+that the naive pattern had already broken — the build caught those, but only after every file was
+wrong. BSD `sed` has neither lookbehind nor `\b`; use `perl -pi -e`.
+
+**Dated records keep the old path.** Comments, feature docs and the design contract were swept, so
+nothing that states current truth names a dead address. The `docs/lanes/verify/S4-*` notes,
+`e2e/surface-baseline.json` (*"what each surface measured on 2026-08-27"*) and the audit reports were
+**not** rewritten: they are observations of a moment, and editing the address inside one makes it
+claim it measured a path that did not exist yet.
 
 ---
 

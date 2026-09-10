@@ -1,5 +1,5 @@
 /**
- * P-79: the redirect (`/engine-room`) and the tab (`/crew`'s Spend and
+ * P-79: the redirect (`/engine-room`) and the tab (`/team`'s Spend and
  * limits) must validate `room` against the SAME list, or a room name valid
  * on one and not the other would silently fall through the `?room=` filter
  * on whichever side forgot it -- the exact "two copies of a fact" shape
@@ -11,7 +11,7 @@ import { describe, expect, it } from "bun:test";
 import { readFileSync } from "node:fs";
 
 const ENGINE_ROOM = readFileSync("src/routes/_authenticated.engine-room.tsx", "utf8");
-const CREW = readFileSync("src/routes/_authenticated.crew.tsx", "utf8");
+const CREW = readFileSync("src/routes/_authenticated.team.tsx", "utf8");
 const EMBEDDED = readFileSync("src/components/engine-room/EngineRoomEmbedded.tsx", "utf8");
 
 describe("the redirect and the tab share one list of rooms", () => {
@@ -34,7 +34,7 @@ describe("the redirect and the tab share one list of rooms", () => {
   });
 
   it("the redirect forwards room, view, suite and surface, and translates agent to roomAgent", () => {
-    expect(ENGINE_ROOM).toContain('to: "/crew"');
+    expect(ENGINE_ROOM).toContain('to: "/team"');
     expect(ENGINE_ROOM).toContain('tab: "spend"');
     for (const field of ["room", "view", "suite", "roomAgent", "surface"]) {
       expect(ENGINE_ROOM).toContain(`${field}`);

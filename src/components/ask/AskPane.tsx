@@ -372,7 +372,7 @@ function AskPaneOpen() {
   // certain things, what is waiting for me, where the action needs to be taken,
   // then you can display those cards."*
   //
-  // So Ask ANSWERS ABOUT approvals and never CARRIES them. `/approvals` and
+  // So Ask ANSWERS ABOUT approvals and never CARRIES them. `/inbox` and
   // Today own that inbox; a second one behind this door would make the count in
   // the rail mean two different things. The read stays because the answer needs
   // it: `gatesForAnswer` (AskTurn) matches these rows to a turn BY ID, or draws
@@ -1146,7 +1146,7 @@ function AskPaneOpen() {
  * answering a question nobody asked. The capability is untouched and one turn
  * away: ask what is waiting on you and `gatesForAnswer` renders the real cards,
  * settleable inline, which is the thing that makes this not a chat box. A queue
- * has one home and it is `/approvals`; a second one behind this door would make
+ * has one home and it is `/inbox`; a second one behind this door would make
  * the number in the rail mean two different things.
  *
  * WHAT IT SAYS INSTEAD is true, and specific to this workspace at this moment:

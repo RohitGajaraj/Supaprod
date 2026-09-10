@@ -324,7 +324,7 @@ export function GraphCanvasView({
         action={
           // `capture: true` lands on the capture box rather than on the top of
           // Discover, where this control's own label is not what you see.
-          <Action onClick={() => navigate({ to: "/arriving", search: { capture: true } })}>
+          <Action onClick={() => navigate({ to: "/evidence", search: { capture: true } })}>
             Capture a signal
           </Action>
         }

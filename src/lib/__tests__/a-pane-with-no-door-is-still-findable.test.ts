@@ -75,7 +75,7 @@ describe("a pane with no door is still findable", () => {
    * The claim it was making is not dropped, it is re-homed: the same seven
    * words are asserted against the real search in `spine/find-anything.test.ts`
    * ("the boundary's own words reach Team"), where they now have to reach
-   * `/crew`. Deleting a guard because its subject moved and not following it
+   * `/team`. Deleting a guard because its subject moved and not following it
    * is how a capability goes quiet, so the pointer is written here rather than
    * left to be noticed.
    */

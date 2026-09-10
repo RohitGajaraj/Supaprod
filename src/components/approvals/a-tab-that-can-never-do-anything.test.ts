@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 
-import { filtersWorthDrawing } from "@/routes/_authenticated.approvals";
+import { filtersWorthDrawing } from "@/routes/_authenticated.inbox";
 import type { ApprovalFilter } from "@/lib/approvals-queue.functions";
 
 /**

@@ -11,7 +11,7 @@ import { PRIMARY_NAV, FOOTER_NAV, navKeyHint, NAV_CHORD_PREFIX } from "@/lib/nav
  * ask. So a person had no way to ask either, and neither did a test.
  *
  * The consequences were not theoretical, and every one of them was found:
- *   - `Cmd+R` to reload DECLINED the focused approval, because /approvals was
+ *   - `Cmd+R` to reload DECLINED the focused approval, because /inbox was
  *     the one gate surface that forgot the modifier guard the others carry.
  *   - `g` then `d` walked you to Discover and rejected the call behind you.
  *   - The Settings gear promised "shortcut s"; `s` alone is bound by nothing.
@@ -81,7 +81,7 @@ export type SurfaceKeys = {
 
 /**
  * THE SURFACES THAT HAVE A KEYBOARD, and the ones that do not are not listed
- * rather than listed empty. The audit found /design and /crew both run gate
+ * rather than listed empty. The audit found /design and /team both run gate
  * queues -- both say "the next takes its place" over an Approve/Decline pair,
  * both use the same `Gate` primitive as /today -- with no keys bound at all.
  * Adding them here before they are bound would be inventing a keyboard, so
@@ -93,15 +93,15 @@ export type SurfaceKeys = {
 export const SURFACE_KEYS: readonly SurfaceKeys[] = [
   // "/start" left this list (P-14, A-QUEUE.md): its entry pointed at
   // `components/today/DecisionQueue.tsx`, Board.tsx's own copy of the same
-  // approval queue `/approvals` already declares below. That component was
+  // approval queue `/inbox` already declares below. That component was
   // unmounted (zero importers) the whole time this entry existed -- the
   // keys it claimed were never actually bound on the page a person visits,
   // and deleting it with the rest of its dead cluster corrects rather than
   // creates the gap. Start itself binds no keyboard of its own today.
   {
-    path: "/approvals",
+    path: "/inbox",
     label: "Approvals",
-    source: "src/routes/_authenticated.approvals.tsx",
+    source: "src/routes/_authenticated.inbox.tsx",
     keys: [
       { key: "j", does: "Moves to the next call in the queue." },
       { key: "k", does: "Moves back to the previous one." },
@@ -113,13 +113,13 @@ export const SURFACE_KEYS: readonly SurfaceKeys[] = [
     ],
   },
   {
-    path: "/arriving",
+    path: "/evidence",
     label: "Arriving",
     source: "src/components/discover/DiscoverSurface.tsx",
     keys: [
       { key: "j", does: "Moves down the ranking." },
       { key: "k", does: "Moves up it." },
-      // a and d fire through `Ask` (P-53), same as /approvals above; m still
+      // a and d fire through `Ask` (P-53), same as /inbox above; m still
       // draws its own keycap, on the plain `Action` beside the card.
       {
         key: "a",
@@ -141,13 +141,13 @@ export const SURFACE_KEYS: readonly SurfaceKeys[] = [
   // waiting on a person is now an approval row on Start, not a keyboard-
   // bound approve/decline pair.
   {
-    path: "/crew",
+    path: "/team",
     // "Agents" since 2026-08-15, matching the rail, the command palette and
     // Settings. This label is what the keyboard-shortcut sheet prints, so a
     // stale word here sends someone looking for a screen by a name the product
-    // no longer uses. The path stays `/crew`.
+    // no longer uses. The path stays `/team`.
     label: "Agents",
-    source: "src/routes/_authenticated.crew.tsx",
+    source: "src/routes/_authenticated.team.tsx",
     keys: [
       { key: "a", does: "Gives the agent the room it asked for.", destructive: true },
       { key: "d", does: "Says not yet, and it keeps today's limits.", destructive: true },

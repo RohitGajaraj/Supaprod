@@ -1,7 +1,7 @@
 /**
  * P-90: Waiting's arrivals (P-83's own realtime push) are announced to a
  * screen reader once, not on every poll. Full-mount is impractical here --
- * `_authenticated.approvals.tsx` pulls in workspace context, router search
+ * `_authenticated.inbox.tsx` pulls in workspace context, router search
  * params, three live queries and a keyboard-handling effect -- so this is
  * source-derived, the same fallback P-16's own report used for the surface
  * it could not drive a live Tab key against.
@@ -10,7 +10,7 @@ import { describe, expect, it } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-const SRC = readFileSync(join(import.meta.dir, "..", "_authenticated.approvals.tsx"), "utf8");
+const SRC = readFileSync(join(import.meta.dir, "..", "_authenticated.inbox.tsx"), "utf8");
 
 describe("the approvals queue carries a live region for arrivals, computed as a delta", () => {
   it("renders a role=status aria-live=polite region for the arrival announcement", () => {

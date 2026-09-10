@@ -123,7 +123,7 @@
  * waiting on you takes ember, in the `waiting` state and never `gate`:
  * `gate` blinks, exactly one thing in the product may blink, and that
  * one thing is the call actually in front of you on Today or on
- * /approvals, never a persistent header that is mounted beside it. A
+ * /inbox, never a persistent header that is mounted beside it. A
  * chrome with nothing happening stays monochrome.
  * ==================================================================
  */
@@ -305,7 +305,7 @@ const RAIL = [
     tier: "primary",
   },
   {
-    to: "/approvals",
+    to: "/inbox",
     label: "Inbox",
     Icon: IconWaiting,
     /* THE ONLY COUNTED ROW, and it reads the gate count P-66 scoped to the
@@ -316,7 +316,7 @@ const RAIL = [
     tier: "primary",
   },
   {
-    to: "/arriving",
+    to: "/evidence",
     label: "Evidence",
     Icon: IconArrived,
     count: null,
@@ -332,7 +332,7 @@ const RAIL = [
     tier: "primary",
   },
   {
-    to: "/crew",
+    to: "/team",
     label: "Team",
     Icon: IconCrew,
     count: null,
@@ -340,7 +340,7 @@ const RAIL = [
     tier: "setup",
   },
   {
-    to: "/sync",
+    to: "/sources",
     label: "Sources",
     Icon: IconSources,
     count: null,
@@ -370,8 +370,8 @@ function under(path: string, base: string): boolean {
  * THE SETTINGS DOOR LIGHTS ON ITS OWN PAGE AND NOWHERE ELSE.
  *
  * The rows are the authority on where a person is. Team is a row (P-60), so
- * /crew is the Team row's and the gear must stay silent there; until the
- * fourth review (2026-09-09) it still answered "true" for /crew from a
+ * /team is the Team row's and the gear must stay silent there; until the
+ * fourth review (2026-09-09) it still answered "true" for /team from a
  * territory list that predated the row, and a screen reader met two controls
  * announcing current. /boundary is not a route. Exported for the colocated
  * guard, which is what stops a move quietly costing `g c` its lit control.
@@ -437,7 +437,7 @@ export function railOwnerOf(path: string): string | null {
  * controls, two altitudes, each drawing the keys it governs. See
  * `STATION_DOORS` below and the stage render in the strip.
  *
- * /runs and /crew now resolve to `r` and `c`; the sentence claiming
+ * /runs and /team now resolve to `r` and `c`; the sentence claiming
  * they "carry no binding at all" was written before the prefix freed
  * their own first letters. Every rail row draws a keycap today.
  * ================================================================== */
@@ -487,7 +487,7 @@ export const SETTINGS_KEY = doorKey("/settings");
  * ── A STATION CHIP DRAWS NO KEY, WHATEVER ITS ROUTE IS (P-60) ────────────
  *
  * This derived the key from the route, which worked only while no station's
- * route was also a rail door. P-60 made `/arriving` the door "What came in" and
+ * route was also a rail door. P-60 made `/evidence` the door "What came in" and
  * `STATION_ROUTE` maps `sense` there, so the Discover chip silently inherited
  * `g i` -- a keycap on a chip that R-01 and F-146 deliberately made
  * non-interactive, promising a control that is not there.
@@ -1132,7 +1132,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
    * that just left the rail. Burying it behind a gear with no signal would
    * waste it, so the gear carries the count.
    *
-   * THE SAME QUERY KEY THE ROSTER SURFACE USES, deliberately. `/crew` reads
+   * THE SAME QUERY KEY THE ROSTER SURFACE USES, deliberately. `/team` reads
    * `["crew","roster",workspaceId]` with `listCrew`; this joins that cache
    * entry rather than opening a second read of the same table, so the number in
    * the foot and the list you land on cannot disagree, and opening Agents costs
@@ -1146,7 +1146,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
    */
   const fetchCrew = useServerFn(listCrew);
   const crew = useQuery({
-    // Written as the literal `/crew` already writes it, character for
+    // Written as the literal `/team` already writes it, character for
     // character, because sharing the cache entry IS the point. A helper in
     // query-keys.ts would be the tidier home and belongs in the same commit as
     // the roster surface adopting it; inventing a second spelling here would
@@ -1731,7 +1731,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     const resolve = (): LiveDoor => {
       if (waiting > 0 && !onTheBoard) {
         /* Inbox is where the calls are (third review, 2026-09-08). */
-        return { go: go("/approvals"), title: "Open Inbox", to: "/approvals" };
+        return { go: go("/inbox"), title: "Open Inbox", to: "/inbox" };
       }
       if (running.length === 1) {
         const only = running[0];
@@ -2472,7 +2472,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
 
                 IT NOW HOLDS AGENTS TOO (2026-08-15). The Crew row left the rail
                 and its surface lives behind this door, so this control lights
-                for /crew and /boundary as well as for /settings, and carries
+                for /team and /boundary as well as for /settings, and carries
                 the count of agents asking for more room. Both of those are what
                 stop a demotion becoming a disappearance. See `settingsOwns`. */}
               <Link

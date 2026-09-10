@@ -13,13 +13,13 @@
  * message asserted the tweak path was "reached from the agent you are already reading".
  * It was not built.
  *
- * WHY IT READS `/crew` NOW. On 2026-09-09 Settings' Autonomy group folded into Team:
- * `/crew` is the roster, and Settings' copy of it was a read-only mirror one rail row
+ * WHY IT READS `/team` NOW. On 2026-09-09 Settings' Autonomy group folded into Team:
+ * `/team` is the roster, and Settings' copy of it was a read-only mirror one rail row
  * away from the page that owns the answer. So `RosterSection` and `AgentDetail` are
  * gone from the settings route. That is the founder's own "if there is a duplicate you
  * can eliminate it" -- and this file is the half that proves the other clause, that
  * nothing went with it. The subject moved; the rule did not, and it is a stricter rule
- * here, because `/crew` is where the writes actually happen.
+ * here, because `/team` is where the writes actually happen.
  *
  * These assertions are deliberately about the SHAPE, not the wording, so copy can change
  * without a false failure, and they read the route source because there is no way to
@@ -31,7 +31,7 @@ import { fileURLToPath } from "node:url";
 import { stripComments } from "./meridian-ratchet-scan";
 
 /* fileURLToPath, not `.pathname`: this checkout's path contains spaces. */
-const CREW = fileURLToPath(new URL("../routes/_authenticated.crew.tsx", import.meta.url));
+const CREW = fileURLToPath(new URL("../routes/_authenticated.team.tsx", import.meta.url));
 const SETTINGS = fileURLToPath(new URL("../routes/_authenticated.settings.tsx", import.meta.url));
 
 const crew = stripComments(readFileSync(CREW, "utf8"));

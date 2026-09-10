@@ -116,10 +116,10 @@ export function asDispatchBlock(value: unknown): DispatchBlock | null {
 export function dispatchBlockRoute(block: DispatchBlock): { to: string; label: string } | null {
   switch (block) {
     // P-10 (A-QUEUE.md, 2026-09-02) deleted `/agents` and `/runs`: both were
-    // pure redirect stubs, to `/crew` and SIGNED_IN_HOME respectively. These
+    // pure redirect stubs, to `/team` and SIGNED_IN_HOME respectively. These
     // point at the surviving targets directly now.
     case "no-specialists":
-      return { to: "/crew", label: "Open Agents" };
+      return { to: "/team", label: "Open Agents" };
     case "dispatch-failed":
       return { to: SIGNED_IN_HOME, label: "Open Runs" };
     case "no-workspace":

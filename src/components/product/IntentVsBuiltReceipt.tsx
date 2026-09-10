@@ -75,7 +75,7 @@ export function IntentVsBuiltReceipt({ prdId }: { prdId: string }) {
             rel and turn a middle-clickable PR link into a dead box. `.sp-btn` is
             a plain class selector and dresses an anchor exactly as it dresses a
             button, which is what the two `<Link className="sp-btn">` call sites
-            in connections and /sync already do.
+            in connections and /sources already do.
 
             An action rather than an escape, so it takes the raised default and
             no `data-variant`. `inline-flex items-center` went with the pill --

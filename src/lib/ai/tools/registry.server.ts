@@ -213,7 +213,7 @@ function def<S extends z.ZodTypeAny>(d: ToolDef<S>) {
  * The ONE way GitHub tools obtain {token, repo}; never read
  * GITHUB_TOKEN/GITHUB_REPO directly. The mission's product (via its newest
  * changeset, which stamps product_id) scopes the repo when a product-level
- * binding exists, so the /sync "Product repo override" finally applies
+ * binding exists, so the /sources "Product repo override" finally applies
  * during builds, not just deploy capture (seam-2 fix). Fail-soft: any
  * lookup error degrades to the workspace chain, never blocks resolution.
  */

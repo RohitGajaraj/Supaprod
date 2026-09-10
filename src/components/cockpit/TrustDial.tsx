@@ -3,7 +3,7 @@
  *
  * PORTED AND REDUCED 2026-07-29. This used to be the Autonomy trust dial: four
  * clickable rungs per agent, writing `agent_autonomy.arc` through `setAgentArc`,
- * with a success toast on every click. That control now lives on `/crew`, where
+ * with a success toast on every click. That control now lives on `/team`, where
  * it says what each rung MEANS in plain words ("Runs alone, except the risky
  * calls"), says who set it, and sits directly above the per-tool policy it
  * composes with. Two controls writing one column from two screens with two
@@ -23,7 +23,7 @@
  * HONESTY FLOOR, and it is load-bearing: `suggestArc` returns "observing" for
  * any agent with fewer than three signals (ai/trust.server.ts). Drawing that as
  * advice would be inventing a verdict out of an absence of evidence, so this
- * gates on `samples >= 3` exactly as `_authenticated.crew.tsx` does. An agent
+ * gates on `samples >= 3` exactly as `_authenticated.team.tsx` does. An agent
  * with no record is not an agent the record disagrees with.
  */
 
@@ -156,7 +156,7 @@ export function TrustDial({ infoById }: { infoById: Map<string, Info> }) {
               <Actions>
                 <Action
                   variant="quiet"
-                  onClick={() => void navigate({ to: "/crew", search: { agent: slug } })}
+                  onClick={() => void navigate({ to: "/team", search: { agent: slug } })}
                 >
                   {d.direction === "up" ? `Give ${name} that room` : `Pull ${name} back`}
                 </Action>

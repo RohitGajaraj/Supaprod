@@ -8,7 +8,7 @@
  * they may do; Settings owns the account, the workspace and the plumbing. This
  * pane answers the first question, so a copy of it under Settings gave one
  * question two doors that wrote the same rows, and nothing on either said so.
- * `/crew?tab=boundary` is the one address now, and the retired settings ids
+ * `/team?tab=boundary` is the one address now, and the retired settings ids
  * redirect to it (`OFF_PAGE_SECTIONS`, settings-sections.ts).
  */
 import { useNavigate } from "@tanstack/react-router";
@@ -139,7 +139,7 @@ export function BoundaryPane({ onBack }: { onBack: () => void }) {
           will not spend past" separated by the stop switch and the
           auto-pipelines. All the limits read together now. */}
         <BudgetsPanel controlsOnly />
-        <ControlsPanel controlsOnly onOpenQueue={() => navigate({ to: "/approvals" })} />
+        <ControlsPanel controlsOnly onOpenQueue={() => navigate({ to: "/inbox" })} />
         {/*
          * THE REST OF WHAT "ALLOWED" MEANS, mounted 2026-08-27 so the fold
          * S0 ruled in A-006 can remove a DOOR without removing a

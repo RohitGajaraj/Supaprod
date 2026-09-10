@@ -1,5 +1,5 @@
 /**
- * P-44 (A-QUEUE.md). `/sync?product=<id>` -- the corrected target of the
+ * P-44 (A-QUEUE.md). `/sources?product=<id>` -- the corrected target of the
  * "Finish it on Sync" door (`AskInPlace.bindingDoorTarget`) -- has to land
  * with that product actually selected, not just carried in the URL.
  *
@@ -10,7 +10,7 @@
  */
 import { describe, expect, it } from "bun:test";
 
-import { parseSyncSearch, productToPreselect } from "../_authenticated.sync";
+import { parseSyncSearch, productToPreselect } from "../_authenticated.sources";
 
 describe("the deep-link search", () => {
   it("carries a product alongside the existing conflict param", () => {

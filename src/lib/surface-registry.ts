@@ -924,7 +924,7 @@ export const SURFACE_REGISTRY = {
 
   // ---- Crew (governing the workforce: one nav-rail destination) ----
   // Reached from the Crew item in the app frame's nav rail (AppFrame.tsx),
-  // which routes to /crew.
+  // which routes to /team.
   crew: { kind: "route", home: "crew", opensFrom: "nav-rail-crew", status: "live" },
 
   // "run-stages" left this registry (P-14, A-QUEUE.md, R-35): /runs/$missionId

@@ -118,7 +118,7 @@ export function WhatWeAlreadyHold({ subject }: { subject: string }) {
       {evidence.count === 0 ? (
         <>
           {" "}
-          <Door onClick={() => void navigate({ to: "/sync" })}>Connect a source</Door>
+          <Door onClick={() => void navigate({ to: "/sources" })}>Connect a source</Door>
         </>
       ) : null}
     </span>

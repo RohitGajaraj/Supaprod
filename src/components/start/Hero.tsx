@@ -247,7 +247,7 @@ export function heroCopy(input: {
       eyebrow,
       title,
       line: `${lead || "Answer them in Inbox, or on the runs below that carry them."}${mostUrgent()}${short}`,
-      door: { label: "Open Inbox", to: "/approvals" },
+      door: { label: "Open Inbox", to: "/inbox" },
     };
   }
   if (runs.length === 0) {

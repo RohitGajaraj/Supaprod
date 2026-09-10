@@ -5,7 +5,7 @@
  * measured that for 22 of 29 pending tool-call gates THE RUN THEY HELD WAS
  * ALREADY OVER. Approving one releases nothing.
  *
- * /approvals draws that correction. The Today queue draws it. The governance
+ * /inbox draws that correction. The Today queue draws it. The governance
  * ApprovalsPanel reads the same server function and did not, so it went on
  * telling a person "nothing runs until you decide or put it back on the clock"
  * about gates whose work had finished.

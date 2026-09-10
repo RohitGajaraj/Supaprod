@@ -18,13 +18,13 @@ import { PRIMARY_NAV } from "./nav-model";
 
 const ROUTE_FILE: Record<string, string> = {
   "/start": "src/routes/_authenticated.start.tsx",
-  "/approvals": "src/routes/_authenticated.approvals.tsx",
-  "/arriving": "src/routes/_authenticated.arriving.tsx",
+  "/inbox": "src/routes/_authenticated.inbox.tsx",
+  "/evidence": "src/routes/_authenticated.evidence.tsx",
   "/track": "src/routes/_authenticated.track.$trackId.tsx",
   "/outcomes": "src/routes/_authenticated.outcomes.tsx",
-  "/crew": "src/routes/_authenticated.crew.tsx",
+  "/team": "src/routes/_authenticated.team.tsx",
   "/threads": "src/routes/_authenticated.threads.tsx",
-  "/sync": "src/routes/_authenticated.sync.tsx",
+  "/sources": "src/routes/_authenticated.sources.tsx",
   "/settings": "src/routes/_authenticated.settings.tsx",
 };
 

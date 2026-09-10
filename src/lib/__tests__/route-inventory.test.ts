@@ -246,7 +246,7 @@ describe("route inventory - every authenticated surface has a LIVE door", () => 
     // /today and /runs left this canary list in P-10 (A-QUEUE.md, 2026-09-02):
     // both were pure redirect stubs to SIGNED_IN_HOME, deleted along with the
     // other 47 the packet's census found.
-    for (const p of ["/outcomes", "/crew", "/settings"]) {
+    for (const p of ["/outcomes", "/team", "/settings"]) {
       expect(paths).toContain(p);
     }
   });

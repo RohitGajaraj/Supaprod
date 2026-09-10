@@ -526,7 +526,7 @@ export function NotificationsSection() {
               label="Work that stops early does not reach you yet"
               sub="This sends when work reaches a result. Work that stops before one, waiting on a tool, on evidence, or on your decision, stays where it is and nothing tells you. Inbox lists those."
             >
-              <Link to="/approvals" className={ACTION_LINK_FACE.quiet}>
+              <Link to="/inbox" className={ACTION_LINK_FACE.quiet}>
                 See what is stopped, in Inbox
               </Link>
             </Line>

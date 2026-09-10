@@ -4,7 +4,7 @@
  * ── WHY THIS IS ITS OWN FILE, AND WHY IT LOOKS COPIED ───────────────────
  * It IS copied, deliberately and visibly, from the private helper of the same
  * name inside src/components/meridian/StalledWork.tsx. That component owns the
- * queue on /approvals and prints this phrase on every row; the gate at the top
+ * queue on /inbox and prints this phrase on every row; the gate at the top
  * of the same surface prints it for the call in front of you. Two places, one
  * sentence, and they must agree to the word or the surface contradicts itself
  * one inch apart.

@@ -10,12 +10,12 @@
  * run rows, the per-agent boundary, the per-tool policy, and the graduation
  * queue.
  *
- * So this panel stops being a second copy of that. `_authenticated.crew.tsx`
+ * So this panel stops being a second copy of that. `_authenticated.team.tsx`
  * records the debt in its own header ("this leaves the same control in two
  * places until that lane retires its copy"). This is that lane, and this is the
  * retirement:
  *
- *   MOVED OUT, to /crew  the per-agent autonomy dial. It was TrustDial's four
+ *   MOVED OUT, to /team  the per-agent autonomy dial. It was TrustDial's four
  *                        clickable rungs writing `agent_autonomy.arc`, and Crew
  *                        writes the same column through `setAgentArc` with
  *                        plain-words choices, with who-set-it on the second
@@ -176,7 +176,7 @@ export function AgentRosterPanel({ workspaceId }: { workspaceId: string | null }
     return "idle";
   }
 
-  const open = (slug: string) => void navigate({ to: "/crew", search: { agent: slug } });
+  const open = (slug: string) => void navigate({ to: "/team", search: { agent: slug } });
 
   if (hud.isLoading && agents.length === 0) {
     return (

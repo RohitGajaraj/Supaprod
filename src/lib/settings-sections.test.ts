@@ -37,7 +37,7 @@ import {
  *
  * SIX GROUPS SINCE 2026-09-09 (fifth review), seven under P-23 before that.
  * The `autonomy` GROUP folded into Team, taking `staff` and `autonomy` with
- * it, because `/crew` already answered both questions and a person setting an
+ * it, because `/team` already answered both questions and a person setting an
  * agent's rope met two doors that wrote the same rows. See
  * `settings-sections.ts`'s own header for the full ruling.
  *
@@ -135,7 +135,7 @@ describe("settings-sections - the six groups are named by the boundary they set"
     /*
      * THE ASSERTION THE FOLD IS FOR, 2026-09-09. Settings drew a group called
      * Autonomy holding "Who works here" and "What they may do without asking";
-     * `/crew` is the roster and owns the one set of boundary editors, so two
+     * `/team` is the roster and owns the one set of boundary editors, so two
      * rail doors answered one question and neither said so. This fails if
      * either section is declared here again under any group.
      */
@@ -155,10 +155,10 @@ describe("settings-sections - the six groups are named by the boundary they set"
     // Removing a door is only allowed if every saved link still lands
     // somewhere true. `agents`/`staff` are the roster; `crew`/`autonomy` are
     // the pane they used to open, which is Team's boundary tab now.
-    expect(OFF_PAGE_SECTIONS.agents).toEqual({ to: "/crew", search: {} });
-    expect(OFF_PAGE_SECTIONS.staff).toEqual({ to: "/crew", search: {} });
-    expect(OFF_PAGE_SECTIONS.crew).toEqual({ to: "/crew", search: { tab: "boundary" } });
-    expect(OFF_PAGE_SECTIONS.autonomy).toEqual({ to: "/crew", search: { tab: "boundary" } });
+    expect(OFF_PAGE_SECTIONS.agents).toEqual({ to: "/team", search: {} });
+    expect(OFF_PAGE_SECTIONS.staff).toEqual({ to: "/team", search: {} });
+    expect(OFF_PAGE_SECTIONS.crew).toEqual({ to: "/team", search: { tab: "boundary" } });
+    expect(OFF_PAGE_SECTIONS.autonomy).toEqual({ to: "/team", search: { tab: "boundary" } });
     // And none of them is also a live section, or the redirect would shadow a pane.
     for (const id of Object.keys(OFF_PAGE_SECTIONS)) {
       expect(ALL_SECTION_IDS).not.toContain(id as SectionId);

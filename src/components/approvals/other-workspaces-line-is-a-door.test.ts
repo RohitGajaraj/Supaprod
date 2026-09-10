@@ -1,7 +1,7 @@
 /**
  * P-93: the other-workspaces line names a workspace and is a door, never a
  * bare cross-workspace count. The sentence-building logic
- * (`otherWorkspacesLine`'s own `useMemo` in `_authenticated.approvals.tsx`)
+ * (`otherWorkspacesLine`'s own `useMemo` in `_authenticated.inbox.tsx`)
  * is small and pure enough to lift and test directly rather than mounting
  * the whole page (workspace context, router search params, N live
  * per-workspace queries, a keyboard effect) -- same reasoning
@@ -97,14 +97,14 @@ describe("the route file's own source still matches this shape", () => {
     const { readFileSync } = await import("node:fs");
     const { join } = await import("node:path");
     const src = readFileSync(
-      join(import.meta.dir, "..", "..", "routes", "_authenticated.approvals.tsx"),
+      join(import.meta.dir, "..", "..", "routes", "_authenticated.inbox.tsx"),
       "utf8",
     );
     expect(src).toContain('restCount === 0 ? "." : restCount === 1 ? ", and one more."');
     expect(src).toContain("targetWorkspaceId: top.id");
     // The door itself: a button that switches the active workspace, not a
     // route Link -- pressing it never changes the URL, it changes which
-    // workspace /approvals is scoped to.
+    // workspace /inbox is scoped to.
     expect(src).toContain("setActiveWorkspaceId(otherWorkspacesLine.targetWorkspaceId)");
   });
 });

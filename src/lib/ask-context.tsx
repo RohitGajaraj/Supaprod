@@ -93,14 +93,14 @@ export function scopeForPath(
   // narrowing it here would be a guess. Arriving is the case: `signal` is in
   // the source-kind union but nothing in this codebase proves signals are
   // chunked, and a scope that quietly returns nothing is worse than no scope.
-  if (pathname.startsWith("/arriving")) return { label: "Arriving" };
+  if (pathname.startsWith("/evidence")) return { label: "Arriving" };
   return null;
 }
 
 /** Plain words for the screen you are on. Used in copy, never as the chip. */
 export function contextForPath(pathname: string, missionId: string | null): string {
   if (pathname.startsWith("/today")) return "Today";
-  if (pathname.startsWith("/arriving")) return "Evidence";
+  if (pathname.startsWith("/evidence")) return "Evidence";
   if (pathname.startsWith("/plan")) return "Plan";
   if (pathname.startsWith("/build")) return missionId ? "a mission" : "Build";
   if (pathname.startsWith("/outcomes") || pathname.startsWith("/knowledge")) return "Outcomes";

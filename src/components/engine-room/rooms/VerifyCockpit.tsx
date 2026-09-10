@@ -75,7 +75,7 @@ const NONE: never[] = [];
  *
  * THE ONE ACCENT IS ON APPROVE, because it is the control that UNBLOCKS a run
  * that has stopped for a person. That is the whole definition of `--mrd-you`,
- * and it is the same rule /approvals follows on the same act.
+ * and it is the same rule /inbox follows on the same act.
  */
 
 type PendingApproval = Awaited<ReturnType<typeof listGovernApprovals>>["approvals"][number];

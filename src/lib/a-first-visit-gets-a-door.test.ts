@@ -23,7 +23,7 @@ describe("every P-63 first-visit site keeps its door", () => {
   it("Waiting: ApprovalCard's zero case is offered a zeroAction", () => {
     const card = read("src/components/meridian/ApprovalCard.tsx");
     expect(card).toContain("zeroAction");
-    const route = read("src/routes/_authenticated.approvals.tsx");
+    const route = read("src/routes/_authenticated.inbox.tsx");
     expect(route).toContain("zeroAction={");
     expect(route).toContain("Start a sentence");
   });
@@ -52,7 +52,7 @@ describe("every P-63 first-visit site keeps its door", () => {
     /* 2026-09-08: the page's rebuild made the whole "Connect a source" region
        the door (one press per provider) rather than a single button under a
        list of negations; the zero text on the Connected region points at it. */
-    const route = read("src/routes/_authenticated.sync.tsx");
+    const route = read("src/routes/_authenticated.sources.tsx");
     expect(route).toContain("Connect a source");
     expect(route).toContain("Connect a source below and Discover can read it.");
     expect(route).toContain("Each one opens that source's own sign-in");

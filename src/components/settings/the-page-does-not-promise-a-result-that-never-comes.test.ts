@@ -91,7 +91,7 @@ describe("the notifications page does not promise a result that never comes", ()
     // at the top of the home with nothing to show (third review, 2026-09-08).
     // Stopped work waits in Inbox, and the door names it and goes there.
     const line = CODE.slice(CODE.indexOf("Work that stops early does not reach you yet"));
-    expect(line).toContain('to="/approvals"');
+    expect(line).toContain('to="/inbox"');
     expect(line).toContain("in Inbox");
   });
 

@@ -82,12 +82,12 @@ describe("searchDoors: P-64's nine doors, matched on their own label and tagline
   const DOORS: readonly NavItemDef[] = [
     { to: "/start", label: "Start", zone: "home", tagline: "Hand work over, watch it run." },
     {
-      to: "/approvals",
+      to: "/inbox",
       label: "Waiting",
       zone: "home",
       tagline: "Everything that cannot move until you answer it.",
     },
-    { to: "/sync", label: "Sources", zone: "home", tagline: "What the crew is allowed to read." },
+    { to: "/sources", label: "Sources", zone: "home", tagline: "What the crew is allowed to read." },
   ];
 
   it("an empty query finds no doors, so a blank field never shows every door as a hit", () => {
@@ -122,7 +122,7 @@ describe("searchDoors: P-64's nine doors, matched on their own label and tagline
     const hits = searchDoors(["spend"], SEARCHABLE_DOORS);
     const spend = hits.find((d) => d.label === "Spend and limits");
     expect(spend).toBeTruthy();
-    expect(spend!.to).toBe("/crew");
+    expect(spend!.to).toBe("/team");
     expect(spend!.search).toEqual({ tab: "spend" });
   });
 
@@ -148,12 +148,12 @@ describe("searchDoors: P-64's nine doors, matched on their own label and tagline
       (d) => d.label === "The boundary",
     );
     expect(boundary).toBeTruthy();
-    expect(boundary!.to).toBe("/crew");
+    expect(boundary!.to).toBe("/team");
     expect(boundary!.search).toEqual({ tab: "boundary" });
 
     for (const word of ["spend", "budget", "cap", "limit", "stop", "tool", "approve"]) {
       const reached = searchDoors([word], SEARCHABLE_DOORS).map((d) => d.to);
-      expect(reached, `"${word}" reaches nothing`).toContain("/crew");
+      expect(reached, `"${word}" reaches nothing`).toContain("/team");
     }
   });
 });

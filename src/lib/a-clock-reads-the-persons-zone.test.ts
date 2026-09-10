@@ -86,7 +86,7 @@ const STILL_RAW = new Set<string>([
   "src/routes/_authenticated.admin.platform.tsx",
   "src/routes/_authenticated.admin.pricing.tsx",
   "src/routes/_authenticated.admin.workspaces.tsx",
-  "src/routes/_authenticated.approvals.tsx",
+  "src/routes/_authenticated.inbox.tsx",
   "src/routes/_authenticated.outcomes.tsx",
   "src/routes/_authenticated.plan.spec.$id.tsx",
   "src/routes/_authenticated.settings.tsx",

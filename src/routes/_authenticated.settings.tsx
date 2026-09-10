@@ -56,10 +56,10 @@
  *      your data · plan · the credit cap and buying a top-up · per-agent tool
  *      reach.
  *    KILL - the "Sync and bindings" door. It rendered the workspace bindings
- *      and then a button to /sync, which renders the same bindings. Two doors
+ *      and then a button to /sources, which renders the same bindings. Two doors
  *      to one room, and the room is better. Sources now SHOWS what each
  *      connected source is pointed at on its own line, and carries the one door
- *      to /sync for changing it. `?section=sync` still lands, on Sources.
+ *      to /sources for changing it. `?section=sync` still lands, on Sources.
  *    KILL - the "Memory" door, whose entire content was a sentence saying it
  *      moved to Brain. A nav row that exists to apologise for itself is a dead
  *      door. `?section=memory` still answers, so no old link breaks; it just
@@ -85,10 +85,10 @@
  *      name; every animate-pulse skeleton.
  *    MOVED, 2026-08-10, and this is the receipt for the line that used to sit
  *      here saying it was pending:
- *      · the per-agent tool-reach control -> /crew, which already had it.
+ *      · the per-agent tool-reach control -> /team, which already had it.
  *    MOVED, 2026-09-09 (fifth review), and this finishes that one:
  *      · the roster and the boundary -> Team, whole. What stayed in 2026-08-10
- *        was a READ of /crew's own rows and a door per agent, which is a
+ *        was a READ of /team's own rows and a door per agent, which is a
  *        mirror, and a mirror one rail row from the page it reflects is a
  *        second answer to a question the rail says Team owns. Settings is
  *        where you configure an application; Team is where you decide how much
@@ -104,9 +104,9 @@
  *        platform admin would otherwise have nowhere to manage their own people.
  *
  * 4. WHAT IS ONE CLICK AWAY INSTEAD OF ON THE SURFACE:
- *    Each agent's lessons and run history (/crew) · the credit debit ledger and
+ *    Each agent's lessons and run history (/team) · the credit debit ledger and
  *    who spent it (Engine room, Spend) · what a source is pointed at, and any
- *    two-sided edit (/sync) · every account and scope on a source (?connector=)
+ *    two-sided edit (/sources) · every account and scope on a source (?connector=)
  *    · members, roles and audit (/admin) · the memory ledger (/brain) · the
  *    run-by-run reliability detail (Engine room, Quality).
  *
@@ -1896,9 +1896,9 @@ function DiagnosticsMoved({ onOpen }: { onOpen: () => void }) {
 /* ================================================================== *
  * THE ROSTER LEFT THIS SURFACE, 2026-09-09 (fifth review).
  *
- * `RosterSection` and `AgentDetail` read `listCrew` under /crew's own query
+ * `RosterSection` and `AgentDetail` read `listCrew` under /team's own query
  * key and drew a census, one line per agent, and a read-only panel per agent
- * whose every action was a door to /crew. So Settings answered "who works
+ * whose every action was a door to /team. So Settings answered "who works
  * here" a second time, one rail row away from the Team page that owns it, and
  * the rail's claim about how a person thinks - Team owns the crew and their
  * limits, Settings owns the account and the plumbing - was contradicted by
@@ -1906,7 +1906,7 @@ function DiagnosticsMoved({ onOpen }: { onOpen: () => void }) {
  *
  * NOTHING A PERSON COULD CHANGE WENT WITH IT: the panel had no editor at all.
  * The arc dial, the tool-reach cap, the on/off switch, the per-tool policy,
- * the lessons and the track record are `/crew?agent=<slug>`'s, and were
+ * the lessons and the track record are `/team?agent=<slug>`'s, and were
  * already the only writeable copies. `?section=agents` and `?section=staff`
  * redirect there now (`OFF_PAGE_SECTIONS`, settings-sections.ts), so the
  * addresses land on the surface that can act rather than on a mirror.

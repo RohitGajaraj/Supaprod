@@ -72,7 +72,7 @@ describe("what is waiting on you", () => {
     expect(a).toMatchObject({
       read: "answered",
       line: "21 design gates need you, and 18 other things.",
-      door: { label: "Answer them", to: "/approvals" },
+      door: { label: "Answer them", to: "/inbox" },
     });
   });
 
@@ -101,7 +101,7 @@ describe("what came in since you last looked", () => {
     expect(a).toMatchObject({
       read: "answered",
       line: "4 new findings since you last looked.",
-      door: { label: "See them", to: "/arriving" },
+      door: { label: "See them", to: "/evidence" },
     });
     // A clock would tell somebody back from a fortnight away about 24 hours.
     const src = code(readFileSync("src/lib/start/home-answers.functions.ts", "utf8"));
@@ -299,8 +299,8 @@ describe("the four, together", () => {
      */
     expect(a).toHaveLength(5);
     expect(a[0]).toEqual({ read: "unread" });
-    expect(a[1]).toMatchObject({ door: { to: "/approvals" } });
-    expect(a[2]).toMatchObject({ door: { to: "/arriving" } });
+    expect(a[1]).toMatchObject({ door: { to: "/inbox" } });
+    expect(a[2]).toMatchObject({ door: { to: "/evidence" } });
     expect(a[3]).toMatchObject({ door: { href: "https://cad-60000000.deno.net" } });
     expect(a[4]).toMatchObject({ door: { to: "/outcomes" } });
   });
@@ -326,7 +326,7 @@ describe("the four, together", () => {
     });
     /* The debt is still there, one line down. Leading with the news does not
        mean hiding what is waiting. */
-    expect(a[1]).toMatchObject({ door: { to: "/approvals" } });
+    expect(a[1]).toMatchObject({ door: { to: "/inbox" } });
   });
 
   it("keeps an unread one in the list, so a test can see which read failed", () => {

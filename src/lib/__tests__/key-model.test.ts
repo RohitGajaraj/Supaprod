@@ -123,7 +123,7 @@ describe("the surface lookup answers with the right one", () => {
   });
 
   it("says nothing rather than guessing on a surface with no keyboard", () => {
-    // /design and /crew were here when this test was written, because both ran
+    // /design and /team were here when this test was written, because both ran
     // gate queues with nothing bound. They have keys now. These four still do
     // not, and the honest answer for them is none rather than the nearest
     // surface's keys.
@@ -141,7 +141,7 @@ describe("the surface lookup answers with the right one", () => {
    * Today. Today's own copy sends you across that boundary. Worse, `k` MOVES
    * THE CURSOR on Approvals and COMMITS on Decide.
    *
-   * /design and /crew were bound to `a` and `d` because those are what the
+   * /design and /team were bound to `a` and `d` because those are what the
    * front door already teaches. This test holds every gate that has been
    * converted so far to that pair, and it is the list that grows as the rest
    * are converted rather than a rule asserted over surfaces that have not been.
@@ -152,8 +152,8 @@ describe("the surface lookup answers with the right one", () => {
   // its keybindings are deleted, not converted.
   // "/start" left this list too (P-14, A-QUEUE.md): its entry pointed at
   // Board.tsx's dead DecisionQueue.tsx, never actually mounted on the page;
-  // the real, live approve/decline pair lives at "/approvals" below.
-  const CONVERTED = ["/crew", "/arriving", "/approvals"];
+  // the real, live approve/decline pair lives at "/inbox" below.
+  const CONVERTED = ["/team", "/evidence", "/inbox"];
   for (const path of CONVERTED) {
     it(`${path} accepts with a and declines with d`, () => {
       const keys = surfaceKeysFor(path)?.keys.map((k) => k.key) ?? [];
@@ -165,7 +165,7 @@ describe("the surface lookup answers with the right one", () => {
   it("no letter means one thing on one gate and another on the next", () => {
     /**
      * THE COLLISION THIS ENDS, and it was the worst one in the product: `k`
-     * MOVED THE CURSOR on /approvals and COMMITTED on /decide -- the same key,
+     * MOVED THE CURSOR on /inbox and COMMITTED on /decide -- the same key,
      * one surface apart, one harmless and the other spending money to draft a
      * spec. Muscle memory built on either surface was dangerous on the other.
      *

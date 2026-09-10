@@ -62,7 +62,7 @@ export const GLOBALLY_MOUNTED_EVENTS: readonly string[] = [
 ];
 
 export const ACT_VERBS: readonly ActVerb[] = [
-  { label: "Challenge a belief", run: { to: "/arriving", search: { tab: "opportunities" } } },
+  { label: "Challenge a belief", run: { to: "/evidence", search: { tab: "opportunities" } } },
   { label: "Connect a source", run: { to: "/settings", search: { section: "connections" } } },
   // FIFTH REVIEW, 2026-09-09: both of these still named /today, the route P-10
   // deleted on 2026-09-02 -- the same rot the guard below this array was written
@@ -70,7 +70,7 @@ export const ACT_VERBS: readonly ActVerb[] = [
   // could not see while the route canon still listed /today. A call waits on a
   // person and the queue of them is Approvals; Ask is mounted above every
   // authenticated route, so its verb only needs a page that exists.
-  { label: "Answer the waiting call", run: { to: "/approvals" } },
+  { label: "Answer the waiting call", run: { to: "/inbox" } },
   { label: "Ask about this screen", run: { to: "/start", event: "supaprod:open-ask" } },
   // K-37: the two station acts. Both navigate, and both land ON the box rather
   // than merely on the station - the capture box sits below Discover's ranked
@@ -78,7 +78,7 @@ export const ACT_VERBS: readonly ActVerb[] = [
   // right station with the box off screen. `?capture=1` is parsed by
   // _authenticated.discover.tsx's validateSearch, which is the same repair
   // `?focus=` needed: the route drops any param it does not parse.
-  { label: "Capture a signal", run: { to: "/arriving", search: { capture: "1" } } },
+  { label: "Capture a signal", run: { to: "/evidence", search: { capture: "1" } } },
   /*
    * P-14 (A-QUEUE.md ruling): /decide -- and the `NameABet` capture form that
    * lived inline in that route -- is deleted. Repointed to `/start` so this

@@ -152,7 +152,7 @@ export function captionFor({
        * This read "Showing the 0 runs at Discover." over a list reading
        * "Nothing is standing at Discover." One press, one fact, two sentences
        * -- and "the 0 runs" is an absence dressed as a count, which
-       * `_authenticated.crew.tsx` names as a defect in its own words: *"A zero
+       * `_authenticated.team.tsx` names as a defect in its own words: *"A zero
        * stated as a count is the same defect as the negation wall on the
        * board."*
        *

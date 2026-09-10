@@ -6,7 +6,7 @@
  * await, and in production that await is a merge against the GitHub API.
  *
  * WHAT THE PRODUCT DOES WHEN THIS IS OPEN. A person approves a call in
- * /approvals while a teammate approves the same call in the Govern panel. Both
+ * /inbox while a teammate approves the same call in the Govern panel. Both
  * executeApproval calls read status='approved'. Both call def.run(). If the
  * tool is studio.pr.merge the customer's pull request is merged twice; if it is
  * studio.commit the branch gets the commit twice; if it is delegate.openhands a

@@ -54,7 +54,7 @@
  *          about the words while you are writing them); the mockup joins Flow
  *          (what the spec implies, drawn).
  *    MOVE  the Linear push, a team <select> plus a Create issues button.
- *          DESTINATION: /sync, with the other workspace resource bindings.
+ *          DESTINATION: /sources, with the other workspace resource bindings.
  *          Choosing which external tracker a workspace exports to is a
  *          connection decision made once, not a control on a document.
  *          Going with it: listLinearTeams, createLinearIssuesFromTasks, the
@@ -792,7 +792,7 @@ function SpecEditorPage() {
 
   /**
    * W5b: the repo gate. Set when an act on this page cannot resolve a repo; the
-   * dialog offers /sync or provision-a-starter-repo plus an automatic retry.
+   * dialog offers /sources or provision-a-starter-repo plus an automatic retry.
    *
    * `retry` NAMES WHAT THE GATE INTERRUPTED. It used to matter because two
    * different acts on this page hit the same refusal: the dispatch and
@@ -1149,13 +1149,13 @@ function SpecEditorPage() {
    * `createGithubIssueForPrd` calls `resolveGitHub`
    * (src/lib/discovery.functions.ts), which throws the "GitHub is not
    * connected" refusal on a workspace with no binding. That landed here as a
-   * failed receipt and nothing else: no /sync link, no provision path, no way
+   * failed receipt and nothing else: no /sources link, no provision path, no way
    * forward from a surface that had just recommended pressing this.
    *
    * The neighbouring dispatch has handled the identical error shape since W5b,
    * and this file already imports `isRepoNotConnectedError` and mounts
    * `RepoGateDialog` for it. Same refusal, same gate, so the answer is the two
-   * real paths (connect one on /sync, or provision a private starter repo)
+   * real paths (connect one on /sources, or provision a private starter repo)
    * rather than a dead sentence. Every other failure is still a receipt,
    * because the gate offers nothing that would help with those.
    *
@@ -2931,7 +2931,7 @@ function SpecEditorPage() {
                     // Carries the signal id so Discover can focus it (the old
                     // link dropped it, audit D-14).
                     navigate({
-                      to: "/arriving",
+                      to: "/evidence",
                       search: { tab: "signals", focus: s.id } as never,
                     })
                   }

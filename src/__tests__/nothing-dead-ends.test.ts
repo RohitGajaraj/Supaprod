@@ -93,7 +93,7 @@ describe("nothing dead-ends", () => {
     expect(targets().length).toBeGreaterThan(60);
     /* The rail's own destinations, by name, so a route rename that misses a
        caller cannot pass by shrinking both sides together. */
-    for (const r of ["/start", "/approvals", "/arriving", "/outcomes", "/crew", "/sync"]) {
+    for (const r of ["/start", "/inbox", "/evidence", "/outcomes", "/team", "/sources"]) {
       expect({ r, exists: routes().has(r) }).toEqual({ r, exists: true });
     }
   });

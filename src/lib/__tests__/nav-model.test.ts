@@ -68,11 +68,11 @@ describe("derivation law - the shortcut range", () => {
   it("the nine doors are the person's questions, in order", () => {
     expect(PRIMARY_NAV.map((d) => d.to)).toEqual([
       "/start",
-      "/approvals",
-      "/arriving",
+      "/inbox",
+      "/evidence",
       "/outcomes",
-      "/crew",
-      "/sync",
+      "/team",
+      "/sources",
       "/settings",
     ]);
     expect(PRIMARY_NAV.map((d) => d.label)).toEqual([

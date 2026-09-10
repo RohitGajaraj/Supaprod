@@ -3,10 +3,10 @@
  *
  * This is `_authenticated.engine-room.tsx`'s own former `EngineRoomPage` /
  * `EngineRoomOverview` / `SourcesLine`, moved here whole rather than
- * duplicated: P-61's own ruling was "Crew and spend" is `/crew` with the
+ * duplicated: P-61's own ruling was "Crew and spend" is `/team` with the
  * engine room as its spend tab, and this is that move, not a re-skin. Every
  * `useNavigate({ from: "/engine-room" })` call is now `useNavigate({ from:
- * "/crew" })`, and every search update carries `tab: "spend"` alongside
+ * "/team" })`, and every search update carries `tab: "spend"` alongside
  * `room`/`view`, because this content no longer has a route of its own to
  * navigate within -- `/engine-room` is a redirect stub now (see that file).
  *
@@ -104,7 +104,7 @@ export function EngineRoomEmbedded({
   roomAgent,
   surface,
 }: EngineRoomEmbeddedSearch) {
-  const navigate = useNavigate({ from: "/crew" });
+  const navigate = useNavigate({ from: "/team" });
   const { rooms } = useEngineRoomGlance();
 
   const tabs = room ? ROOM_TAB_META[room] : null;
@@ -118,7 +118,7 @@ export function EngineRoomEmbedded({
   const back = React.useCallback(() => void navigate({ search: { tab: "spend" } }), [navigate]);
   const openSync = React.useCallback(
     (conflictId?: string) =>
-      void navigate({ to: "/sync", search: conflictId ? { conflict: conflictId } : {} }),
+      void navigate({ to: "/sources", search: conflictId ? { conflict: conflictId } : {} }),
     [navigate],
   );
 

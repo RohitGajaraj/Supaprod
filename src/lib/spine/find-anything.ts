@@ -95,7 +95,7 @@ export const EMPTY_RESULT: FindAnythingResult = {
  */
 /**
  * P-79: a named SECTION of a door, not a door of its own -- "Spend and
- * limits" is Team's own tab (`/crew?tab=spend`), not a tenth rail entry, so
+ * limits" is Team's own tab (`/team?tab=spend`), not a tenth rail entry, so
  * it does not belong in `PRIMARY_NAV` and does not answer to the founder's
  * one-word rail rule (`the-rail-says-words-a-person-would-say.test.ts`),
  * which governs the RAIL's own labels and nothing outside it. Searched
@@ -105,7 +105,7 @@ export const EMPTY_RESULT: FindAnythingResult = {
  */
 const SUB_DOORS: readonly NavItemDef[] = [
   {
-    to: "/crew",
+    to: "/team",
     label: "Spend and limits",
     zone: "home",
     tagline:
@@ -123,7 +123,7 @@ const SUB_DOORS: readonly NavItemDef[] = [
    * the spend ceiling, the budget caps, what must be approved, and the stop.
    */
   {
-    to: "/crew",
+    to: "/team",
     label: "The boundary",
     zone: "home",
     tagline:

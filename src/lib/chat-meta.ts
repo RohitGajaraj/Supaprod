@@ -29,7 +29,7 @@ export type ChatSource = {
   title: string;
   /** External page (web sources only). */
   url?: string;
-  /** Internal app path, e.g. "/prds/<id>" or "/arriving". */
+  /** Internal app path, e.g. "/prds/<id>" or "/evidence". */
   href?: string;
   /** Domain for web sources; kind label for internal ones. */
   sub?: string;

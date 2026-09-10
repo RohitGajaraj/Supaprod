@@ -4,7 +4,7 @@
 // its "GitHub is not connected" refusal when no binding/env repo exists).
 // These helpers classify that resolution for the canDispatchToRepo pre-check,
 // gate the dispatch click on its verdict, and compose provision-then-retry so
-// a spec with no repo gets the real path (connect one on /sync, or provision
+// a spec with no repo gets the real path (connect one on /sources, or provision
 // a starter repo) instead of a raw error toast. No server imports here: the
 // server fn and the dialog both consume these.
 

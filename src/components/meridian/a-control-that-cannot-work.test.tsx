@@ -2,7 +2,7 @@
  * A CONTROL THAT CANNOT WORK IS WORSE THAN NO CONTROL (S1 → S0, 2026-08-27).
  *
  * S1 forced a 401 with the exact string auth throws and photographed
- * `/approvals`. Every sentence on the screen was true:
+ * `/inbox`. Every sentence on the screen was true:
  *
  *     ! The queue did not load.
  *       Nothing has been settled and nothing has been lost. The queue is still

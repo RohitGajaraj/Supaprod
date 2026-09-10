@@ -2,13 +2,13 @@
 
 > _Created: 2026-07-03 · Last updated: 2026-07-07_
 
-> Status · ✅ Shipped (email leg + Slack write-back both code-complete) · 2026-07-03 · Settings > Notifications (email) + `/sync` Workspace bindings (Slack) · No new agent
+> Status · ✅ Shipped (email leg + Slack write-back both code-complete) · 2026-07-03 · Settings > Notifications (email) + `/sources` Workspace bindings (Slack) · No new agent
 
 ## What it does
 
 Settings > Notifications gains a "Stakeholder update" toggle. Once on, the user's already-scheduled digest email (FS-03's reach channel) also carries the workspace's newest decision, framed for the audience they pick (executives, engineering, or board), riding the exact same send instead of a separate one.
 
-A workspace admin can additionally bind a Slack channel (`/sync` → Workspace bindings → Slack → "Stakeholder digest channel") so the same newest-decision pack is also posted to a shared team channel, once per workspace per day, on the Business tier — the exact write-back capability the 2026-06-27 integration-tiering ruling reserved for that tier.
+A workspace admin can additionally bind a Slack channel (`/sources` → Workspace bindings → Slack → "Stakeholder digest channel") so the same newest-decision pack is also posted to a shared team channel, once per workspace per day, on the Business tier — the exact write-back capability the 2026-06-27 integration-tiering ruling reserved for that tier.
 
 ## Why it exists
 
@@ -17,14 +17,14 @@ Per [`../strategy/v12-self-improving-os.md`](../strategy/v12-self-improving-os.m
 ## Where to find it
 
 - Email: Settings > You > Notifications (`?section=notifications`), the "Stakeholder update" card below "Digest Settings."
-- Slack: `/sync` > Workspace bindings > Slack > "Stakeholder digest channel" (a bindable resource alongside Slack's existing "Channel" — the same connection, two purposes).
+- Slack: `/sources` > Workspace bindings > Slack > "Stakeholder digest channel" (a bindable resource alongside Slack's existing "Channel" — the same connection, two purposes).
 
 ## Demo script
 
 1. Open Settings > Notifications, turn on "Include a stakeholder update in my digest," pick "Executives," save.
 2. Explain: the next time your digest fires (daily or weekly, per your existing frequency), it now also includes your workspace's newest decision, written for that audience, no extra send.
 3. Point at `docs/decisions/` or a live PRD's decision record as "the newest decision" the pack would pull from.
-4. On a Business-tier workspace with Slack connected: open `/sync`, bind a channel under Slack's "Stakeholder digest channel," and explain that the next `digest-tick` posts the same newest-decision pack there — once per workspace per day, independent of any one user's email preference.
+4. On a Business-tier workspace with Slack connected: open `/sources`, bind a channel under Slack's "Stakeholder digest channel," and explain that the next `digest-tick` posts the same newest-decision pack there — once per workspace per day, independent of any one user's email preference.
 
 ## How it works
 
@@ -39,7 +39,7 @@ Per [`../strategy/v12-self-improving-os.md`](../strategy/v12-self-improving-os.m
 **Slack write-back leg (shipped 2026-07-03):**
 
 - `src/lib/connectors/registry.ts`: Slack's `capabilities.outflow` flipped to `true` and a second `resourceTypes` entry added — `{ kind: "digest_channel", label: "Stakeholder digest channel" }` — alongside the pre-existing `channel` (the customer-voice read channel). Both resource kinds are unaffected by each other: the existing inflow ingest (`slack-ingest.server.ts`) still resolves with `resourceKind: "channel"` + `requiredCapability: "inflow"`, entirely independent of the new `digest_channel` + `outflow` path. This is deliberately the same shape as `github`/`linear`/`notion`'s existing entries (one connector, both directions), not a new abstraction.
-- Reuses the existing `/sync` Workspace-bindings UI and `BindingPicker` component as-is — `resourceKind` was already a free-string column with no allow-list, so adding the new resource type required zero new UI code.
+- Reuses the existing `/sources` Workspace-bindings UI and `BindingPicker` component as-is — `resourceKind` was already a free-string column with no allow-list, so adding the new resource type required zero new UI code.
 - `src/lib/connectors/providers/slack.server.ts`: new `postMessage(token, channelId, text)` calling `chat.postMessage`, mirroring `sendEmail`'s never-throws `{sent/posted, reason}` shape. `listResources` extended to answer for `digest_channel` too (same public-channel list Slack's inflow side already lists).
 - New `src/lib/connectors/slack-digest.server.ts` — `postStakeholderDigestToSlack(supabase, workspaceId)`: resolves the workspace's `digest_channel` binding through `resolveProviderAuth({ workspaceId, provider: "slack", resourceKind: "digest_channel", requiredCapability: "outflow" })`, which enforces the 2026-06-27 Business-tier gate (a tier-check throw degrades to `{posted:false, reason}`, never falls through to posting) before any token is materialized. Loads the newest decision (same `loadNewestDecisionBrief` the email leg uses), composes the pack fixed to the `'exec'` audience (v1 simplification — no picker exists yet for a shared-channel destination), converts it to Slack mrkdwn, posts, and stamps the binding's `config.last_posted_at` for a ~daily per-workspace dedupe. `resolveProviderAuth`'s returned binding shape gained one field, `id: binding.id` (purely additive), so this stamp can target the right row.
 - `src/lib/notifications.functions.ts`: a new `sendDueSlackDigests()` runs as a second, workspace-scoped pass inside `sendDueDigests` — **deliberately not nested in the per-user email loop**, since a shared team channel must be posted to once per workspace per period, not once per user who happens to have the email toggle on. `digest-tick`'s JSON response now reports `slackPosted`.
@@ -76,4 +76,4 @@ Per [`../strategy/v12-self-improving-os.md`](../strategy/v12-self-improving-os.m
 
 ## Settings/connections audit note (2026-07-07)
 
-Reviewed in the `settings_connections` consumer/enterprise-grade pass. The "Stakeholder update" toggle + audience picker in `NotificationsTab` (Settings > Notifications) is real and wired end to end (no change to behavior). The only touch: the notifications preferences table swapped two banned hex-fallback dividers (`var(--soft-stone, #eaeaea)`) for the semantic `var(--hairline)` token, so the pane is hex-clean under the Obsidian theme. The Slack digest-channel binding on `/sync` also benefits from the workspace-bindings first-class-object rework (see [`settings-ia.md`](./settings-ia.md)).
+Reviewed in the `settings_connections` consumer/enterprise-grade pass. The "Stakeholder update" toggle + audience picker in `NotificationsTab` (Settings > Notifications) is real and wired end to end (no change to behavior). The only touch: the notifications preferences table swapped two banned hex-fallback dividers (`var(--soft-stone, #eaeaea)`) for the semantic `var(--hairline)` token, so the pane is hex-clean under the Obsidian theme. The Slack digest-channel binding on `/sources` also benefits from the workspace-bindings first-class-object rework (see [`settings-ia.md`](./settings-ia.md)).

@@ -1,7 +1,7 @@
 /**
  * ── "WAITING ON AN ADMIN", WHERE THERE IS NO ADMIN TO WAIT ON ─────────────
  *
- * WALKED AS A STRANGER ON THE SERVED /sync, 2026-09-10. Seven of the fifteen
+ * WALKED AS A STRANGER ON THE SERVED /sources, 2026-09-10. Seven of the fifteen
  * connectors read **"Waiting on an admin"** -- Intercom, Stripe, Zendesk,
  * HubSpot, Canny, Productboard, Notion.
  *
@@ -30,7 +30,7 @@ import { NOT_SET_UP_HERE } from "./registry";
 
 const SITES = [
   join(import.meta.dir, "..", "..", "components", "connections", "AccountConnectionsSection.tsx"),
-  join(import.meta.dir, "..", "..", "routes", "_authenticated.sync.tsx"),
+  join(import.meta.dir, "..", "..", "routes", "_authenticated.sources.tsx"),
 ];
 const code = (p: string) =>
   readFileSync(p, "utf8")

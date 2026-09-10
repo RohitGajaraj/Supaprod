@@ -52,7 +52,7 @@ export const SIGNED_IN_HOME = "/start" as const;
 /*
  * THE REVIEW QUEUE ANCHOR AND ITS `?queue` FLAG ARE GONE (third review,
  * 2026-09-08). They dated from the fold that put the queue on the home
- * (2026-09-01); the queue moved back to Inbox (`/approvals`, its own rail
+ * (2026-09-01); the queue moved back to Inbox (`/inbox`, its own rail
  * row), the home stopped reading the flag, and two doors kept sending people
  * to the top of the home under a label naming the retired Today. Calls are
  * settled in Inbox; a door to them says so and goes there.

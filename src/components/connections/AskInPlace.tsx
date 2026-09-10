@@ -14,7 +14,7 @@
  *   - `ConnectTrustDialog` is the trust interstitial, unchanged; its copy is
  *     contract, not ours to reword.
  *   - `listConnections` shares the ["connections"] query key with Settings and
- *     /sync, so satisfaction detection costs no second fetch and the control
+ *     /sources, so satisfaction detection costs no second fetch and the control
  *     disappears the moment any tab's callback lands.
  *
  * SAD PATHS (R-20): a read failure says so and offers retry rather than
@@ -46,12 +46,12 @@ import { ProviderLogo } from "./ProviderLogo";
  * It said Settings and pointed at `/settings?section=connections`, which is
  * the ACCOUNT list -- AccountConnectionsSection's own header names the door
  * to the thing this sentence is asking for: "Changing a binding... live on
- * /sync." A connection existing is exactly the fact this branch has already
+ * /sources." A connection existing is exactly the fact this branch has already
  * established (`connectedButNotEnough`); the door it drew sent a person back
  * to reconnect an account that was never the problem, and the actual binding
  * picker they needed was one surface over.
  *
- * `/sync` reads its product-scoped section from the workspace switcher's
+ * `/sources` reads its product-scoped section from the workspace switcher's
  * `activeProductId`, not from a URL -- so without `product`, landing here
  * from a run whose product differs from whatever the switcher shows would
  * repeat the same defect one level down: right surface, wrong product
@@ -59,10 +59,10 @@ import { ProviderLogo } from "./ProviderLogo";
  * `spine_tracks.product_id`); omitted rather than guessed.
  */
 export function bindingDoorTarget(productId?: string | null): {
-  to: "/sync";
+  to: "/sources";
   search: { product?: string };
 } {
-  return { to: "/sync", search: productId ? { product: productId } : {} };
+  return { to: "/sources", search: productId ? { product: productId } : {} };
 }
 
 export function AskInPlace({
@@ -108,7 +108,7 @@ export function AskInPlace({
   needIsMet?: boolean;
   /**
    * This run's own product (`spine_tracks.product_id`), so the door on a
-   * connected-but-unbound need lands on `/sync` with the RIGHT product
+   * connected-but-unbound need lands on `/sources` with the RIGHT product
    * preselected rather than whatever the workspace switcher happens to show
    * (P-44, A-QUEUE.md). Undefined where the caller has none.
    */
@@ -152,7 +152,7 @@ export function AskInPlace({
    *
    * Connecting again fixes nothing here, so offering the connect buttons would
    * be worse than the silence it replaces. The rest of the fix is a binding,
-   * and `/sync` is where that lives (P-44, A-QUEUE.md; see `bindingDoorTarget`
+   * and `/sources` is where that lives (P-44, A-QUEUE.md; see `bindingDoorTarget`
    * above) -- not Settings, which only lists accounts.
    */
   const connectedButNotEnough = needIsMet === false && connectorPresent;
@@ -202,7 +202,7 @@ export function AskInPlace({
    *
    * NO SECOND DOOR TO A THIRD PLACE, and it used to be one: this branch sent a
    * person to Settings, which only lists accounts, when the actual fix -- the
-   * bind -- lives on `/sync` (P-44, A-QUEUE.md). One door, and it goes where
+   * bind -- lives on `/sources` (P-44, A-QUEUE.md). One door, and it goes where
    * the thing it names actually happens.
    */
   if (connectedButNotEnough) {

@@ -45,7 +45,7 @@ describe("the rail hint is derived from the binding", () => {
   });
 
   it("draws nothing for a path outside the nav model", () => {
-    // /runs and /crew are in the rail and in no nav list, which is exactly the
+    // /runs and /team are in the rail and in no nav list, which is exactly the
     // "no binding" case: the row must come back with an empty key, not a
     // guessed one.
     for (const row of RAIL_DOORS) {
@@ -67,8 +67,8 @@ describe("the rail hint is derived from the binding", () => {
  * THE MEASURED GAP, CLOSED 2026-08-05 - and now pinned shut.
  *
  * This block used to record three of five rail rows holding a key, with /runs
- * and /crew in no nav list at all, and it said: "If someone later binds a key
- * to /runs or /crew, this test fails and the rail is already drawing the new
+ * and /team in no nav list at all, and it said: "If someone later binds a key
+ * to /runs or /team, this test fails and the rail is already drawing the new
  * hint by then. That is the intended failure: it says the gap closed."
  *
  * (The second block below was itself rewritten on 2026-08-05, for the same

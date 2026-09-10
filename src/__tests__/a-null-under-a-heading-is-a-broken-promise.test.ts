@@ -13,7 +13,7 @@
  * fast developer machine deciding what a slow user sees.
  *
  * Four live instances were found and fixed on 2026-08-10 in one sweep:
- * `/approvals` showed a heading and a blank rectangle on a cold load;
+ * `/inbox` showed a heading and a blank rectangle on a cold load;
  * `/threads` announced an empty workspace while it was still reading;
  * `/engine-room` printed the section title "Reading from" over nothing.
  *
@@ -83,7 +83,7 @@ const SILENT_WHILE_LOADING = /(?:isLoading|isPending)\s*(?:\?\s*null|\)\s*return
 const KNOWN: ReadonlyArray<string> = [
   "routes/_authenticated.plan.spec.$id.tsx",
   "routes/_authenticated.threads.tsx",
-  "routes/_authenticated.approvals.tsx",
+  "routes/_authenticated.inbox.tsx",
   "routes/_authenticated.engine-room.tsx",
   "components/shell/AppFrame.tsx",
   "components/product/ProductAnalyticsPanel.tsx",

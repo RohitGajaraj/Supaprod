@@ -103,14 +103,14 @@ import { previewHostConfigured } from "@/lib/deployments.functions";
  *      nothing new.
  *    KILL - the "Nothing connected yet" empty state standing in for a failed
  *      read. Failed says so and offers one retry (it already did; kept).
- *    MOVE - nothing off this surface. /sync keeps conflicts and the picker;
+ *    MOVE - nothing off this surface. /sources keeps conflicts and the picker;
  *      this pane now SHOWS the binding it owns rather than hiding the fact.
  *
  * 4. WHAT IS ONE CLICK AWAY INSTEAD OF ON THE SURFACE:
  *    Every account on a multi-account source, the scopes, the verify button,
  *    the disconnect, and the full binding list live in the per-source drill
  *    (?connector=). Changing a binding, and resolving a two-sided edit, live on
- *    /sync. A source line is two lines and never wraps.
+ *    /sources. A source line is two lines and never wraps.
  *
  * 5. DELIGHT, AND CONFUSION:
  *    The delight is the credential chain said out loud in plain words. A person
@@ -271,7 +271,7 @@ export function AccountConnectionsSection({
 
   const list = useQuery({ queryKey: ["connections"], queryFn: () => fList() });
   const suite = useQuery({ queryKey: ["calendar-connections"], queryFn: () => fSuiteList() });
-  // Same query key /sync and ConnectorDetail read, so the cache is shared and
+  // Same query key /sources and ConnectorDetail read, so the cache is shared and
   // this costs no second fetch. It is here because "which repo does it read"
   // is half the question this pane exists to answer.
   const bindings = useQuery({
@@ -764,7 +764,7 @@ export function AccountConnectionsSection({
           label="Point a connector at something else"
           sub="Which repo, team, channel or database each one reads, and any two-sided edit waiting to be settled."
         >
-          <Link to="/sync" className={LINK_AS_QUIET_CONTROL}>
+          <Link to="/sources" className={LINK_AS_QUIET_CONTROL}>
             Open sync
           </Link>
         </Line>

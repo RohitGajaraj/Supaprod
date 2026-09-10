@@ -2,7 +2,7 @@
  * TWENTY-TWO NEGATIONS FOR ONE FACT (2026-09-08).
  *
  * A workspace with one connected GitHub repository met eleven "<X> is not
- * connected" lines and eleven "<X> has no connected account" lines on /sync.
+ * connected" lines and eleven "<X> has no connected account" lines on /sources.
  * These pin the partition the page draws from instead: one row per connected
  * source, one press per absent one, and an override set that only ever names
  * what is connected.

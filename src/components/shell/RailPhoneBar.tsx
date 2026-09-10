@@ -84,11 +84,11 @@ type IconComponent = React.ComponentType<{ className?: string }>;
  *  door, held to it by the rail-list test (see this file's own header). */
 const DOOR_ICON: Record<string, IconComponent> = {
   "/start": IconWork,
-  "/approvals": IconWaiting,
-  "/arriving": IconArrived,
+  "/inbox": IconWaiting,
+  "/evidence": IconArrived,
   "/outcomes": IconOutcomes,
-  "/crew": IconCrew,
-  "/sync": IconSources,
+  "/team": IconCrew,
+  "/sources": IconSources,
   "/settings": IconGear,
 };
 
@@ -96,11 +96,11 @@ const DOOR_ICON: Record<string, IconComponent> = {
  *  `counts` AppFrame already derives (`RAIL`'s own `count: "gates"`, its one
  *  counted row). Carried down as a prop, never re-read: a badge that counts
  *  differently from the page it opens is the defect P-56 removed. */
-const DOOR_COUNT: Record<string, string> = { "/approvals": "gates" };
+const DOOR_COUNT: Record<string, string> = { "/inbox": "gates" };
 
 /** The five doors a person opens most, per this packet's own scope --
  *  matched against `PRIMARY_NAV` by `to`, not re-typed. */
-const BAR_TO: readonly string[] = ["/start", "/approvals", "/arriving", "/outcomes", "/settings"];
+const BAR_TO: readonly string[] = ["/start", "/inbox", "/evidence", "/outcomes", "/settings"];
 
 function byTo(to: string): NavItemDef | undefined {
   return PRIMARY_NAV.find((d) => d.to === to);

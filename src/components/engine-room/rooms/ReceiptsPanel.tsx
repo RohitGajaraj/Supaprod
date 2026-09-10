@@ -39,7 +39,7 @@
  * nothing matched, the read failed and the read is still running are four
  * different facts in this product precisely so that a read in flight never
  * wears the clothes of an empty record, and this panel was skipping straight
- * past that rule. /approvals had the identical defect and fixed it the same
+ * past that rule. /inbox had the identical defect and fixed it the same
  * way: a plain quiet line, in a live region, and never the elapsed-timer loader
  * (that one belongs where an agent genuinely runs for seconds; on an ordinary
  * row read it invents a wait).
@@ -568,7 +568,7 @@ export function ReceiptsPanel() {
 
       {/* FOUR FACTS, NOT TWO, and the fourth is the one that was missing. A read
           in flight used to render nothing at all, which is the blank-rectangle
-          defect /approvals fixed on the same argument: empty, failed, excluded
+          defect /inbox fixed on the same argument: empty, failed, excluded
           by a filter and still reading are four different things, and a person
           acts differently on each. */}
       {query.isPending ? (

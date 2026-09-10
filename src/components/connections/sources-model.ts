@@ -2,7 +2,7 @@
  * WHAT THE SOURCES PAGE IS MADE OF, decided once and in the open.
  *
  * ── THE DEFECT THIS CLOSES (2026-09-08) ─────────────────────────────────
- * A person arrived on /sync from the rail with ONE connected source, a GitHub
+ * A person arrived on /sources from the rail with ONE connected source, a GitHub
  * repository, and met eleven lines each saying "<X> is not connected, so there
  * is nothing to point yet", then a second region of eleven more saying "<X> has
  * no connected account, so there is nothing to override with". Twenty-two

@@ -133,7 +133,7 @@ describe("the doors A1 walked read their own workspace", () => {
   const AGENTS = code(readFileSync("src/lib/agents.functions.ts", "utf8"));
   const CONN = code(readFileSync("src/lib/connections.functions.ts", "utf8"));
   const THREADS = code(readFileSync("src/lib/threads.functions.ts", "utf8"));
-  const APPROVALS = code(readFileSync("src/routes/_authenticated.approvals.tsx", "utf8"));
+  const APPROVALS = code(readFileSync("src/routes/_authenticated.inbox.tsx", "utf8"));
   const THREAD_ROUTE = code(readFileSync("src/routes/_authenticated.threads.tsx", "utf8"));
 
   /** One function's body, bounded at both ends (F-191). */

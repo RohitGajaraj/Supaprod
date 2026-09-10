@@ -26,7 +26,7 @@ describe("nav-model - the three primary destinations", () => {
     /*
      * WAS THREE, AND THE REASON IT WENT BACK UP IS NOT "WE CHANGED OUR MINDS".
      * P-11 cut it to three because Approvals had folded into Start's board, so
-     * its row was a second door onto a surface Start owned. `/approvals` is a
+     * its row was a second door onto a surface Start owned. `/inbox` is a
      * full surface again -- its own heading, queue and settled trail -- so that
      * fold no longer describes the product, and PLATFORM-AUDIT.md §1 counted
      * seven surfaces reachable only by URL. R-38: a surface without a door is
@@ -78,8 +78,8 @@ describe("nav-model - the three primary destinations", () => {
   it("the Ledger and every folded-away door stay off the rail", () => {
     const all = [...PRIMARY_NAV, ...FOOTER_NAV].map((n) => n.to);
     /*
-     * SIX OF THESE CAME BACK, and only these are still folded away. `/approvals`,
-     * `/crew`, `/outcomes`, `/threads`, `/arriving` and `/sync` are rail doors
+     * SIX OF THESE CAME BACK, and only these are still folded away. `/inbox`,
+     * `/team`, `/outcomes`, `/threads`, `/evidence` and `/sources` are rail doors
      * as of P-60; `/today` and `/runs` are still gone, and the stations are
      * covered by their own test above.
      */

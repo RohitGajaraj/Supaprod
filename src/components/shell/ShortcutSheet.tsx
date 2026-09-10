@@ -46,7 +46,7 @@ import {
  * the declaration to the code in both directions, so this cannot show a key
  * that does not fire or hide one that does. What it is NOT yet is the listener:
  * the surfaces still register their own. Until that refactor lands, a surface
- * with no entry says it has no keyboard, which is true of /design and /crew and
+ * with no entry says it has no keyboard, which is true of /design and /team and
  * is the finding rather than a gap in this file.
  */
 

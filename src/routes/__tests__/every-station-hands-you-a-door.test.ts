@@ -126,7 +126,7 @@ describe("Learn's empty desk asks a question and answers it with a door", () => 
     // that pointed there promised specs and the home has none, so it was
     // removed; nothing in this file navigates to /start any more, and an
     // allowlist entry with no caller is an invitation to re-add the dead end.
-    const known = new Set(["/ship", "/arriving", "/learn", "/outcomes"]);
+    const known = new Set(["/ship", "/evidence", "/learn", "/outcomes"]);
     for (const t of targets) expect(known.has(t)).toBe(true);
   });
 

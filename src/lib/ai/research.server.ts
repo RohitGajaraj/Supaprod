@@ -42,7 +42,7 @@ export type ResearchSource = {
   title: string;
   /** External page — web sources only. */
   url?: string;
-  /** Internal deep link, e.g. "/prds/<id>" or "/arriving". */
+  /** Internal deep link, e.g. "/prds/<id>" or "/evidence". */
   href?: string;
   /** Domain for web sources; source-kind label for internal ones. */
   sub?: string;
@@ -171,7 +171,7 @@ const RAG_KIND_MAP: Record<
   string,
   { kind: ResearchSourceKind; href: (sourceId: string | null) => string }
 > = {
-  signal: { kind: "signal", href: () => "/arriving" },
+  signal: { kind: "signal", href: () => "/evidence" },
   doc: { kind: "doc", href: () => "/brain?tab=docs" },
   note: { kind: "doc", href: () => "/brain?tab=memory" },
   meeting: { kind: "meeting", href: () => "/brain" },
@@ -295,7 +295,7 @@ async function gatherInternal(
     snapshots.push({
       kind: "opportunity",
       title: "Opportunity queue (top 5 by ICE)",
-      href: "/arriving",
+      href: "/evidence",
       lines: opps.map((o) => `- ${o.title}: ICE ${o.ice_score ?? "-"} · ${o.status}`),
     });
   }

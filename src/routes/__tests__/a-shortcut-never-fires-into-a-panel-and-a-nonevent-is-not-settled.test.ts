@@ -25,7 +25,7 @@
  *      returning whether a row changed.
  *
  * WHY TEXT-BASED FOR (1). This repo has no working precedent for mounting
- * `_authenticated.approvals.tsx` (Supabase singleton, Rule-14 mock-shadowing),
+ * `_authenticated.inbox.tsx` (Supabase singleton, Rule-14 mock-shadowing),
  * and `onKey` is a closure inside a `useEffect`, not an exported pure
  * function. `approvals-keys-stand-down.test.ts` already establishes reading
  * the handler's body as text, stripped of comments, and pinning statement
@@ -41,10 +41,10 @@ import { describe, it, expect } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { decideSettledLine } from "../_authenticated.approvals";
+import { decideSettledLine } from "../_authenticated.inbox";
 import type { ApprovalQueueItem } from "@/lib/approvals-queue.functions";
 
-const ROUTE = join(import.meta.dir, "..", "_authenticated.approvals.tsx");
+const ROUTE = join(import.meta.dir, "..", "_authenticated.inbox.tsx");
 
 function stripComments(source: string): string {
   return source

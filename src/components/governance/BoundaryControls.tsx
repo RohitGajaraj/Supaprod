@@ -965,7 +965,7 @@ export function BoundaryControls({
                     tab; `includeSearch` stops it announcing itself current
                     from the boundary tab of the same route. */}
                 <Link
-                  to="/crew"
+                  to="/team"
                   search={{}}
                   activeOptions={{ includeSearch: true }}
                   className="text-mrd-small underline underline-offset-4"

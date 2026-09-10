@@ -55,7 +55,7 @@ describe("a failed read is not a clear queue", () => {
 });
 
 /**
- * ONE SPELLING OF ONE CAVEAT. `/approvals` and the inbox already share their
+ * ONE SPELLING OF ONE CAVEAT. `/inbox` and the inbox already share their
  * "not the whole queue" wording through one module, for the reason its header
  * gives: two spellings is how a person gets two answers about the same queue.
  * A read that failed outright is the sibling case that header names, so it

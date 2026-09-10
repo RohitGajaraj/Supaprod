@@ -33,11 +33,11 @@
  */
 export const CANONICAL_PATHS = [
   "/start",
-  "/arriving",
+  "/evidence",
   "/ship",
   "/learn",
   "/outcomes",
-  "/approvals",
+  "/inbox",
   "/threads",
   "/engine-room",
 ] as const;
@@ -55,7 +55,7 @@ export const DOOR_INTERNAL_PATHS = [
   "/settings",
   "/onboarding",
   "/admin",
-  "/sync",
+  "/sources",
   "/traces",
   "/traces/$traceId",
 ] as const;

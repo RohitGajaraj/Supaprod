@@ -2,7 +2,7 @@
  * THE QUESTION, ASKED WHERE THE WORK IS.
  *
  * Item 1 of the build queue, per SPEC-CONSENT.md. The measured defect it
- * exists to end: 90 approval requests raised into /approvals since July --
+ * exists to end: 90 approval requests raised into /inbox since July --
  * 42 cancelled, 38 expired, 10 pending, ZERO ever approved (R-04). A question
  * that has to be found does not get answered. This card renders a run's own
  * pending gates INSIDE the run, at `spine_tracks.pending_gates` -- the one edge
@@ -15,7 +15,7 @@
  * from `stoppedFor`. No tool name renders anywhere (§2.4) and no sentence on
  * this card describes a tool in our own words.
  *
- * ANSWERING RESUMES THE RUN (§4.2) or the card is the /approvals queue with
+ * ANSWERING RESUMES THE RUN (§4.2) or the card is the /inbox queue with
  * better typography. On a settle that releases the run the parent's drive
  * mutation fires -- sequentially, after the decide resolves, because
  * `harvestAnsweredGates` must read stamped rows. A gate that came back
@@ -78,7 +78,7 @@ function releasesRun(status: string): boolean {
  * ── `approvals/CallGate.tsx` RETIRED INTO ITS LAST CALLER (P-53) ─────────
  *
  * CallGate's own shell -- question, risk, facts, declared default, the
- * waiting clock, then the controls -- with `_authenticated.approvals.tsx`'s
+ * waiting clock, then the controls -- with `_authenticated.inbox.tsx`'s
  * simpler Approve/Decline/Snooze migrated to `Ask`. TrackConsent's own
  * answer area is not a binary ask: numbered custom buttons, an inline
  * decline-reason field, a class-wide "answer all N" action and a snooze that
@@ -346,7 +346,7 @@ export function TrackConsent({
   /*
    * DEFERRAL IS REAL, SO IT HAS A REAL CONTROL (§3.6): there is no dismiss
    * here -- the run is stopped until this is answered, and a close button that
-   * leaves the work frozen is the /approvals queue one inch smaller. A snooze
+   * leaves the work frozen is the /inbox queue one inch smaller. A snooze
    * writes a row, and the gate STAYS on the card at full weight with its
    * snoozed line, because hiding it would reproduce the original defect one
    * layer down.

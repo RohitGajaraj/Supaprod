@@ -2689,7 +2689,7 @@ export function DiscoverSurface({
        * take one sentence FROM EVIDENCE to shipped"* -- the first noun of the
        * product's own description is now a place you can go.
        *
-       * The route stays `/arriving`: renaming paths is a separate, wider edit
+       * The route stays `/evidence`: renaming paths is a separate, wider edit
        * and is filed in the contract.
        */}
       <PageHeading station="sense" title="Evidence" sub="What came in, and what it is becoming." />
@@ -2706,7 +2706,7 @@ export function DiscoverSurface({
       {/*
        * ── A DELTA NEEDS A WHOLE TO BE A DELTA OF ───────────────────────────
        *
-       * READ ON THE SERVED /arriving, 2026-09-09, in an empty workspace. The
+       * READ ON THE SERVED /evidence, 2026-09-09, in an empty workspace. The
        * top of the page said, in three consecutive lines:
        *
        *   Your sources have sent nothing yet.
@@ -3476,7 +3476,7 @@ export function DiscoverSurface({
              the seven stations carrying live chords with no keycap: a person
              could only find these by reading the source. The list they move
              through is the one place the hint belongs, and it is the same
-             pair /approvals uses for the same job. */
+             pair /inbox uses for the same job. */
             sub="j and k move the focus. The one in focus is the one the keys act on. Tick rows to decline a batch of them at once."
             toggle={
               rankedVisible.length > VISIBLE_CLUSTERS

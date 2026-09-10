@@ -16,7 +16,7 @@
  *
  * WHY IT SITS IN components/crew RATHER THAN lib. It is presentation - the
  * words a person reads, not the values stored - and the route that owns the
- * concept is /crew. The types it keys on come from lib/crew.functions, which is
+ * concept is /team. The types it keys on come from lib/crew.functions, which is
  * where the stored vocabulary belongs and stays.
  *
  * NOTHING HERE MAY NAME A MECHANISM. `arc`, `mode` and `graduation` are the

@@ -127,7 +127,7 @@ export type ApprovalQueueItem = ApprovalItem & {
    * Is the work this gate holds still live?
    *
    * ── F-128, MEASURED BY S1 ON THE RENDERED SURFACE ────────────────────────
-   * `/approvals` says "52 decisions are ready for you" and every row promises
+   * `/inbox` says "52 decisions are ready for you" and every row promises
    * "Approve · unblocks Build for this spec". **For 22 of the 29 pending
    * tool-call gates the run they held is already over**, so approving cannot
    * unblock anything, and seven more have no `agent_runs` row at all. None is
@@ -684,7 +684,7 @@ export async function readApprovalsQueue(
      *
      * Every family read above ordered DESCENDING and took the newest
      * `FAMILY_LIMIT` rows. Both surfaces then sort the result oldest first and
-     * `/approvals` says so in as many words: "Settled in order, oldest first."
+     * `/inbox` says so in as many words: "Settled in order, oldest first."
      *
      * So on the design-gate family, 116 rows against a limit of 100, the
      * sixteen that were dropped were the sixteen OLDEST: precisely the calls a

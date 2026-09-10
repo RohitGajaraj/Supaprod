@@ -19,7 +19,7 @@
  * again. Leaving Discover, Decide, Plan and the rest bound to a chord after
  * their rail doors are gone would reopen that exact defect in the other
  * direction: a shortcut nothing on screen advertises. So they leave with
- * their doors. `/outcomes`, `/threads`, `/engine-room` and `/approvals` all stay
+ * their doors. `/outcomes`, `/threads`, `/engine-room` and `/inbox` all stay
  * reachable by URL (P-11's own "not in scope" line); they are simply no
  * longer doors the keyboard or the rail name.
  *
@@ -69,7 +69,7 @@ export type NavItemDef = {
  *
  * IT WAS TRUE WHEN IT WAS WRITTEN AND IT IS NOT TRUE NOW, for the case it leans
  * hardest on. That paragraph says Approvals "folded into Start's own board", so
- * its row was a duplicate. `/approvals` is a full surface again -- its own
+ * its row was a duplicate. `/inbox` is a full surface again -- its own
  * heading, its own queue, its own settled trail, walked live on 2026-09-03 -- so
  * the fold it describes no longer describes the product, and the row it removed
  * is now the only way in that does not require typing a URL.
@@ -109,13 +109,13 @@ export const PRIMARY_NAV: readonly NavItemDef[] = [
     tagline: "Say what should change, and watch it run.",
   },
   {
-    to: "/approvals",
+    to: "/inbox",
     label: "Inbox",
     zone: "home",
     tagline: "Everything that cannot move until you answer it.",
   },
   {
-    to: "/arriving",
+    to: "/evidence",
     label: "Evidence",
     zone: "home",
     tagline: "What came in from your sources since you last looked.",
@@ -127,13 +127,13 @@ export const PRIMARY_NAV: readonly NavItemDef[] = [
     tagline: "Every decision, what it predicted, and what happened.",
   },
   {
-    to: "/crew",
+    to: "/team",
     label: "Team",
     zone: "home",
     tagline: "Who is working, what they cost, and their limits.",
   },
   {
-    to: "/sync",
+    to: "/sources",
     label: "Sources",
     zone: "home",
     tagline: "What your agents are allowed to read.",
@@ -173,9 +173,9 @@ export function navKeyHint(item: NavItemDef): string {
   switch (item.to) {
     case "/start":
       return "h"; // Home
-    case "/approvals":
+    case "/inbox":
       return "i"; // Inbox
-    case "/arriving":
+    case "/evidence":
       /* `e` for Evidence, and it is free: h i f o m u s were the taken set and
          `f` left with the old label. The rule this file states is that a key is
          a letter of the label a person can SEE, so a rename moves the key with
@@ -184,9 +184,9 @@ export function navKeyHint(item: NavItemDef): string {
       return "e"; // Evidence
     case "/outcomes":
       return "o"; // Outcomes
-    case "/crew":
+    case "/team":
       return "m"; // teaM
-    case "/sync":
+    case "/sources":
       return "u"; // soUrces; `s` is Settings
     case "/settings":
       return "s";

@@ -3,7 +3,7 @@
  * and cannot go on until a person rules on one tool call.
  *
  * PORTED 2026-07-29 onto src/components/shell/primitives.tsx, and reshaped to
- * match `src/routes/_authenticated.approvals.tsx`, which is the same queue
+ * match `src/routes/_authenticated.inbox.tsx`, which is the same queue
  * viewed from the front of the product. Two surfaces onto one queue must not
  * say it two different ways.
  *
@@ -475,7 +475,7 @@ function FocusedCall({
    * releases nothing and the sentence promised work that does not exist.
    *
    * S0 added `gatesLiveWork` to `listGovernApprovals` for exactly this, and
-   * /approvals and the Today queue both draw it. This panel reads the same
+   * /inbox and the Today queue both draw it. This panel reads the same
    * server function and did not, so the same queue told two different stories
    * depending on which door you came through.
    *

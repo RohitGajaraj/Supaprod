@@ -847,7 +847,7 @@ export async function readGovernApprovals(
       /*
        * ── F-128: 22 OF 29 PENDING GATES HELD WORK THAT HAD ALREADY FINISHED ──
        *
-       * S1 measured `/approvals` against the database. The screen says
+       * S1 measured `/inbox` against the database. The screen says
        * *"52 decisions are ready for you"*, and each row promises
        * *"Approve · unblocks Build for this spec"*. For 22 of the 29 pending
        * tool-call gates, **the run they held is over**, so approving cannot
@@ -901,7 +901,7 @@ export const resolveApproval = createServerFn({ method: "POST" })
      * which made "I decided this" and "someone decided this two seconds ago"
      * the same observable outcome, because supabase-js resolves a zero-row write as
      * `{ data: null, error: null }`. Approving also EXECUTES, so two people
-     * answering the same call in two tabs (this panel and the /approvals queue)
+     * answering the same call in two tabs (this panel and the /inbox queue)
      * produced two runs of the tool: studio.pr.merge merged the customer's PR
      * twice, delegate.openhands dispatched a second paid external job.
      *

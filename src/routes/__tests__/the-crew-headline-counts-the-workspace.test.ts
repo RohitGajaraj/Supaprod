@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 /**
- * THE HEADLINE ON /crew COUNTED OUR SOURCE CODE AND CALLED IT YOUR WORKSPACE.
+ * THE HEADLINE ON /team COUNTED OUR SOURCE CODE AND CALLED IT YOUR WORKSPACE.
  *
  * It rendered `count(all.length)`, and `all` is `rosterCatalog()` — a catalogue
  * compiled into the route, deduplicated by name, that makes **no query at all**.
@@ -37,7 +37,7 @@ import { join } from "node:path";
  * defect that the empty branch's own comment records fixing once already.
  */
 
-const FILE = join(import.meta.dir, "..", "_authenticated.crew.tsx");
+const FILE = join(import.meta.dir, "..", "_authenticated.team.tsx");
 const SRC = readFileSync(FILE, "utf8");
 /** Assertions read code only; the comments above quote the retired expression. */
 /* F-159 corollary: a JSX comment comes out WITH its braces. Stripping the
@@ -56,7 +56,7 @@ const TITLE_DECL = (() => {
   return CODE.slice(i, CODE.indexOf("<PageHeading", i));
 })();
 
-describe("the /crew headline counts the workspace, not the catalogue", () => {
+describe("the /team headline counts the workspace, not the catalogue", () => {
   it("no longer derives the title straight from the compiled catalogue", () => {
     expect(CODE).not.toContain("title={\n            all.length === 1");
     expect(CODE).toContain("title={crewTitle}");
@@ -101,7 +101,7 @@ describe("the /crew headline counts the workspace, not the catalogue", () => {
 /*
  * ── TWO EQUAL COUNTS, STACKED, MAKE A READER COMPARE THEM ─────────────────
  *
- * READ ON THE SERVED /crew, 2026-09-10:
+ * READ ON THE SERVED /team, 2026-09-10:
  *
  *   16 agents work here.
  *   16 run without asking you.
@@ -118,7 +118,7 @@ describe("the /crew headline counts the workspace, not the catalogue", () => {
  * common case on a workspace that has never narrowed anything.
  */
 describe("the autonomy line does not restate the headline's number", () => {
-  const SRC = readFileSync("src/routes/_authenticated.crew.tsx", "utf8");
+  const SRC = readFileSync("src/routes/_authenticated.team.tsx", "utf8");
   const code = () => SRC.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
 
   it("says ALL when every agent runs unattended", () => {
@@ -140,7 +140,7 @@ describe("the autonomy line does not restate the headline's number", () => {
    * These asserted the literal "run without asking you". On 2026-09-10 the verb
    * became "start", because the same account is asked six things at its TOOL
    * boundaries while this line is about agent AUTONOMY, and a reader has one
-   * word for both -- so `/crew` and the entry read as a flat contradiction on
+   * word for both -- so `/team` and the entry read as a flat contradiction on
    * the product's central claim.
    *
    * A guard whose name is "does not restate the headline's number" failed on a

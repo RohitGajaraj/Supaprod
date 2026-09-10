@@ -23,7 +23,7 @@ import { PRIMARY_NAV, navKeyHint } from "./nav-model";
  * and the list still named two. A copy of the one list is the drift the nav
  * model was built to make impossible, so it reads the list.
  *
- * `/crew` and `/sync` are in NEITHER `CANONICAL_PATHS` nor `DOOR_INTERNAL_PATHS`
+ * `/team` and `/sources` are in NEITHER `CANONICAL_PATHS` nor `DOOR_INTERNAL_PATHS`
  * -- they are real routes on disk that the redirect canon never knew about --
  * which is why deriving this matters rather than appending two strings.
  */
@@ -142,7 +142,7 @@ describe("palette-sections", () => {
     // Discover is a 3,400-line surface with several destinations inside it. A
     // verb that names one of them and then lands on the top of the page is the
     // broken deep link that route's own header was written about.
-    for (const verb of ACT_VERBS.filter((v) => v.run.to === "/arriving")) {
+    for (const verb of ACT_VERBS.filter((v) => v.run.to === "/evidence")) {
       expect(Object.keys(verb.run.search ?? {}).length).toBeGreaterThan(0);
     }
   });

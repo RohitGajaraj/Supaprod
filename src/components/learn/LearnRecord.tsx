@@ -453,7 +453,7 @@ export function LearnRecord() {
               </>
             }
             sub="Read them on the signals desk, against the bets you have open"
-            onClick={() => navigate({ to: "/arriving", search: { tab: "signals" } })}
+            onClick={() => navigate({ to: "/evidence", search: { tab: "signals" } })}
           />
         </Region>
       ) : null}

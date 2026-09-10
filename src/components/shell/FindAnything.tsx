@@ -290,7 +290,7 @@ export function FindAnything({ narrow, onExpand }: { narrow: boolean; onExpand: 
         return;
       }
       if (opt.group === "sources") {
-        void navigate({ to: "/sync" });
+        void navigate({ to: "/sources" });
         return;
       }
       if (opt.group === "conversations") {

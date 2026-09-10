@@ -172,8 +172,8 @@ import { questionForGate } from "@/components/ask/a-question-is-composed-not-pun
  *  invalidate every memo that depends on the queue. See its use below. */
 const NO_ITEMS: readonly ApprovalQueueItem[] = [];
 
-export const Route = createFileRoute("/_authenticated/approvals")({
-  component: ApprovalsSurface,
+export const Route = createFileRoute("/_authenticated/inbox")({
+  component: InboxSurface,
   // P-61 (A-QUEUE.md): the tab title is the rail's own word for this door
   // (PRIMARY_NAV's "Waiting"), not the route's internal name.
   head: () => ({ meta: [{ title: "Inbox · Supaprod" }] }),
@@ -336,7 +336,7 @@ function oldestFirst(a: ApprovalQueueItem, b: ApprovalQueueItem): number {
   return at - bt;
 }
 
-function ApprovalsSurface() {
+function InboxSurface() {
   const qc = useQueryClient();
   const {
     activeWorkspaceId,

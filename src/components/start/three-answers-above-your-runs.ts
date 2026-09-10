@@ -66,7 +66,7 @@ export function waitingAnswer(shape: ReadonlyArray<{ n: number; label: string }>
     rest > 0
       ? `${biggest?.label} need you, and ${rest} other ${rest === 1 ? "thing" : "things"}.`
       : `${biggest?.label} need you.`;
-  return { read: "answered", line, door: { label: "Answer them", to: "/approvals" } };
+  return { read: "answered", line, door: { label: "Answer them", to: "/inbox" } };
 }
 
 /**
@@ -87,7 +87,7 @@ export function arrivingAnswer(count: number | null, since: string | null): Answ
       ? {
           read: "answered",
           line: `${count} ${count === 1 ? "finding is" : "findings are"} on the record. You have not looked yet.`,
-          door: { label: "See them", to: "/arriving" },
+          door: { label: "See them", to: "/evidence" },
         }
       : { read: "answered-empty", line: "Nothing has come in yet." };
   }
@@ -95,7 +95,7 @@ export function arrivingAnswer(count: number | null, since: string | null): Answ
   return {
     read: "answered",
     line: `${count} new ${count === 1 ? "finding" : "findings"} since you last looked.`,
-    door: { label: "See them", to: "/arriving" },
+    door: { label: "See them", to: "/evidence" },
   };
 }
 

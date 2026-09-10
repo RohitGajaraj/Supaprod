@@ -21,7 +21,7 @@
  * latency, before the user sees one number.
  *
  * LivePulse's own comment already claimed the fix was in place: "same query key
- * the rail badge, the Today hero, and the /approvals page all read - one shared
+ * the rail badge, the Today hero, and the /inbox page all read - one shared
  * cache, one number, everywhere." That was the intent and never the code. A
  * shared cache cannot be maintained by convention across five files, because the
  * sixth caller writes a key that reads fine and silently doubles the load. So the

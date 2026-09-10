@@ -6,7 +6,7 @@
  */
 import { describe, expect, it } from "bun:test";
 
-import { syncHeadline } from "../_authenticated.sync";
+import { syncHeadline } from "../_authenticated.sources";
 
 const base = { failed: false, loading: false, conflictCount: 0, syncedCount: 0, boundCount: 0 };
 

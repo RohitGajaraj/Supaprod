@@ -23,7 +23,7 @@ import { join } from "node:path";
  *
  * ONE RULE FOR EVERY WORD: crew, bet, agentic, autonomous, orchestrat* and
  * station are ALL pervasive as CODE — variable names, types (`Bet`,
- * `AgentStation`), imports (`crewPulse`, `listCrew`), route paths (`/crew`)
+ * `AgentStation`), imports (`crewPulse`, `listCrew`), route paths (`/team`)
  * — so a blanket ban on the bare word fails on code that renders nothing.
  * The manual sweep this file encodes found exactly that on its first pass:
  * 49 raw `crew|bet|agentic|autonomous` hits, all but two of them code or
@@ -187,7 +187,7 @@ describe("HOLD_LINE, the one part of driver.ts a signed-in person reads", () => 
 /**
  * ARRIVING AND OUTCOMES DO NOT WEAR THEIR OLD NAMES (P-14a, 2026-09-02).
  *
- * `/discover` became `/arriving` and `/brain` became `/outcomes`; the ban is
+ * `/discover` became `/evidence` and `/brain` became `/outcomes`; the ban is
  * on "Discover", "Insights", "Brain" and "the Record" as NAMES FOR THESE
  * PAGES, not on the words in general -- "Brain" is a real architecture
  * concept elsewhere in this codebase (`brain.functions.ts`,
@@ -208,7 +208,7 @@ describe("HOLD_LINE, the one part of driver.ts a signed-in person reads", () => 
  */
 describe("Arriving and Outcomes do not render their retired names", () => {
   const PAGE_NAME_FILES = [
-    "routes/_authenticated.arriving.tsx",
+    "routes/_authenticated.evidence.tsx",
     "routes/_authenticated.outcomes.tsx",
     ...filesUnder("components/discover"),
     ...filesUnder("components/brain"),

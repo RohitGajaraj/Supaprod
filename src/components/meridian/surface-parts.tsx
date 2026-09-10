@@ -57,11 +57,11 @@ import { GLYPH_FOR_STATION, StationGlyph } from "./station-glyphs";
  * The five files carried two: h-9 / px-4 / 13px on Approvals, Crew and the
  * Engine Room, h-8 / px-3 / 12.5px on Brain and Runs. Neither was argued for
  * anywhere, and the same JOB appears at both sizes, so it is drift rather than
- * a scale: the gate on /approvals draws its controls at h-9 and the gate on a
+ * a scale: the gate on /inbox draws its controls at h-9 and the gate on a
  * run draws the same act at h-8. The h-8 stop wins because it is the one
  * closest to Meridian's own, which `ApprovalCard` sets at `h-7 px-3
  * text-[12.5px] font-medium`: same padding, same type, four pixels of height
- * apart. /approvals mounts that card directly under its gate, so this is also
+ * apart. /inbox mounts that card directly under its gate, so this is also
  * the first time those two agree on one screen.
  */
 
@@ -928,7 +928,7 @@ export function Actions({
  * FOUR of the five call sites are TanStack `<Link to=...>`, not `<a href=...>`,
  * because in-app navigation has to stay client-side. A component that renders an
  * `<a>` would be unusable to them. So `ACTION_LINK_FACE` is exported as the
- * primary interface -- `<Link to="/sync" className={ACTION_LINK_FACE.default}>`
+ * primary interface -- `<Link to="/sources" className={ACTION_LINK_FACE.default}>`
  * -- and `ActionLink` exists for the one genuine external `<a>` (the waitlist
  * href on `signup`).
  *
@@ -1269,7 +1269,7 @@ function FailMark() {
  * A CONTROL THAT CANNOT WORK IS WORSE THAN NO CONTROL (S1 -> S0, 2026-08-27).
  *
  * S1 forced a 401 with the exact string auth throws and photographed
- * `/approvals`. Every sentence on the screen was true:
+ * `/inbox`. Every sentence on the screen was true:
  *
  *     ! The queue did not load.
  *       Nothing has been settled and nothing has been lost...

@@ -18,7 +18,7 @@
  * pane is a focus trap, a scroll lock, an Escape handler and an inert page
  * behind it, half of which is an accessibility regression wearing a primitive's
  * name. A receipt is a detail view with an identity of its own, so it renders
- * IN PLACE, the pattern `_authenticated.crew.tsx` and `_authenticated.admin.people.tsx`
+ * IN PLACE, the pattern `_authenticated.team.tsx` and `_authenticated.admin.people.tsx`
  * both use.
  *
  * The exported name and props are unchanged on purpose: `engine-room/rooms/ReceiptsPanel.tsx`
@@ -190,7 +190,7 @@ function ReceiptDetail({
     if (e.kind === "prd") return () => navigate({ to: "/plan/spec/$id", params: { id: e.id } });
     // P-14 (A-QUEUE.md, R-35): same fix as sourceGo above, same reason.
     if (e.kind === "mission") return () => navigate({ to: SIGNED_IN_HOME });
-    // FIFTH REVIEW, 2026-09-09: `/arriving?tab=queue` throws a redirect to the
+    // FIFTH REVIEW, 2026-09-09: `/evidence?tab=queue` throws a redirect to the
     // home in its own beforeLoad, so this row went to the home through a bounce
     // that named a surface retired on 2026-07-13. Same destination, said once.
     if (e.kind === "opportunity") return () => navigate({ to: SIGNED_IN_HOME });

@@ -26,7 +26,7 @@ While researching, the thread streams live progress ("Searching: … · Read 6 s
 - **Remember this** (Brain icon, answer footer): saves any answer to memory on demand.
 - **Capture as decision** (Gavel icon): writes a pending entry to the Decisions log (Knowledge · Decisions). Conversation becomes institutional memory.
 - **Brain status** (Brain icon, thread header): _"The brain knows · N signals · N docs · N meetings · N decisions · N PRDs · N findings · updated X ago"_. The asset, visible and growing.
-- **What feeds the brain** (inward): signals (incl. the webhook ingest door on `/sync`), meetings, docs, PRDs, decisions, learnings, mission outcomes, indexed hourly. (Outward): web research findings via retention.
+- **What feeds the brain** (inward): signals (incl. the webhook ingest door on `/sources`), meetings, docs, PRDs, decisions, learnings, mission outcomes, indexed hourly. (Outward): web research findings via retention.
 
 ## Citations contract
 

@@ -40,7 +40,7 @@ function linkFor(
   if (!c.source_id) return null;
   switch (c.source_kind) {
     case "signal":
-      return { to: "/arriving" };
+      return { to: "/evidence" };
     case "doc":
       return { to: "/outcomes", search: { tab: "docs" } };
     case "meeting":

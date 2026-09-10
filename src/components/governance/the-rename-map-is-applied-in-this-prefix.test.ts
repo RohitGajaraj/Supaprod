@@ -225,12 +225,12 @@ describe("§12 holds in route tab titles, which the checks above cannot see", ()
      *
      * AND "Spend and limits · Supaprod" -> gone entirely (P-79, same day):
      * `/engine-room` is a redirect stub now, no `head()` of its own, and its
-     * content is mounted under `/crew`'s own URL as Team's own tab -- P-79's
+     * content is mounted under `/team`'s own URL as Team's own tab -- P-79's
      * own scope line is explicit that "the tab title STAYS Team" even with
      * the spend tab open, which this same coupling now argues FOR rather
      * than against: the door and the tab agreeing is the whole point, and
      * the door here is Team on every one of its own tabs, not a second name
-     * for one of them. `_authenticated.crew.tsx`'s title assertion below
+     * for one of them. `_authenticated.team.tsx`'s title assertion below
      * covers what this test used to hold about the engine room.
      */
     const all = titles().join("\n");

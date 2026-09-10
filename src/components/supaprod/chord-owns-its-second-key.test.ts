@@ -11,7 +11,7 @@ import { PRIMARY_NAV, FOOTER_NAV, navKeyHint, NAV_CHORD_PREFIX } from "@/lib/nav
  * so it could not commit. Pressing `g` then `d` on /today navigated to Discover
  * AND fired `decideApprovalItem` with `verdict: "reject"` on the call that was
  * waiting. The receipt was the request body, carrying a real decision id. The
- * same shape existed on /approvals (`g r` rejected the focused call), on
+ * same shape existed on /inbox (`g r` rejected the focused call), on
  * /decide (`g k` drafted a spec and spent money, `g c` dispatched the Critic)
  * and on /discover. Every one of them silent, and the destructive half of each
  * was the irreversible half.

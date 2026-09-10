@@ -21,7 +21,7 @@
  * not blank the other nine, has the same shape and the same answer.
  *
  * -- IT IS ONE MODULE BECAUSE IT IS ONE SENTENCE ---------------------------
- * `/approvals` and the inbox both state a count. Two spellings of one caveat is
+ * `/inbox` and the inbox both state a count. Two spellings of one caveat is
  * how a person gets two answers about the same queue, so the wording lives
  * here and both call it.
  *
@@ -84,7 +84,7 @@ export function notTheWholeQueue(
  *
  * It lives here for the reason the header already gives: two spellings of one
  * caveat is how a person gets two answers about the same queue. This is the
- * third spelling that WOULD have existed, after `/approvals` and the inbox, so
+ * third spelling that WOULD have existed, after `/inbox` and the inbox, so
  * it is the case the module was made for.
  *
  * WHAT IT IS NOT. It is not a number and it does not change one. A count that

@@ -167,7 +167,7 @@ describe("the rail's ownership is derived, and unambiguous", () => {
     /*
      * ── AND ONE OF THE SEVEN NOW HAS ITS OWN ROW (P-60) ──────────────────
      *
-     * `/arriving` is the door "What came in" as well as Discover's surface, so
+     * `/evidence` is the door "What came in" as well as Discover's surface, so
      * standing there lights ITS row rather than Start's. That is the correct
      * reading and not an exception being carved out: the rule was always "the
      * row that owns this path", and Start owned the stations only because
@@ -199,20 +199,20 @@ describe("the rail's ownership is derived, and unambiguous", () => {
     // the door would not make it stop being a station door.
     const rows = [...railBlock().matchAll(/to:\s*"([^"]+)"/g)].map((m) => m[1]);
     /*
-     * R-01 IS ABOUT THE SEVEN STATIONS AS NAVIGATION, and `/arriving` is a rail
+     * R-01 IS ABOUT THE SEVEN STATIONS AS NAVIGATION, and `/evidence` is a rail
      * door under P-60 while also being Discover's surface. The rule that still
      * has to hold is that no row is a STATION door -- named for a step in the
      * route, taking a person to a stage of the machine. "What came in" is the
      * person's question and the station-only routes stay out.
      *
-     * `/outcomes` joined `/arriving` on 2026-09-09 (Lane 2, P-14b): /learn
+     * `/outcomes` joined `/evidence` on 2026-09-09 (Lane 2, P-14b): /learn
      * folded into Outcomes, so Learn's surface is the rail's Outcomes door the
      * way Discover's is Findings. "What happened" is the person's question;
      * the door is not named for the station, which the label check below
      * still holds.
      */
     const stationOnly = new Set<string>(
-      Object.values(STATION_ROUTE).filter((r) => r !== "/arriving" && r !== "/outcomes"),
+      Object.values(STATION_ROUTE).filter((r) => r !== "/evidence" && r !== "/outcomes"),
     );
     expect(rows.filter((r) => stationOnly.has(r))).toEqual([]);
     expect(rows).not.toContain("/runs");
@@ -283,7 +283,7 @@ describe("the rail's ownership is derived, and unambiguous", () => {
     // silently reappearing.
     /*
      * FOUR OF THE FIVE CAME BACK (P-60, R-38: a surface without a door is not
-     * shipped). `/approvals`, `/outcomes` and `/threads` are rail doors now and
+     * shipped). `/inbox`, `/outcomes` and `/threads` are rail doors now and
      * are correctly owned; what is still folded away is `/today`, which Start
      * genuinely absorbed, and `/engine-room`, reached from Crew and spend
      * because "where is the machinery" is not a question a person arrives with.
@@ -296,7 +296,7 @@ describe("the rail's ownership is derived, and unambiguous", () => {
     for (const path of ["/today", "/engine-room", "/threads"]) {
       expect(railOwnerOf(path)).toBeNull();
     }
-    for (const path of ["/approvals", "/outcomes", "/crew", "/sync"]) {
+    for (const path of ["/inbox", "/outcomes", "/team", "/sources"]) {
       expect(railOwnerOf(path)).toBe(path);
     }
   });
@@ -307,7 +307,7 @@ describe("the rail's ownership is derived, and unambiguous", () => {
       expect(settingsOwns("/settings/anything")).toBe("page");
       // Team is a row (P-60); on it the gear is silent, or a screen reader
       // meets two controls announcing current (fourth review, 2026-09-09).
-      expect(settingsOwns("/crew")).toBeUndefined();
+      expect(settingsOwns("/team")).toBeUndefined();
     });
 
     it("claims nothing it does not hold", () => {
@@ -321,12 +321,12 @@ describe("the rail's ownership is derived, and unambiguous", () => {
       // places. The rows are the authority; the foot only picks up what no row
       // owns.
       /*
-       * `/crew` IS A ROW NOW (P-60), so it is owned by that row and no longer by
+       * `/team` IS A ROW NOW (P-60), so it is owned by that row and no longer by
        * the foot -- which is the rule working, not an exception: the rows are
        * the authority and the foot picks up only what no row owns. The two that
        * still belong to the foot alone are asserted as before.
        */
-      expect(railOwnerOf("/crew")).toBe("/crew");
+      expect(railOwnerOf("/team")).toBe("/team");
       for (const path of ["/boundary", "/settings"]) {
         expect(railOwnerOf(path)).toBeNull();
       }

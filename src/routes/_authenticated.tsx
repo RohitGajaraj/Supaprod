@@ -319,7 +319,7 @@ function AuthedLayout() {
   // two headers and two rails.
   //
   // Emptied over 2026-07-29 as each surface was ported and verified to have
-  // dropped RoomChromeShell: /approvals, then /brain and /settings, then
+  // dropped RoomChromeShell: /inbox, then /brain and /settings, then
   // /threads and /artifacts. Only Mission Control is left, and it is the one
   // genuinely different case: it carries its own five-region composition
   // (TopBar, Spine, Thread, Canvas, Composer) rather than a duplicate of the

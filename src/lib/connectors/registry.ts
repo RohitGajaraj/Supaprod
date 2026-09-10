@@ -181,7 +181,7 @@ export type ProviderSpec = {
 /**
  * ── THE ONE SENTENCE FOR A CONNECTOR NOBODY HERE CAN TURN ON ──────────────
  *
- * WALKED AS A STRANGER ON THE SERVED /sync, 2026-09-10. Seven of the fifteen
+ * WALKED AS A STRANGER ON THE SERVED /sources, 2026-09-10. Seven of the fifteen
  * connectors read **"Waiting on an admin"** — Intercom, Stripe, Zendesk,
  * HubSpot, Canny, Productboard, Notion.
  *
@@ -452,7 +452,7 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
   // 2026-08-06 audit. Their descriptions below are TRUE of the product — the two-way
   // doc/issue sync behind them is real code (lib/sync.functions.ts pull/pushMapping,
   // lib/linear.functions.ts, lib/notion.functions.ts, lib/gdocs.functions.ts, surfaced
-  // at /sync and in Knowledge docs) — but that code authenticates with the SHARED
+  // at /sources and in Knowledge docs) — but that code authenticates with the SHARED
   // admin env keys (LOVABLE_API_KEY + LINEAR_API_KEY / NOTION_API_KEY /
   // GOOGLE_DOCS_API_KEY) through the Lovable connector gateway. It never reads the
   // per-user vault token that the oauth_native flows below mint, and their adapters are

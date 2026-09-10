@@ -937,7 +937,7 @@ function StartLanding() {
       {/* WHAT IS ARRIVING (founder, 2026-09-02 19:12): the
           product's central claim, evidence becomes work on its own, provable
           on the page a person actually lands on. */}
-      <Arriving door={!sinceYouLooked.some((a) => "to" in a.door && a.door.to === "/arriving")} />
+      <Arriving door={!sinceYouLooked.some((a) => "to" in a.door && a.door.to === "/evidence")} />
 
       <CrewAtWork workspaceId={activeWorkspaceId ?? null} onOpen={openRun} className="mt-mrd-5" />
 
