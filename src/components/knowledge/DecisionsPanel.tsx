@@ -95,8 +95,11 @@ import { AgentMark, YouMark } from "@/components/meridian/marks";
 import {
   ageOf,
   displayWho,
+  claimRestatesTitle,
   forecastChip,
   forecastCoverage,
+  HOLD_WORD,
+  holdIsTheWholeColumn,
   forecastDue,
   forecastTitle,
   OUTCOME_WORD,
@@ -320,6 +323,11 @@ export function DecisionsPanel() {
    * is in front of the reader, which is the only thing it can see.
    */
   const coverage = forecastCoverage(rows);
+  /* Over `shown`, the rows about to be drawn -- not `rows`, which is what the
+     coverage sentence counts. The two populations differ the moment the list is
+     capped at `VISIBLE_DECISIONS`, and it is the DRAWN column that either
+     repeats itself or does not. See `holdIsTheWholeColumn`. */
+  const holdEverywhere = holdIsTheWholeColumn(shown);
   /* The other half of the same question, off the same rows: how many of these
      bets went past the date the team set and were never settled. */
   const overdue = forecastDue(rows, Date.now());
@@ -486,6 +494,11 @@ export function DecisionsPanel() {
               : "decisions on this list carry"}{" "}
             a forecast, written before the outcome was known.
             {coverage.tail ? ` ${coverage.tail}` : null}
+            {/* WHERE THE COLUMN'S ONE WORD GOES WHEN IT LEAVES THE ROWS. Six of
+                eight rows ended in "hold" on production, so the word said
+                nothing about any row and everything about the list. It is a
+                state rather than a verdict, and a page states its own. */}
+            {holdEverywhere ? " None of them has been settled yet." : null}
           </p>
           {/*
            * THE SECOND HALF, AND THE ONE THE PRODUCT'S CLAIM RESTS ON. A
@@ -521,6 +534,10 @@ export function DecisionsPanel() {
             // (via forecastChip) so this list and the Forecast Desk cannot drift;
             // colour only on a settled hit or miss, muted hold otherwise.
             const fc = forecastChip(d);
+            /* Computed over `shown`, the rows about to be drawn, never over the
+               query. See `holdIsTheWholeColumn` and `claimRestatesTitle`. */
+            const lead = stripAutoPrefix(d.title);
+            const claimIsTheLead = fc ? claimRestatesTitle(fc.claim, lead) : false;
             return (
               <Row
                 key={d.id}
@@ -532,7 +549,7 @@ export function DecisionsPanel() {
                     <YouMark initials={initials} />
                   )
                 }
-                lead={stripAutoPrefix(d.title)}
+                lead={lead}
                 // The second line is a DIFFERENT fact, never more of the first:
                 // where the call stands, and who put it there. The forecast chip,
                 // when the row carries one, is the third: what was believed
@@ -577,25 +594,49 @@ export function DecisionsPanel() {
                     ) : null}
                     {fc ? (
                       <>
-                        {" · "}
-                        {/* Truncates ITSELF so the resolution word survives the
-                          row's own truncate on narrow widths; the full claim is
-                          one click away in DecisionDetail. */}
-                        <span
-                          title={forecastTitle(d)}
-                          style={{
-                            display: "inline-block",
-                            maxWidth: 240,
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
-                            verticalAlign: "bottom",
-                          }}
-                        >
-                          Forecast: {fc.claim}
-                        </span>
-                        {" · "}
-                        <span className={fc.tone || undefined}>{fc.word}</span>
+                        {/* THE CLAIM GOES WHEN IT IS THE LINE ABOVE IT. Two rows
+                          on production printed one sentence twice, twenty pixels
+                          apart. The verdict word below still says a forecast
+                          exists, so nothing is hidden. `claimRestatesTitle`. */}
+                        {claimIsTheLead ? null : (
+                          <>
+                            {" · "}
+                            {/* Truncates ITSELF so the resolution word survives the
+                              row's own truncate on narrow widths; the full claim is
+                              one click away in DecisionDetail. */}
+                            <span
+                              title={forecastTitle(d)}
+                              style={{
+                                display: "inline-block",
+                                maxWidth: 240,
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                                verticalAlign: "bottom",
+                              }}
+                            >
+                              Forecast: {fc.claim}
+                            </span>
+                          </>
+                        )}
+                        {/* AND THE WORD GOES WHEN EVERY ROW HAS IT. `hold` is a
+                          state, not a verdict, and a state identical down the
+                          whole column belongs to the page. The coverage line
+                          above says it once. A settled hit or miss is never
+                          suppressed, however uniform the column.
+
+                          AND NEVER WHEN THE CLAIM IS ALSO GONE. Between them
+                          the two are what distinguishes this row from one
+                          reading "no forecast"; dropping both would make a
+                          call that carries a forecast and a call that carries
+                          none the same picture, which is the one thing this
+                          second line exists to keep apart. */}
+                        {holdEverywhere && fc.word === HOLD_WORD && !claimIsTheLead ? null : (
+                          <>
+                            {" · "}
+                            <span className={fc.tone || undefined}>{fc.word}</span>
+                          </>
+                        )}
                       </>
                     ) : (
                       /* ABSENCE IS A FACT AND IT SAYS SO. Drawing nothing here

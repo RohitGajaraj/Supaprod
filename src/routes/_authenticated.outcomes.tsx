@@ -410,6 +410,7 @@ import { TabPanel, Tabs } from "@/components/meridian/Tabs";
 import { NeedsSetup } from "@/components/meridian/NeedsSetup";
 import { Quiet } from "@/components/meridian/Quiet";
 import { ForecastDeskPanel } from "@/components/learn/ForecastDeskPanel";
+import { foldAbsences, type Absence } from "@/components/brain/four-absences-are-one-line";
 import { LearnRecord } from "@/components/learn/LearnRecord";
 import { ShipRecord } from "@/components/ship/ShipRecord";
 import { PageHeading } from "@/components/meridian/surface-parts";
@@ -881,6 +882,16 @@ export type GuidanceLine = {
   lead: ReactNode;
   sub: ReactNode;
   door?: "outcomes";
+  /**
+   * Present ONLY on a line that is admitting a mechanism has not started, and
+   * it is what lets several such lines become one. See
+   * `four-absences-are-one-line.ts` for the four consecutive absences this
+   * region drew on production and why the fold keeps every act.
+   *
+   * A line reporting something that HAPPENED never carries it, which is what
+   * makes the fold safe: it can only ever collapse admissions.
+   */
+  absent?: Absence;
 };
 
 /**
@@ -963,6 +974,7 @@ export function guidanceLines(args: {
             key: "read-back",
             lead: "No lesson on the record has gone into a run yet.",
             sub: "The next run over the same ground reads it first. That is the whole mechanism, and it needs one more run.",
+            absent: { noun: "read back", act: "One more run over the same ground reads it first." },
           },
     );
   }
@@ -1002,6 +1014,7 @@ export function guidanceLines(args: {
             key: "rated",
             lead: "None of that has been rated yet.",
             sub: "Rate one run and every lesson it leaned on moves up or down in what the crew reads next.",
+            absent: { noun: "rated", act: "Rate one run." },
           },
     );
   }
@@ -1015,6 +1028,7 @@ export function guidanceLines(args: {
       lead: "No outcome has moved a decision's priority yet.",
       sub: "Record what a shipped bet actually did, and the ranking it came from moves with it.",
       door: "outcomes",
+      absent: { noun: "re-ranked", act: "Record what a shipped bet actually did." },
     });
   }
 
@@ -1049,6 +1063,10 @@ export function guidanceLines(args: {
             key: "forecast",
             lead: "No forecast has been graded yet.",
             sub: "When a forecast on the record passes its date, the outcome marks it true or false, and the score starts here.",
+            /* The one absence with no act for a PERSON, and saying so is the
+               point: three admissions in a row all reading like homework is
+               how a young record reads as a backlog. */
+            absent: { noun: "graded", act: "A forecast grades itself once its date passes." },
           },
     );
   }
@@ -1059,10 +1077,30 @@ export function guidanceLines(args: {
    * yet" lines and the one thing the record had actually done sat fourth.
    * What has happened comes first; what has not follows, each admission
    * still naming the act that ends it (the guards on this region hold that).
+   *
+   * ── AND FROM 2026-09-10 THE ADMISSIONS ARE ONE LINE ────────────────────
+   * Ordering fixed which end of the region they sat at and did nothing about
+   * there being three of them, immediately followed by a fourth region whose
+   * whole content was a fifth absence. `foldAbsences` keeps every noun and
+   * every act and spends one line on them. It fires at two, never at one: a
+   * single admission is not a stack, and replacing one specific sentence with
+   * a general one would be this fold running backwards.
+   *
+   * The partition is now the `absent` FIELD rather than a regex on the lead.
+   * `/^(No |None )/` was a guess about English that happened to be right about
+   * four sentences; a line that opened "Nothing has..." was already outside it
+   * and the fold's own output would have been.
    */
-  const isNotYet = (g: (typeof out)[number]) =>
-    typeof g.lead === "string" && /^(No |None )/.test(g.lead);
-  return [...out.filter((g) => !isNotYet(g)), ...out.filter(isNotYet)];
+  return foldAbsences(out, (lead, sub, folded) => ({
+    key: "not-yet",
+    lead,
+    sub,
+    /* The door survives the fold. Exactly one admission has ever carried one
+       and dropping it would take the region's only control with it; if a
+       second ever does, the first in mechanism order wins rather than the
+       last, because that is the order the reader just read them in. */
+    door: folded.find((f) => f.door)?.door,
+  }));
 }
 
 /**

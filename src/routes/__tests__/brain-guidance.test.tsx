@@ -240,12 +240,35 @@ describe("Brain guidance: a zero never stands in for an unreadable read", () => 
   });
 
   it("says nothing has been rated, and names what a rating does", () => {
+    /*
+     * ── THE ADMISSIONS ARE ONE LINE FROM 2026-09-10 ─────────────────────
+     * This assertion used to read `lineByKey(lines, "rated")`. Two or more
+     * admissions now fold into a single `not-yet` line, because this region
+     * drew THREE of them in a row on production and was followed by a fourth
+     * region that was a fifth. See `four-absences-are-one-line.ts`.
+     *
+     * The rule this test is FOR is unchanged and still asserted below: a "not
+     * yet" that does not name the act that ends it reads as broken. The act
+     * is now in the folded sub rather than in a line of its own.
+     */
     const lines = guidanceLines({ recall: recall(), rescoreCount: 0, recallSaidBelow: false });
-    const rated = lineByKey(lines, "rated");
-    expect(rated).toBeDefined();
-    expect(text(rated!.lead)).toBe("None of that has been rated yet.");
-    // A "not yet" that does not name the act that ends it reads as broken.
-    expect(text(rated!.sub)).toMatch(/^Rate one run/);
+    expect(lineByKey(lines, "rated")).toBeUndefined();
+    const notYet = lineByKey(lines, "not-yet")!;
+    expect(text(notYet.lead)).toContain("rated");
+    expect(text(notYet.sub)).toContain("Rate one run.");
+  });
+
+  it("folds only at two, so one admission keeps its own specific sentence", () => {
+    /*
+     * The fold trades a specific sentence for a general one, and at a count of
+     * one that trade runs backwards. `rescoreCount: null` and no forecast
+     * leaves `rated` as the only admission on the region.
+     */
+    const lines = guidanceLines({ recall: recall(), rescoreCount: null, recallSaidBelow: false });
+    expect(lineByKey(lines, "not-yet")).toBeUndefined();
+    const rated = lineByKey(lines, "rated")!;
+    expect(text(rated.lead)).toBe("None of that has been rated yet.");
+    expect(text(rated.sub)).toMatch(/^Rate one run/);
   });
 
   it("reports both sides of a rating in their own colour once ratings land", () => {
@@ -292,9 +315,14 @@ describe("Brain guidance: a young record sharpens, and never reads as broken", (
       rescoreCount: 0,
       recallSaidBelow: false,
     });
-    const read = lineByKey(lines, "read-back")!;
-    expect(text(read.lead)).toBe("No lesson on the record has gone into a run yet.");
-    expect(text(read.sub)).toContain("next run");
+    /* Two absences on this fixture and no third: `events: 0` means no run has
+       been rated OR not rated as far as the log is concerned, so that line is
+       correctly not drawn at all. The two that ARE known fold, and every noun
+       and every act survives, which is what is asserted rather than the shape
+       they used to have. */
+    const notYet = lineByKey(lines, "not-yet")!;
+    expect(text(notYet.lead)).toBe("Nothing has been read back or re-ranked yet.");
+    expect(text(notYet.sub)).toContain("One more run over the same ground reads it first.");
     // Not a failure word anywhere.
     expect(allCopy(lines).toLowerCase()).not.toMatch(/broken|unavailable|error|failed|disabled/);
   });
@@ -315,9 +343,12 @@ describe("Brain guidance: the re-score admission", () => {
     // This is the clause the headline used to carry. It must not evaporate when
     // the headline stops saying it.
     const lines = guidanceLines({ recall: recall(), rescoreCount: 0, recallSaidBelow: false });
-    const line = lineByKey(lines, "rescored")!;
-    expect(text(line.lead)).toBe("No outcome has moved a decision's priority yet.");
-    expect(text(line.sub)).toMatch(/^Record what a shipped bet actually did/);
+    const line = lineByKey(lines, "not-yet")!;
+    expect(text(line.lead)).toContain("re-ranked");
+    expect(text(line.sub)).toContain("Record what a shipped bet actually did.");
+    /* THE DOOR SURVIVES THE FOLD, and it is the region's only control. A fold
+       that quietly dropped it would take the act with it while still printing
+       the sentence that names one. */
     expect(line.door).toBe("outcomes");
   });
 
@@ -441,9 +472,12 @@ describe("Brain guidance: the graded forecast line", () => {
       recallSaidBelow: false,
       forecast: forecast({ resolved: 0, hits: 0, hitRate: null }),
     });
-    const line = lineByKey(lines, "forecast")!;
-    expect(text(line.lead)).toBe("No forecast has been graded yet.");
-    expect(text(line.sub)).toMatch(/^When a forecast on the record passes its date/);
+    const line = lineByKey(lines, "not-yet")!;
+    expect(text(line.lead)).toContain("graded");
+    /* The one absence whose act is not homework, and it says so: a forecast
+       grades itself. Three admissions in a row all reading as chores is how a
+       young record reads as a backlog. */
+    expect(text(line.sub)).toContain("A forecast grades itself once its date passes.");
     // Not a failure word anywhere.
     expect(allCopy(lines).toLowerCase()).not.toMatch(/broken|unavailable|error|failed|disabled/);
   });
