@@ -15,6 +15,7 @@ import { YourRuns } from "@/components/start/YourRuns";
 import { Arriving } from "@/components/start/Arriving";
 import { Hero, heroCopy } from "@/components/start/Hero";
 import { JourneyMap, promiseStations, routeStations } from "@/components/start/JourneyMap";
+import { waitingByStation } from "@/components/start/a-call-waits-at-a-station";
 import { suggestRoute } from "@/lib/spine/route";
 import { CrewAtWork, quietFor, workingSeats } from "@/components/start/CrewAtWork";
 import { StarterRuns } from "@/components/start/StarterRuns";
@@ -30,6 +31,7 @@ import {
   startersStand,
   withPresences,
   withTimings,
+  withWaiting,
 } from "@/components/start/journey-of-a-run";
 import { notTheWholeQueue } from "@/components/approvals/not-the-whole-queue";
 import { trackChangeKeys } from "@/hooks/use-track-change-push";
@@ -623,24 +625,40 @@ function StartLanding() {
     const id = setInterval(bumpMap, 1_000);
     return () => clearInterval(id);
   }, [anySeat]);
+  /* WHAT IS WAITING ON YOU, PER STATION, folded from the queue this page
+     already holds -- no new read. Until 2026-09-10 the road knew nothing
+     about the queue, so it drew Design empty while the headline counted four
+     design gates standing at it. See `a-call-waits-at-a-station.ts`. */
+  const waitingAt = useMemo(
+    () =>
+      queueRead.isSuccess
+        ? waitingByStation((queueRead.data?.items ?? []).map((i) => i.kindKey))
+        : {},
+    [queueRead.isSuccess, queueRead.data],
+  );
   const map = useMemo(
     () =>
-      withTimings(
-        withPresences(
-          journeyMap(runs.data ?? []),
-          /* The quiet length rides along so the map's stop prints the
+      withWaiting(
+        withTimings(
+          withPresences(
+            journeyMap(runs.data ?? []),
+            /* The quiet length rides along so the map's stop prints the
              strip's own "quiet for N min" (fourth review, 2026-09-09). */
-          workingSeats(running.data).map((s) => {
-            const quiet = quietFor(s, Date.now());
-            return { ...s, alive: !quiet, ...(quiet ? { quietMs: quiet } : {}) };
-          }),
-          presenceColour,
+            workingSeats(running.data).map((s) => {
+              const quiet = quietFor(s, Date.now());
+              return { ...s, alive: !quiet, ...(quiet ? { quietMs: quiet } : {}) };
+            }),
+            presenceColour,
+          ),
+          timings.data,
         ),
-        timings.data,
+        /* LAST, so a seat actually working at a stop wins over a call queued
+           at it: `withWaiting` only repaints a stop that nothing stands on. */
+        waitingAt,
       ),
     // `mapTick` is the clock.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [runs.data, running.data, timings.data, mapTick],
+    [runs.data, running.data, timings.data, waitingAt, mapTick],
   );
   const openRun = (trackId: string) =>
     void navigate({ to: "/track/$trackId", params: { trackId }, search: {} });

@@ -1332,6 +1332,64 @@ claim it measured a path that did not exist yet.
 
 ---
 
+### 29. Two units never share a mark
+
+**A number on a drawing carries one unit, and a second unit gets a second mark in a different
+place.** Not a different colour in the same slot: hue is the first thing lost to greyscale, to a
+colourblind reader, and to a screenshot in a deck.
+
+**The measurement, served home, 2026-09-10 00:43 UTC, workspace A1 delete probe.** The headline read
+*"4 design gates and 2 other calls are waiting for you."* The road, forty pixels above it, drew:
+
+| stop | Discover | Decide | Plan | **Design** | Build | Ship | Learn |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| drawn | — | 3 | — | **blank** | 3 | — | 2 |
+
+```sql
+select count(*) from prds where workspace_id = '<ws>' and design_gate_status = 'pending';  -- 4
+select station, count(*) from spine_tracks where workspace_id = '<ws>' group by station;
+--  build 3 · decide 3 · learn 2 · design 0
+```
+
+Both numbers were right and no reader could reconcile them. `count` on the road is
+`spine_tracks.station` — runs standing at a stop. The gates are `prds.design_gate_status` — calls
+waiting on a person. The road never joined the queue, so the station the headline named was the one
+station it drew as untouched. **`APPROVAL_KIND_STATION` already mapped `design_gate → design`:** the
+product knew where those four calls belonged, and the drawing whose whole job is the through-line
+did not. That is the founder's *"nothing joins up"* and *"it reads as a dump of data"* inside one
+region.
+
+**What it became.** `JourneyStation.waiting` is the second unit. `count` keeps the solid pill at the
+top-right; `waiting` draws in the `you` hue at the top-**left**. A stop can honestly carry both, and
+neither number can be mistaken for the other. Where nothing stands at all, the stop takes the road's
+existing `you` paint, because then "waiting on you" is the whole truth of it — but a stop with a
+seat actually working at it is never repainted, so `withWaiting` runs *after* `withPresences`.
+
+**The rule this is an instance of.** A single badge meaning "runs here" sometimes and "waiting on
+you" other times, told apart only by colour, is the unit-switching number law 21 already bans. The
+tempting fix — reuse the slot, change the hue — is the one to refuse.
+
+**Two consequences that are part of the fix, not extras.**
+
+- **A stop lit by calls must be pressable.** `Journey` gated `interactive` on `count > 0`, so before
+  this the one node the headline sent a person to was the only node they could not press.
+- **Making it pressable created a dead end, and the same change closes it.** Pressing a stop filters
+  the runs list, and a stop holding only calls filters to nothing. So that one state — and only that
+  one — draws an **Open Inbox** link beside the sentence. It is a `Link`, not a button (law 22), and
+  it is drawn nowhere else because the hero already carries that door and two doors onto one
+  question is what `one-door-per-sentence.test.ts` exists to catch.
+
+**And a sentence that was true became false.** *"Nothing is standing on the road"* asks only whether
+any **run** stands anywhere; it stayed true while Design wore a badge reading 4. Every derived line
+has to be re-read when the thing it describes learns a new fact — see law 25 and
+`a-qualifier-outlives-the-read-it-was-written-for`.
+
+`the-road-knows-what-is-waiting.test.ts` pins the join, never the phrasing: it checks the station's
+name and the count, so better copy cannot fail it and a lost fact cannot pass it. It was made to
+fail first — stubbing `withWaiting` to return its input failed six of its assertions.
+
+---
+
 ## Working with the founder
 
 **He refines by seeing, not by specifying.** Ship a faithful attempt fast, then expect two or three taste passes. He reviews element by element and expects every item in a feedback batch closed or explicitly declined. He invites pushback but wants **a recommendation, not a survey**.

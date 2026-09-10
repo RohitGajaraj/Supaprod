@@ -74,7 +74,13 @@ import { castByStation, type AgentStation } from "@/lib/agent-vocabulary";
 /** The station whose specialist owns each gate family, so a gate that carries
  *  no explicit agent slug still shows an honest attribution chip (the agent
  *  that produces that kind of call). */
-const APPROVAL_KIND_STATION: Partial<Record<ApprovalKind, AgentStation>> = {
+/**
+ * WHICH STATION EACH KIND OF CALL BELONGS TO. Exported since 2026-09-10
+ * because the home's road needs it too: it drew Design empty while the
+ * headline counted four design gates, and this map is the thing that already
+ * knew they belonged at Design.
+ */
+export const APPROVAL_KIND_STATION: Partial<Record<ApprovalKind, AgentStation>> = {
   decision: "decide",
   opportunity: "decide",
   assumption_challenge: "decide",

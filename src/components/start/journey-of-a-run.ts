@@ -266,6 +266,40 @@ export function withTimings(
   });
 }
 
+/**
+ * THE MAP CARRIES WHAT IS WAITING ON THE PERSON, at the station it waits at.
+ *
+ * MEASURED ON THE SERVED HOME, 2026-09-10 00:43 UTC (A1 delete probe): the
+ * headline read "4 design gates and 2 other calls are waiting for you" and
+ * this map drew **Design with nothing on it** -- because every number on the
+ * road came from `spine_tracks.station` (build 3, decide 3, learn 2, design
+ * 0) and the gates live in `prds`. The join simply did not exist, so the
+ * region whose job is the through-line contradicted the sentence beneath it.
+ *
+ * A STATION IS LIT ONLY WHERE NOTHING ELSE IS STANDING THERE. `you` is a
+ * state about the whole stop, and a stop with a run actually working at it is
+ * not "waiting on you" even when one of your calls sits there too. So where
+ * work stands the state is left exactly as `journeyMap` computed it and only
+ * the second number is added; where nothing stands, `you` is the truth and it
+ * is painted. That is why this runs AFTER `withPresences`: a seat working at
+ * a stop must win over a call queued at it.
+ */
+export function withWaiting(
+  stations: readonly JourneyStation[],
+  waiting: Partial<Record<string, number>>,
+): JourneyStation[] {
+  return stations.map((s) => {
+    const n = waiting[s.key] ?? 0;
+    if (n <= 0) return s;
+    const nothingStandsHere = (s.count ?? 0) === 0 && !(s.presences?.length ?? 0);
+    return {
+      ...s,
+      waiting: n,
+      ...(nothingStandsHere && s.state === "pending" ? { state: "you" as const } : {}),
+    };
+  });
+}
+
 export function keyOfStation(station: string): JourneyKey | null {
   return (JOURNEY_ORDER as readonly string[]).includes(station) ? (station as JourneyKey) : null;
 }

@@ -86,6 +86,28 @@ export type JourneyStation = {
   /** Full form only: how many pieces of work stand here. Drawn when > 0. */
   count?: number | null;
   /**
+   * HOW MANY CALLS ARE WAITING ON THE PERSON AT THIS STATION, which is not
+   * the same question as `count` and must never be added to it.
+   *
+   * MEASURED ON THE SERVED HOME, 2026-09-10, workspace A1 delete probe. The
+   * headline read *"4 design gates and 2 other calls are waiting for you"*
+   * and the road forty pixels above it drew **Design with no badge, no hue
+   * and no press** -- because `count` comes from `spine_tracks.station` (3 at
+   * build, 3 at decide, 2 at learn, ZERO at design) while the gates come from
+   * `prds.design_gate_status`, and the road never joined the queue at all.
+   * `APPROVAL_KIND_STATION` already maps `design_gate -> design`, so the
+   * product knew where those four calls belonged and the drawing did not.
+   * That is the founder's *"the stations do not form a flow"* on the one
+   * region that exists to be the flow.
+   *
+   * TWO UNITS, TWO MARKS, TWO PLACES. `count` keeps the solid pill at the
+   * top-right; this draws in the `you` hue at the top-LEFT. A single badge
+   * that means "runs here" sometimes and "waiting on you" other times,
+   * separated only by colour, is the unit-switching number law 21 exists to
+   * stop -- so they never share a slot, and a node can honestly carry both.
+   */
+  waiting?: number | null;
+  /**
    * WHO IS WORKING HERE RIGHT NOW, each in their own presence colour (the
    * same colour AgentPresence gives the seat everywhere else). Full form
    * only: a cluster of live dots at the node's foot, so the road itself
@@ -306,6 +328,10 @@ function describe(s: JourneyStation, promise = false): string {
   const bits = [`${labelOf(s)}: ${JOURNEY_STATE_WORD[s.state]}`];
   if (s.outcome) bits.push(s.outcome);
   if (s.count && s.count > 0) bits.push(`${s.count} here`);
+  /* Said as its own clause, in the person's unit. A screen reader hearing
+     "Design: not yet" over four waiting calls got the same broken join the
+     sighted reader got. */
+  if (s.waiting && s.waiting > 0) bits.push(`${s.waiting} waiting on you`);
   if (s.presences && s.presences.length > 0) {
     const seats = s.presences.map((p) => p.seat).join(" and ");
     /* A quiet seat is said as quiet, the strip's own words, not as working. */
@@ -456,6 +482,17 @@ function Node({
           style={{ background: "var(--mrd-solid)", color: "var(--mrd-on-solid)" }}
         >
           {station.count}
+        </span>
+      ) : null}
+      {/* THE OTHER UNIT, ON THE OTHER SIDE. Top-left in the `you` hue, so a
+          node carrying three runs AND two of your calls says both without
+          either number pretending to be the other. */}
+      {size === "full" && station.waiting && station.waiting > 0 ? (
+        <span
+          className="font-mrd-mono absolute -top-1 -left-1.5 min-w-[16px] rounded-full px-1 text-center text-mrd-micro leading-mrd-snug tabular-nums"
+          style={{ background: "var(--mrd-you-chip)", color: "var(--mrd-you-on-chip)" }}
+        >
+          {station.waiting}
         </span>
       ) : null}
     </span>
@@ -758,7 +795,12 @@ export function Journey({
              * find out it filed nothing. Only a filter over a list can be
              * empty in a way that makes the control pointless.
              */
-            interactive={interactive && (selects === "pane" || (s.count ?? 0) > 0)}
+            /* A station with calls waiting on you is pressable even with
+               nothing standing there. Before this, the one node the headline
+               sent a person to was the one node they could not press. */
+            interactive={
+              interactive && (selects === "pane" || (s.count ?? 0) > 0 || (s.waiting ?? 0) > 0)
+            }
             selects={selects}
             promise={promise}
           />

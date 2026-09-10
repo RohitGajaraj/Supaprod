@@ -13,6 +13,7 @@
  *             never opens a station page (R-01).
  */
 import * as React from "react";
+import { Link } from "@tanstack/react-router";
 
 import { Action, Eyebrow } from "@/components/meridian/surface-parts";
 import { AGENT_STATIONS } from "@/lib/agent-vocabulary";
@@ -131,6 +132,13 @@ export function captionFor({
   const stoppedHere = stations
     .filter((s) => s.state === "stopped" && (s.count ?? 0) > 0)
     .map((s) => AGENT_STATIONS[s.key].name);
+  /* The stations where CALLS wait on the person -- a different unit from
+     `count`, and missing from this drawing entirely until 2026-09-10. The
+     measurement is in `withWaiting`. */
+  const waitingHere = stations.filter((s) => (s.waiting ?? 0) > 0);
+  const waitingTotal = waitingHere.reduce((n, s) => n + (s.waiting ?? 0), 0);
+  const waitingNames = waitingHere.map((s) => AGENT_STATIONS[s.key].name);
+  const callsAre = (n: number) => `${n} ${n === 1 ? "call is" : "calls are"} waiting on you`;
   if (mode === "route") {
     /*
      * THE ROAD HAS CHANGED SUBJECT, SO IT SAYS SO. It was a map of the
@@ -165,15 +173,60 @@ export function captionFor({
        * this is now reachable only by standing on a station while its last run
        * finishes. Rare, real, and it must not print a zero when it happens.
        */
-      selected && here && (here.count ?? 0) === 0
-      ? null
-      : selected && here
-        ? `Showing the ${here.count} ${here.count === 1 ? "run" : "runs"} at ${AGENT_STATIONS[selected].name}.`
-        : empty
-          ? "Nothing is standing on the road. What finished is in the runs below."
-          : stoppedHere.length > 0
-            ? `${joinPlainly(stoppedHere)} ${stoppedHere.length === 1 ? "has" : "have"} stopped, and will not move without you.`
-            : "Press a station to see only the runs there.";
+      /* A STATION CAN NOW BE PRESSED WITH NO RUNS ON IT, because calls wait
+         there (`Journey`'s `interactive`). This branch was written for a stop
+         whose last run had just finished, and left as-is it would print
+         nothing over a list that is empty for a reason the person cannot
+         see -- the dead end law 24 names. It says the calls instead. */
+      selected && here && (here.count ?? 0) === 0 && (here.waiting ?? 0) > 0
+      ? `${callsAre(here.waiting ?? 0)} at ${AGENT_STATIONS[here.key].name}. No run is standing there.`
+      : selected && here && (here.count ?? 0) === 0
+        ? null
+        : selected && here
+          ? `Showing the ${here.count} ${here.count === 1 ? "run" : "runs"} at ${AGENT_STATIONS[selected].name}.`
+          : /* "NOTHING IS STANDING" BECAME A CONTRADICTION THE MOMENT THIS ROAD
+             LEARNED ABOUT CALLS. `empty` asks only whether any RUN stands
+             anywhere, so with four gates waiting at Design it stayed true
+             while Design wore a badge reading 4. */
+            empty && waitingTotal > 0
+            ? `No run is standing on the road, and ${callsAre(waitingTotal)} at ${joinPlainly(waitingNames)}.`
+            : empty
+              ? "Nothing is standing on the road. What finished is in the runs below."
+              : stoppedHere.length > 0
+                ? `${joinPlainly(stoppedHere)} ${stoppedHere.length === 1 ? "has" : "have"} stopped, and will not move without you.`
+                : /* Below stopped, because dead work outranks a queued call, and
+                   above the instruction, because a location a person can act on
+                   outranks teaching them the press. */
+                  waitingTotal > 0
+                  ? `${callsAre(waitingTotal)} at ${joinPlainly(waitingNames)}.`
+                  : "Press a station to see only the runs there.";
+}
+
+/**
+ * THE DOOR THAT ONLY THE NEW DEAD END NEEDS.
+ *
+ * Pressing a station filters the runs list below (R-01: a stop never opens a
+ * station page). A station lit because CALLS wait there has no runs to filter
+ * to, so the press lands a person on an empty list -- reachable only now that
+ * `Journey` makes such a stop pressable. This is the way out of that one
+ * state, and it is deliberately not drawn in any other: the hero already
+ * carries an "Open Inbox" door, and a second one beside it on the same screen
+ * is the "two doors, one question" defect `one-door-per-sentence.test.ts`
+ * exists to catch.
+ */
+export function waitingDoorFor({
+  mode,
+  stations,
+  selected,
+}: {
+  mode: "promise" | "map" | "route";
+  stations: readonly JourneyStation[];
+  selected?: JourneyKey | null;
+}): { label: string; to: "/inbox" } | null {
+  if (mode !== "map" || !selected) return null;
+  const here = stations.find((st) => st.key === selected);
+  if (!here || (here.count ?? 0) > 0 || (here.waiting ?? 0) <= 0) return null;
+  return { label: "Open Inbox", to: "/inbox" };
 }
 
 export function JourneyMap({
@@ -218,6 +271,7 @@ export function JourneyMap({
      2026-09-09). */
   const empty = stations.every((s) => !s.count);
   const caption = captionFor({ mode, stations, selected });
+  const waitingDoor = waitingDoorFor({ mode, stations, selected });
 
   return (
     <section
@@ -295,6 +349,14 @@ export function JourneyMap({
       {caption || (selected && onSelect) ? (
         <p className="mrd-meta flex items-center gap-mrd-3">
           {caption ? <span>{caption}</span> : null}
+          {/* A LINK, NOT A BUTTON (law 22): the queue has an address, so this
+              carries cmd-click, middle-click and copy-link like every other
+              door onto work. */}
+          {waitingDoor ? (
+            <Link to={waitingDoor.to} className="mrd-link">
+              {waitingDoor.label}
+            </Link>
+          ) : null}
           {selected && onSelect ? (
             <Action variant="quiet" onClick={() => onSelect(null)}>
               Show all
