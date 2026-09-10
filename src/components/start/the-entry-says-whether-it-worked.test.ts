@@ -153,10 +153,31 @@ describe("the home mounts it, and pays for no extra read", () => {
     expect(call![0]).toContain("homeReads.data.closedRead");
   });
 
-  it("sits with the answers it belongs to, under the composer", () => {
-    // The page reads as a sequence: what needs you, hand something over, what
-    // came back, what is moving, your list.
-    expect(ROUTE.indexOf("<WhetherItWorked")).toBeGreaterThan(ROUTE.indexOf("<HomeAnswers"));
-    expect(ROUTE.indexOf("<WhetherItWorked")).toBeLessThan(ROUTE.indexOf("<CrewAtWork"));
+  it("stands BESIDE the work now, in the context column, and leads it", () => {
+    /*
+     * WHAT THIS USED TO ASSERT, AND WHY IT CHANGED (Lane 1, 2026-09-10).
+     *
+     * It read: `<WhetherItWorked>` comes AFTER `<HomeAnswers>` and BEFORE
+     * `<CrewAtWork>`, on the reasoning that "the page reads as a sequence: what
+     * needs you, hand something over, what came back, what is moving, your
+     * list." That sequence was about ONE COLUMN, because one column was all the
+     * home had: it never joined `.sp-inner`, so it could not have the context
+     * column every other ported surface gets at >=1120px. Layer 3 was therefore
+     * stacked under layer 2 and, measured on the served build at 1920px, sat
+     * below the fold with 330px of dead field on either side of it.
+     *
+     * It is in the context column now, so the claim worth guarding is no longer
+     * an index in a stack. It is: **this region is beside the work rather than
+     * under it, and inside that column the VERDICT leads the deltas** — a fact
+     * about one decision outranks three counts of what has changed since you
+     * looked, which is the whole reason this region was built.
+     */
+    const ctx = ROUTE.indexOf("data-work-ctx");
+    expect(ctx, "the context column moved; re-point this test").toBeGreaterThan(-1);
+    expect(ROUTE.indexOf("<WhetherItWorked")).toBeGreaterThan(ctx);
+    /* Its mutually exclusive sibling stays adjacent: exactly one of the two
+       ever draws, and a reader must never meet them in different places. */
+    expect(ROUTE.indexOf("<BetStillOpen")).toBeGreaterThan(ROUTE.indexOf("<WhetherItWorked"));
+    expect(ROUTE.indexOf("<WhetherItWorked")).toBeLessThan(ROUTE.indexOf("<HomeAnswers"));
   });
 });

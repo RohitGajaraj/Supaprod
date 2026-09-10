@@ -9,30 +9,17 @@ import { Row } from "@/components/meridian/rows";
 import { Action, ReadFailedLine } from "@/components/meridian/surface-parts";
 import { SlowRead } from "@/components/shell/SlowRead";
 import { Composer } from "@/components/meridian/onramp-parts";
-import type { JourneyKey } from "@/components/meridian/Journey";
 import { ExampleJobs, type ExampleJob } from "@/components/start/ExampleJobs";
 import { YourRuns } from "@/components/start/YourRuns";
 import { Arriving } from "@/components/start/Arriving";
 import { Hero, heroCopy } from "@/components/start/Hero";
-import { JourneyMap, promiseStations, routeStations } from "@/components/start/JourneyMap";
-import { waitingByStation } from "@/components/start/a-call-waits-at-a-station";
-import { suggestRoute } from "@/lib/spine/route";
-import { CrewAtWork, quietFor, workingSeats } from "@/components/start/CrewAtWork";
+import { CrewAtWork } from "@/components/start/CrewAtWork";
 import { StarterRuns } from "@/components/start/StarterRuns";
-import { presenceColour } from "@/components/meridian/AgentPresence";
-import { listRunningNow, readHome, readStationTimings } from "@/lib/spine/track.functions";
-import { runningNowKey } from "@/lib/query-keys";
+import { readHome, readStationTimings } from "@/lib/spine/track.functions";
 import { HOME_STALE_MS, homeKey, seedHome } from "@/components/start/home-read";
 import { heroCanDraw } from "@/components/start/a-failed-read-is-not-a-slow-one";
 import { WhatWeAlreadyHold } from "@/components/spine/WhatWeAlreadyHold";
-import {
-  homeRoadMode,
-  journeyMap,
-  startersStand,
-  withPresences,
-  withTimings,
-  withWaiting,
-} from "@/components/start/journey-of-a-run";
+import { startersStand } from "@/components/start/journey-of-a-run";
 import { notTheWholeQueue } from "@/components/approvals/not-the-whole-queue";
 import { trackChangeKeys } from "@/hooks/use-track-change-push";
 import { failureLine } from "@/lib/error-copy";
@@ -52,10 +39,18 @@ import { HomeAnswers } from "@/components/start/HomeAnswers";
 import { WhetherItWorked } from "@/components/start/WhetherItWorked";
 import { BetStillOpen } from "@/components/start/BetStillOpen";
 import { theBetStillOpen } from "@/components/start/the-bet-still-open";
-import { whatThisDoesForYou } from "@/components/start/what-this-does-for-you";
 import { theWorkMoved } from "@/components/start/the-work-moved";
 import { whetherItWorked } from "@/components/start/whether-it-worked";
-import { getApprovalsQueue } from "@/lib/approvals-queue.functions";
+import {
+  decideApprovalItem,
+  getApprovalsQueue,
+  type ApprovalQueueItem,
+} from "@/lib/approvals-queue.functions";
+import { TheCallInFront } from "@/components/start/TheCallInFront";
+import { theCallInFront } from "@/components/start/the-call-in-front";
+import { startRowMiddle } from "@/components/today/tracks-feed";
+import { KIND_WORD } from "@/lib/spine/attach";
+import { toolActionLabel } from "@/lib/agent-vocabulary";
 import { APPROVALS_QUEUE_PREFIX } from "@/lib/query-keys";
 import { queueShape } from "@/components/approvals/a-queue-is-a-shape-not-a-total";
 import { waitingSince } from "@/components/meridian/stopped-for";
@@ -63,51 +58,63 @@ import { waitingSince } from "@/components/meridian/stopped-for";
 /**
  * ── THE FRONT DOOR ────────────────────────────────────────────────────────
  *
- * Founder, 2026-09-08: "a user lands on home and it is not appealing,
- * carries no message, shows no journey." Walked live that morning, signed
- * in: a composer with an example placeholder, four sentences of status
- * (three of them negations), and five run rows each carrying a paragraph of
- * the driver's own diagnostics. True, and a dump.
+ * FOUNDER, 2026-09-10, after the last rebuild of this page shipped:
+ * *"A user lands on home and it is not appealing, carries no message, shows no
+ * journey. I cannot feel the value and I cannot see any real connectivity.
+ * Nothing joins up. Layers 1, 2 and 3 do not stitch together, and it reads as a
+ * dump of data and content. I need real change, not another pass of polish."*
  *
- * ── WHAT IT IS NOW, AND THE ORDER IS THE ARGUMENT ─────────────────────────
+ * He had said *"shows no journey"* once before. The answer that time was to move
+ * the seven-station road from eighth position to first, and it shipped. **He
+ * looked at it and said the same sentence again**, which is the only proof worth
+ * having that the placement was never the defect.
  *
- * FIVE MOVEMENTS, IN THE ORDER A PERSON MEETS THE PRODUCT. Reordered
- * 2026-09-09 against the founder's other sentence, "I cannot feel the value":
- * the proof that this product works is not its queue, it is that work was
- * decided, built, shipped and then graded against what it promised, and that
- * proof was three mute sentences at position six of seven, under the run list,
- * while a count of what he owed was the headline in 32px. The page led with a
- * debt and buried the return. The spacing ramp separates the movements: 24px
- * inside one, 40px between.
+ * ── WHAT THIS PAGE IS NOW: FOUR MOVEMENTS, AND THEY DO NOT MOVE ──────────
  *
- *   1 what needs you   one headline that names the product and says what needs
- *                      you, and a line that names the one call to start with
- *                      (Hero)
- *   2 hand it over     the box, the product it is for, the shape of the work
- *                      and the road that shape takes, and what the workspace
- *                      already holds about the sentence being typed
- *   3 what came back   what came in, what shipped, what was graded, only when
- *                      the number is not zero, with the Findings strip beside
- *                      them because it answers the same question from the
- *                      other end. Each sentence keeps its one door (P-62); the
- *                      foot carries no standalone Outcomes door, since Outcomes
- *                      is a rail row, and the strip withholds its own when the
- *                      arriving sentence already opens Findings.
- *   4 what is moving   every seat inside a run by name with a live clock, and
- *                      nothing at all when nobody is (CrewAtWork); then the
- *                      seven stations drawn once, as the promise before the
- *                      first run and as a map of where every run stands after
- *                      it, never as a menu (JourneyMap); then this workspace's
- *                      own ranked bets, from its own evidence
- *   5 your runs        one row per run with its position on the road, one
- *                      sentence, and the one control its state needs
+ * The mechanism behind *"reads as a dump"* was measured rather than guessed:
+ * **twelve conditional regions in one column**, most absent on any given
+ * workspace, so no two visits shared a shape and there was nothing to learn.
+ * The route's own comments described a sequence that existed only in the
+ * comments. Law 32 is the rule that came out of it — **a movement keeps its
+ * place when it is empty** — and this page is its first caller.
+ *
+ *   1  THE ONE THAT MATTERS   the oldest call waiting on a person, drawn with
+ *      (TheCallInFront)       its evidence, its cost, its forecast, both
+ *                             consequences and the road of the run it holds.
+ *                             Layers 1, 2 and 3 on ONE object, answerable in
+ *                             place. When nothing waits on you it says so; when
+ *                             a read failed it says nothing at all.
+ *   2  HAND SOMETHING OVER    the box, the product it is for, and what this
+ *      (Composer)             workspace already holds about the sentence being
+ *                             typed.
+ *   3  YOUR RUNS              one row per run, its position on the road, one
+ *      (YourRuns)             sentence, and the one control its state needs.
+ *   4  WHAT CAME OF IT        the context column, beside the work rather than
+ *      (the aside)            under it: the last verdict, the bet still open,
+ *                             what came in since you looked, and who is working
+ *                             right now.
+ *
+ * ── WHAT WENT, AND EACH ONE FOR A MEASURED REASON ────────────────────────
+ *
+ * • **The seven-station band.** It counted the same eight tracks the run rows
+ *   already draw with `journeyOfRun` at `size="row"`, one region higher — the
+ *   repeated-value law at the layout level. Its whole machinery went with it:
+ *   `journeyMap`, `withWaiting`, `withTimings`, `withPresences`, a SECOND
+ *   observer on `runningNowKey`, and a station filter only it could set.
+ * • **The sentence about the product** — *"Seven stations take one sentence
+ *   from evidence to shipped, and grade whether it worked."* True about the
+ *   product, printed at the top of the screen a person opens every morning to
+ *   find out about THEIRS.
+ * • **`max-w-[62rem]`.** This was the one surface in the product outside
+ *   `.sp-inner`, and `shell.css` says so by name. Measured on the served build
+ *   at 1920px: 330px of dead field on each side WHILE the page scrolled.
  *
  * ── THE REFERENCE, NAMED BEFORE BUILDING ──────────────────────────────────
- * Anthropic, OpenAI and Perplexity open on one sentence and one box. Codex
- * puts startable cards under it. Cursor and Devin list work as rows with one
- * distinguishing fact. What none of them has is a road, because their work
- * has no stations; ours does, and drawing it is the product's own model
- * said in a glance.
+ * Anthropic, OpenAI and Perplexity open on one sentence and one box. Codex puts
+ * startable cards under it. Cursor and Devin list work as rows with one
+ * distinguishing fact. What none of them has is a piece of work drawn from the
+ * evidence that caused it to the date it will be graded — because none of them
+ * keeps a record that could draw it.
  */
 /**
  * THE PLACEHOLDER IS AN EXAMPLE OF THE SHAPE, IN THE PRODUCT'S OWN TERMS.
@@ -284,7 +291,6 @@ function StartLanding() {
   const timezone = useTimezone();
 
   const [sentence, setSentence] = useState(about ?? "");
-  const [station, setStation] = useState<JourneyKey | null>(null);
   const fieldRef = useRef<HTMLTextAreaElement | null>(null);
   const start = useServerFn(startTrack);
 
@@ -340,7 +346,6 @@ function StartLanding() {
   /* The promise is for the account that has never started a run; once
      anything has, the road is a map, even the morning after the only run
      finished (fourth review, 2026-09-09). Null until the read answers. */
-  const roadMode = runs.data !== undefined ? homeRoadMode(runs.data) : null;
 
   /* P-14: the ranked bets' home is here. */
   const fBets = useServerFn(listTopOpportunities);
@@ -548,6 +553,74 @@ function StartLanding() {
   const heroReady = heroCanDraw({ workspaceLoading, seeded, queue: queueRead, runs });
 
   /*
+   * ── THE ONE PIECE OF WORK THIS PAGE OPENS WITH ───────────────────────────
+   *
+   * See `the-call-in-front.ts` for the reasoning and the production numbers.
+   * Two facts decide it: the founder's *"layers 1, 2 and 3 do not stitch
+   * together"*, and the audit finding that the whole of the stitching was
+   * already in this browser and being dropped — the queue item carries the
+   * evidence, the cost, the forecast, both consequences and `trackId`, and this
+   * page rendered one integer and one title off it.
+   *
+   * It costs NO NEW READ. `queueRead` and `runs` are both already here, and
+   * `lineFor` reuses the same `startRowMiddle` the list below uses, so the lead
+   * and the row for the same run can never disagree about it.
+   */
+  const lead = useMemo(
+    () =>
+      theCallInFront({
+        queue: queueRead.isSuccess ? (queueRead.data?.items ?? []) : null,
+        runs: runs.isSuccess ? (runs.data ?? []) : null,
+        lineFor: (r) =>
+          startRowMiddle(r, Date.now(), KIND_WORD, (tool) => toolActionLabel(tool), timezone),
+      }),
+    [queueRead.isSuccess, queueRead.data, runs.isSuccess, runs.data, timezone],
+  );
+
+  /*
+   * ANSWERING IN PLACE, WITH THE INBOX'S OWN MUTATION SHAPE.
+   *
+   * Same server function, same optimistic drop, same invalidation — copied in
+   * shape rather than in spirit, because the two surfaces read the queue under
+   * two different keys (`[...PREFIX,"shell",ws]` here, `approvalsQueueKey(ws)`
+   * there) and a press on either must clear both. Invalidating the PREFIX is
+   * what covers them; the rail badge reads the shell key and would otherwise
+   * keep claiming a call that is already settled.
+   */
+  const mDecide = useServerFn(decideApprovalItem);
+  const decide = useMutation({
+    mutationFn: (vars: { item: ApprovalQueueItem; verdict: "approve" | "reject" }) =>
+      mDecide({
+        data: { id: vars.item.sourceId, kind: vars.item.kindKey, verdict: vars.verdict },
+      }),
+    onMutate: async (vars) => {
+      const key = [...APPROVALS_QUEUE_PREFIX, "shell", activeWorkspaceId ?? null];
+      await qc.cancelQueries({ queryKey: key });
+      const prev = qc.getQueryData<{ items: ApprovalQueueItem[] }>(key);
+      qc.setQueryData<{ items: ApprovalQueueItem[] } | undefined>(key, (old) =>
+        old ? { ...old, items: old.items.filter((i) => i.id !== vars.item.id) } : old,
+      );
+      return { prev, key };
+    },
+    onError: (_e, _vars, ctx) => {
+      if (ctx?.prev) qc.setQueryData(ctx.key, ctx.prev);
+    },
+    onSettled: () => {
+      void qc.invalidateQueries({ queryKey: APPROVALS_QUEUE_PREFIX });
+      /* The runs read too: answering a gate releases the run it was holding,
+         and the row four hundred pixels below this one is drawn from that
+         read. Guarded on the workspace rather than defaulted, because
+         `trackChangeKeys` keys on a real id and a null one would invalidate
+         somebody else's cache entry. */
+      if (activeWorkspaceId) {
+        for (const queryKey of trackChangeKeys(activeWorkspaceId)) {
+          void qc.invalidateQueries({ queryKey });
+        }
+      }
+    },
+  });
+
+  /*
    * ── WHAT MOVED, WITH THE RUN NAMED FROM ROWS THE PAGE ALREADY HAS ────────
    *
    * `stage_events` carries the station change and the track id; `runs` carries
@@ -608,14 +681,22 @@ function StartLanding() {
    * the two are never both on screen -- a result outranks a promise.
    */
   /*
-   * THE ENTRY'S ONE SENTENCE ABOUT ITSELF, and it is keyed on the same read
-   * `WhetherItWorked` is, so the two can never both draw: the moment a loop
-   * has closed, that region says this better with real evidence in it.
+   * THE ENTRY'S ONE SENTENCE ABOUT ITSELF IS GONE, and `what-this-does-for-you`
+   * with it as this surface's caller.
+   *
+   * It read *"Seven stations take one sentence from evidence to shipped, and
+   * grade whether it worked."* -- a true sentence about the PRODUCT, printed at
+   * the top of the screen a person opens every morning to find out about THEIR
+   * product. On visit two it is furniture; on visit two hundred it is furniture
+   * that has been in the way two hundred times. It also stood in the largest
+   * region on the page describing machinery, which is the thing the founder
+   * called "a dump of data and content" from the other direction: the page was
+   * explaining itself instead of showing him his own situation.
+   *
+   * The lead says the same thing without claiming it: a call, its evidence, its
+   * road and its dated promise IS "evidence to shipped, and grade whether it
+   * worked", shown rather than asserted.
    */
-  const theMessage = whatThisDoesForYou({
-    hasClosedLoop: homeReads.isSuccess ? homeReads.data.closed !== null : false,
-    unknown: !homeReads.isSuccess,
-  });
 
   const betOpen = theBetStillOpen({
     openBet: homeReads.isSuccess ? homeReads.data.openBet : null,
@@ -630,19 +711,10 @@ function StartLanding() {
     zone: timezone,
   });
 
-  /*
-   * WHO IS WORKING WHERE, on the road itself. The same read and key the
-   * Working-now strip and the rail crew use (one request, one cache entry;
-   * useRunningNowPush moves it the moment a seat starts or stamps), so the
-   * map's dots and the strip's rows can never disagree.
-   */
-  const fRunning = useServerFn(listRunningNow);
-  const running = useQuery({
-    queryKey: runningNowKey(activeWorkspaceId ?? null),
-    queryFn: () => fRunning({ data: { workspaceId: activeWorkspaceId ?? null } }),
-    refetchInterval: 10_000,
-    enabled: seeded,
-  });
+  /* THE SECOND OBSERVER ON `runningNowKey` IS GONE WITH THE MAP IT FED.
+     `CrewAtWork` holds its own observer on the same key and `seedHome` writes
+     it, so nothing here is unread -- this route was simply subscribing to the
+     same ten-second poll twice to paint dots on a band that no longer draws. */
   /* HOW LONG EACH STATION USUALLY TAKES HERE (Lane 3, readStationTimings):
      the map's working station says it, so the wait has a shape. */
   const fTimings = useServerFn(readStationTimings);
@@ -652,51 +724,17 @@ function StartLanding() {
     enabled: Boolean(activeWorkspaceId),
     staleTime: 5 * 60_000,
   });
-  /* The map is recomposed once a second while a seat works, or "past its
-     usual time" and "quiet for N min" could never appear: nothing in the
-     data changes while a seat stalls (third review, 2026-09-08). */
-  const anySeat = (running.data?.length ?? 0) > 0;
-  const [mapTick, bumpMap] = useReducer((n: number) => n + 1, 0);
+  /* THE LEAD'S ROAD IS RECOMPOSED ONCE A SECOND WHILE A SEAT WORKS, or "past
+     its usual time here" could never appear: nothing in the data changes while
+     a seat stalls (third review, 2026-09-08). The condition now comes off the
+     runs read this page already has, rather than off a second poll of its own. */
+  const anySeat = (runs.data ?? []).some((r) => r.working);
+  const [roadTick, bumpRoad] = useReducer((n: number) => n + 1, 0);
   useEffect(() => {
     if (!anySeat) return;
-    const id = setInterval(bumpMap, 1_000);
+    const id = setInterval(bumpRoad, 1_000);
     return () => clearInterval(id);
   }, [anySeat]);
-  /* WHAT IS WAITING ON YOU, PER STATION, folded from the queue this page
-     already holds -- no new read. Until 2026-09-10 the road knew nothing
-     about the queue, so it drew Design empty while the headline counted four
-     design gates standing at it. See `a-call-waits-at-a-station.ts`. */
-  const waitingAt = useMemo(
-    () =>
-      queueRead.isSuccess
-        ? waitingByStation((queueRead.data?.items ?? []).map((i) => i.kindKey))
-        : {},
-    [queueRead.isSuccess, queueRead.data],
-  );
-  const map = useMemo(
-    () =>
-      withWaiting(
-        withTimings(
-          withPresences(
-            journeyMap(runs.data ?? []),
-            /* The quiet length rides along so the map's stop prints the
-             strip's own "quiet for N min" (fourth review, 2026-09-09). */
-            workingSeats(running.data).map((s) => {
-              const quiet = quietFor(s, Date.now());
-              return { ...s, alive: !quiet, ...(quiet ? { quietMs: quiet } : {}) };
-            }),
-            presenceColour,
-          ),
-          timings.data,
-        ),
-        /* LAST, so a seat actually working at a stop wins over a call queued
-           at it: `withWaiting` only repaints a stop that nothing stands on. */
-        waitingAt,
-      ),
-    // `mapTick` is the clock.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [runs.data, running.data, timings.data, waitingAt, mapTick],
-  );
   const openRun = (trackId: string) =>
     void navigate({ to: "/track/$trackId", params: { trackId }, search: {} });
 
@@ -735,313 +773,302 @@ function StartLanding() {
        the same number is an accident that held. Stated here, the six margins
        go, and a child added tomorrow inherits the rhythm instead of having to
        remember it. */
-    <div className="mx-auto flex w-full max-w-[62rem] flex-col gap-mrd-7 px-mrd-5 pt-mrd-7 pb-mrd-8">
-      {/* THE ONE SENTENCE ABOUT THE PRODUCT ITSELF, until this workspace has
-          watched a loop close. See `what-this-does-for-you.ts`: it names a
-          mechanism rather than a category, every clause of it points at
-          something drawn directly below, and it stands down for good the
-          moment `WhetherItWorked` can say the same thing with this
-          workspace's own evidence in it. */}
-
-      {/*
-       * ── THE JOURNEY IS THE ENTRY, AND IT USED TO BE THE EIGHTH REGION ────
-       *
-       * The founder on this page: *"a user lands on home and it is not
-       * appealing, carries no message, shows no journey."*
-       *
-       * MEASURED ON THE SERVED HOME, 2026-09-10. The road -- the seven
-       * stations, this product's entire model, the one drawing that answers
-       * "where is my work" -- rendered **eighth**, at 113px, below the hero,
-       * the composer, the three answers, the evidence, the arriving line and
-       * the crew. A person had to scroll past six regions of their own backlog
-       * to reach the picture that explains what any of it is.
-       *
-       * *"Shows no journey"* was not a complaint about the drawing. The
-       * drawing is good. It was a complaint about where it was.
-       *
-       * SO IT LEADS, and everything after it is detail about what it shows.
-       * The page now reads: what this does · where it all stands · what needs
-       * you · say the next thing · what came of the last one · your list.
-       * Message, journey, ask, act, evidence, detail.
-       *
-       * AND THE COMPOSER BELOW IT IS BETTER OFF, not a casualty. The road
-       * already switches to `route` mode while a sentence is being written, so
-       * a person typing now watches the path change directly ABOVE the box
-       * they are typing in, rather than forty pixels below where they were
-       * looking.
-       */}
-      {roadMode ? (
-        <JourneyMap
-          /* It opens the page now, so it says what it is -- and carries the
-             one sentence about the product, as a caption inside its own panel
-             rather than a loose line stacked above it. */
-          leads
-          says={theMessage}
-          /*
-           * ── WHILE A SENTENCE IS BEING WRITTEN, THE ROAD IS ABOUT IT ───────
-           *
-           * Measured before this existed: changing the shape picker moved the
-           * sentence beside it and moved NOTHING on the road below, so the one
-           * drawing that could show the path a piece of work is about to take
-           * was being described in prose forty pixels above it.
-           *
-           * `sentence.trim()` is the trigger and it is the honest one. An
-           * empty composer is a person reading their work, and the map is what
-           * they want. A composer with words in it is a person deciding what
-           * happens next, and the road is dead space to them until it answers
-           * that.
-           *
-           * IT REPLACES THE MAP RATHER THAN SITTING BESIDE IT. Two roads on
-           * one screen is the ambiguity this was nearly not built over; one
-           * road that says which question it is answering is not.
-           */
-          mode={roadMode === "map" && sentence.trim() ? "route" : roadMode}
-          stations={
-            roadMode === "map" && sentence.trim()
-              ? routeStations(suggestRoute(pickedShape, null).waived.map((w) => w.station))
-              : roadMode === "map"
-                ? map
-                : promiseStations()
+    /*
+     * ── THE ENTRY JOINS THE SHELL'S OWN LAYOUT, AND IT WAS THE ONE SURFACE
+     *    THAT NEVER HAD (Lane 1, 2026-09-10) ────────────────────────────────
+     *
+     * `shell.css`'s own comment names this file as the exception: *"Every
+     * surface in the product inherited that except `/start`, which happened to
+     * centre itself with its own `items-center`."* It hand-rolled
+     * `max-w-[62rem]`, so on a 1920px window the work region was 1652px wide,
+     * the column was 992px, and **330px of dead field sat on each side while
+     * the page scrolled** — content 1168px against 880px of pane. A reader was
+     * scrolling for information that would have fitted if the layout had used
+     * the screen.
+     *
+     * And because it never joined `.sp-inner`, it could not have the context
+     * column that `.sp-inner:has(.sp-ctx)` gives every ported surface at
+     * >=1120px. `/inbox` has one. The home did not, which is why layer 3 was
+     * stacked underneath layer 2 instead of standing beside it.
+     *
+     * `.sp-wide` rather than `.sp-main`: the road is a drawing laid out in
+     * columns, not prose read line by line, and `--mrd-shell-main-max` is a
+     * 74ch measure meant for the latter.
+     */
+    <div data-work="">
+      <div data-work-wide="" className="flex flex-col gap-mrd-7">
+        {/*
+         * ── THE ENTRY LEADS WITH ONE PIECE OF WORK, TOLD WHOLE ───────────────
+         *
+         * WHAT STOOD HERE, AND WHY IT WENT. `JourneyMap leads` — the seven
+         * stations drawn from this workspace's counts, captioned *"Seven stations
+         * take one sentence from evidence to shipped, and grade whether it
+         * worked."* It was moved here last session, from eighth position, against
+         * the founder's *"shows no journey"*. **He looked at it and said the same
+         * thing again**, which means the placement was never the defect.
+         *
+         * A journey is not a diagram of stages; it is one thing moving through
+         * time. That band renders identically for any workspace holding the same
+         * counts — it is the machine's self-portrait, and it is layer 2, the
+         * layer this product rents rather than owns, given the largest region on
+         * the most important screen.
+         *
+         * IT IS ALSO A SECOND COPY OF SOMETHING ALREADY ON THE PAGE. Every row
+         * under *Your runs* already draws `journeyOfRun` at `size="row"`. The
+         * band above them counts the same eight tracks a second time, which is
+         * this repo's own repeated-value law one region higher.
+         *
+         * WHAT STANDS HERE NOW is the oldest call waiting on a person, drawn with
+         * its evidence, its cost, its forecast, both consequences, and the road of
+         * the run it is holding — layers 1, 2 and 3 on one object, answerable in
+         * place. **It costs no new read**: every one of those fields was already
+         * in this browser and being dropped on every poll. See
+         * `the-call-in-front.ts` for the production numbers that decided it, and
+         * for why an entry that leads with proof would be empty today.
+         */}
+        <TheCallInFront
+          lead={lead}
+          zone={timezone}
+          nowIso={new Date().toISOString()}
+          busy={decide.isPending}
+          onApprove={() =>
+            lead.kind === "call"
+              ? decide.mutate({ item: lead.item, verdict: "approve" })
+              : undefined
           }
-          selected={station}
-          onSelect={(key) => {
-            setStation(key);
-            /* The list the press filtered is usually below the fold: bring it
-               up, so the press is seen to do something. */
-            if (key) {
-              document
-                .querySelector("[data-your-runs]")
-                ?.scrollIntoView({ block: "start", behavior: "smooth" });
-            }
-          }}
+          onDecline={() =>
+            lead.kind === "call" ? decide.mutate({ item: lead.item, verdict: "reject" }) : undefined
+          }
         />
-      ) : null}
 
-      {/* THE HERO WAITS FOR ITS NAME (Lane 1, 2026-09-08). Seen live: "What
+        {/* THE HERO WAITS FOR ITS NAME (Lane 1, 2026-09-08). Seen live: "What
           should your product do next?" for a beat before the workspace
           resolved, then "What should Prism do next?". A headline that
           changes its subject is a headline nobody trusts; the slot holds its
           height and the words arrive once. */}
-      <div className="min-h-[7.5rem]">
-        {heroReady ? (
-          <>
-            <Hero
-              copy={heroCopy({
-                product: activeProduct?.name ?? activeWorkspace?.name ?? null,
-                runs: runs.data,
-                failed: runs.isError,
-                waiting,
-                waitingShape,
-                waitingFirst,
-                queueShort,
-              })}
-            />
-            {/* A REFUSED QUEUE READ IS SAID, NOT ROUNDED TO ZERO. The hero
+        <div className="min-h-[7.5rem]">
+          {heroReady ? (
+            <>
+              <Hero
+                copy={heroCopy({
+                  product: activeProduct?.name ?? activeWorkspace?.name ?? null,
+                  runs: runs.data,
+                  failed: runs.isError,
+                  waiting,
+                  waitingShape,
+                  waitingFirst,
+                  queueShort,
+                })}
+              />
+              {/* A REFUSED QUEUE READ IS SAID, NOT ROUNDED TO ZERO. The hero
                 above never claims nothing is waiting on a null; this line
                 says why it cannot, with the way out (fourth review,
                 2026-09-09). */}
-            {queueRead.isError ? (
-              <div className="mt-mrd-3">
-                <ReadFailedLine error={queueRead.error} onRetry={() => void queueRead.refetch()}>
-                  Cannot see what is waiting for you.
-                </ReadFailedLine>
-              </div>
-            ) : null}
-          </>
-        ) : (
-          /* A sentence, not a hole: the first paint said nothing for the
+              {queueRead.isError ? (
+                <div className="mt-mrd-3">
+                  <ReadFailedLine error={queueRead.error} onRetry={() => void queueRead.refetch()}>
+                    Cannot see what is waiting for you.
+                  </ReadFailedLine>
+                </div>
+              ) : null}
+            </>
+          ) : (
+            /* A sentence, not a hole: the first paint said nothing for the
              length of two reads (entry review, 2026-09-08). It reads as
              `Reading` for 2.5 s, then shows the figure, then offers a way
              out past the stuck line: on a cold arrival this is the page's
              largest read and a wedged request left the sentence up with
              no control (fourth review, 2026-09-09). The retry re-runs the
              composite, which seeds every key the hero waits on. */
-          <SlowRead onRetry={activeWorkspaceId ? () => void home.refetch() : undefined}>
-            Reading your workspace.
-          </SlowRead>
-        )}
-      </div>
+            <SlowRead onRetry={activeWorkspaceId ? () => void home.refetch() : undefined}>
+              Reading your workspace.
+            </SlowRead>
+          )}
+        </div>
 
-      {/* `data-page-composer` stands the ask dock down: one prompt per screen,
+        {/* `data-page-composer` stands the ask dock down: one prompt per screen,
           and this is the one. See `one-prompt-per-screen`. */}
-      <div data-page-composer className="flex flex-col gap-mrd-4">
-        <Composer
-          value={sentence}
-          onChange={setSentence}
-          onSubmit={() => go.mutate(undefined)}
-          busy={go.isPending}
-          placeholder={placeholderReady ? placeholder : ""}
-          label="Say what should change, and what it should do"
-          fieldRef={fieldRef}
-        />
-        {productsVisible ? (
-          <ComposerProductPicker
-            products={products}
-            activeProductId={activeProductId}
-            suggested={suggestedProduct}
-            onSelect={setActiveProductId}
+        <div data-page-composer className="flex flex-col gap-mrd-4">
+          <Composer
+            value={sentence}
+            onChange={setSentence}
+            onSubmit={() => go.mutate(undefined)}
+            busy={go.isPending}
+            placeholder={placeholderReady ? placeholder : ""}
+            label="Say what should change, and what it should do"
+            fieldRef={fieldRef}
           />
-        ) : null}
-        {/* WHERE THE SENTENCE ENTERS THE ROAD, said before Enter and picked in
+          {productsVisible ? (
+            <ComposerProductPicker
+              products={products}
+              activeProductId={activeProductId}
+              suggested={suggestedProduct}
+              onSelect={setActiveProductId}
+            />
+          ) : null}
+          {/* WHERE THE SENTENCE ENTERS THE ROAD, said before Enter and picked in
             the person's own words. Every sentence used to be filed as new work
             and walk all seven stations, so "fix the broken login" opened a
             Discover run (fifth review, 2026-09-09). */}
-        <ComposerRoutePicker shape={pickedShape} onSelect={setPickedShape} />
-        {/* WHAT THE WORKSPACE ALREADY HOLDS ABOUT THE SENTENCE BEING TYPED.
+          <ComposerRoutePicker shape={pickedShape} onSelect={setPickedShape} />
+          {/* WHAT THE WORKSPACE ALREADY HOLDS ABOUT THE SENTENCE BEING TYPED.
             Anticipation: the evidence read happens while the person types,
             settled and debounced, so the first thing they learn about their
             own sentence arrives before they press Enter. Built in August,
             never mounted; Lane 2 kept it from deletion for exactly this. */}
-        <WhatWeAlreadyHold subject={sentence} />
+          <WhatWeAlreadyHold subject={sentence} />
+        </div>
+
+        {/*
+         * ── THE DIRECTOR SITS WITH THE DOOR, AND IT USED TO BE TENTH ─────────
+         *
+         * The product is three layers -- 01 the DIRECTOR, which tells you what
+         * to build; 02 the operating system, which runs the lifecycle; 03 the
+         * brain, which remembers and guides -- and the repo's own discipline for
+         * revealing them is **door, body, brain**
+         * (`docs/pitch/repositioning-2026-07-22.md`).
+         *
+         * The founder's complaint about this product is that *"layers 1, 2 and 3
+         * do not stitch together"*. Measured on this page before today: layer 02
+         * led (once the road moved), layer 03 was fifth, and **layer 01 -- the
+         * wedge, the thing the product claims to be FOR -- was tenth**, five
+         * regions below the box you would type its suggestion into.
+         *
+         * These ranked bets ARE the director: this workspace's own opportunities,
+         * ordered, each one a sentence a person can start. That belongs beside
+         * the composer, because the composer is where you say the thing and this
+         * is the product saying what it would say. Two halves of one act, and
+         * they were half a screen apart.
+         *
+         * IT DRAWS ONLY WHERE THERE ARE ANY, unchanged. A1 delete probe holds
+         * zero opportunities and shows nothing here, which is honest -- the
+         * director cannot direct with no evidence. Measured across the product:
+         * Helio Labs 92, My Workspace 19, My workspace 6, so on the founder's
+         * own workspaces it draws.
+         */}
+        {/*
+         * THIS WORKSPACE'S OWN RANKED BETS, when it has any. A bet starts on
+         * press because it is the workspace's own work (P-33). The three
+         * invented example sentences that stood here before the first run are
+         * gone: the hero says what to type, and an example about a checkout
+         * the person does not have taught nothing.
+         */}
+        {bets.data && bets.data.length > 0 ? (
+          <ExampleJobs
+            onStart={(job) => go.mutate(job)}
+            zone={timezone}
+            onOpenRun={openRun}
+            onUse={(job) => {
+              setSentence(job.sentence);
+              const field = fieldRef.current;
+              if (field) {
+                field.focus();
+                field.select();
+              }
+            }}
+            busy={go.isPending}
+            bets={bets.data}
+            productExample={null}
+          />
+        ) : null}
+
+        {/* A REFUSAL AND A THROW ARE DIFFERENT, AND BOTH ARE SAID, under the
+          composer, because that is where the person is looking. */}
+        {problems.length > 0 ? (
+          <Receipt verb="Nothing was started" consequence={problems.join(" ")} failed />
+        ) : null}
+        {/* Says only what the client knows: a throw here is a lost response,
+          and whether the insert ran is not known from this side (see
+          `onError` above). */}
+        {go.isError ? (
+          <Receipt
+            verb="Nothing was started"
+            consequence={failureLine(
+              "Your sentence is still in the box. Nothing came back, so whether it was filed is not known yet; the runs refresh in a moment.",
+              go.error as Error,
+            )}
+            failed
+          />
+        ) : null}
+
+        {!activeWorkspaceId ? (
+          <Row
+            lead="This account has no workspace yet."
+            sub="A run belongs to one, so there is nowhere to file this until there is one."
+            action={
+              <Action onClick={() => void navigate({ to: "/settings", search: {} })}>
+                Open Settings
+              </Action>
+            }
+          />
+        ) : null}
+
+        {/*
+         * THE FIRST THREE RUNS, when there is nothing yet: an ANSWERED runs
+         * read with nothing open and nothing finished, and no bet arrived
+         * (`startersStand`). A failed read drew these over a workspace with a
+         * year of runs, and the morning after the only run finished they came
+         * back above its Finished row (fourth review, 2026-09-09). Written once
+         * from the product's name and the one line the person gave at the
+         * first run screen (Lane 3, listStarterRuns). The reading is shown
+         * while it happens; a press composes, Enter starts.
+         */}
+        {startersStand(runs.data, bets.data?.length ?? 0) && activeProductId && activeProduct ? (
+          <StarterRuns
+            productId={activeProductId}
+            productName={activeProduct.name}
+            onUse={(text) => {
+              setSentence(text);
+              const field = fieldRef.current;
+              if (field) {
+                field.focus();
+                field.select();
+              }
+            }}
+          />
+        ) : null}
+
+        {/* Mounted onto the seed, not before it: mounted earlier it fetched the
+          largest read on the page 170 ms ahead of the seed that carried the
+          same rows (read live 2026-09-08). */}
+        {seeded && !firstRun ? <YourRuns /> : null}
       </div>
 
       {/*
-       * ── THE DIRECTOR SITS WITH THE DOOR, AND IT USED TO BE TENTH ─────────
+       * ── THE CONTEXT COLUMN, WHICH THIS SURFACE HAS NEVER HAD ─────────────
        *
-       * The product is three layers -- 01 the DIRECTOR, which tells you what
-       * to build; 02 the operating system, which runs the lifecycle; 03 the
-       * brain, which remembers and guides -- and the repo's own discipline for
-       * revealing them is **door, body, brain**
-       * (`docs/pitch/repositioning-2026-07-22.md`).
+       * `.sp-inner:has(.sp-ctx)` gives every ported surface a second track at
+       * >=1120px, and the home could not use it because it was never inside
+       * `.sp-inner` (see the container note above). So layer 3 — what came of
+       * the last decision, what is still betting, what is arriving, who is
+       * working right now — was STACKED underneath layer 2 instead of standing
+       * beside it, and on a 1920px window it sat below the fold with 330px of
+       * empty field on either side of it.
        *
-       * The founder's complaint about this product is that *"layers 1, 2 and 3
-       * do not stitch together"*. Measured on this page before today: layer 02
-       * led (once the road moved), layer 03 was fifth, and **layer 01 -- the
-       * wedge, the thing the product claims to be FOR -- was tenth**, five
-       * regions below the box you would type its suggestion into.
-       *
-       * These ranked bets ARE the director: this workspace's own opportunities,
-       * ordered, each one a sentence a person can start. That belongs beside
-       * the composer, because the composer is where you say the thing and this
-       * is the product saying what it would say. Two halves of one act, and
-       * they were half a screen apart.
-       *
-       * IT DRAWS ONLY WHERE THERE ARE ANY, unchanged. A1 delete probe holds
-       * zero opportunities and shows nothing here, which is honest -- the
-       * director cannot direct with no evidence. Measured across the product:
-       * Helio Labs 92, My Workspace 19, My workspace 6, so on the founder's
-       * own workspaces it draws.
+       * These four are one question asked from four directions: what has this
+       * product got me, and what is it doing about it now. They belong together
+       * and they belong in view. `.sp-ctx` never disappears — on a narrow
+       * region it stacks under the work rather than hiding, because a 14in
+       * laptop needs this as much as a 32in monitor does.
        */}
-      {/*
-       * THIS WORKSPACE'S OWN RANKED BETS, when it has any. A bet starts on
-       * press because it is the workspace's own work (P-33). The three
-       * invented example sentences that stood here before the first run are
-       * gone: the hero says what to type, and an example about a checkout
-       * the person does not have taught nothing.
-       */}
-      {bets.data && bets.data.length > 0 ? (
-        <ExampleJobs
-          onStart={(job) => go.mutate(job)}
-          zone={timezone}
-          onOpenRun={openRun}
-          onUse={(job) => {
-            setSentence(job.sentence);
-            const field = fieldRef.current;
-            if (field) {
-              field.focus();
-              field.select();
-            }
-          }}
-          busy={go.isPending}
-          bets={bets.data}
-          productExample={null}
-        />
-      ) : null}
-
-      {/* A REFUSAL AND A THROW ARE DIFFERENT, AND BOTH ARE SAID, under the
-          composer, because that is where the person is looking. */}
-      {problems.length > 0 ? (
-        <Receipt verb="Nothing was started" consequence={problems.join(" ")} failed />
-      ) : null}
-      {/* Says only what the client knows: a throw here is a lost response,
-          and whether the insert ran is not known from this side (see
-          `onError` above). */}
-      {go.isError ? (
-        <Receipt
-          verb="Nothing was started"
-          consequence={failureLine(
-            "Your sentence is still in the box. Nothing came back, so whether it was filed is not known yet; the runs refresh in a moment.",
-            go.error as Error,
-          )}
-          failed
-        />
-      ) : null}
-
-      {!activeWorkspaceId ? (
-        <Row
-          lead="This account has no workspace yet."
-          sub="A run belongs to one, so there is nowhere to file this until there is one."
-          action={
-            <Action onClick={() => void navigate({ to: "/settings", search: {} })}>
-              Open Settings
-            </Action>
-          }
-        />
-      ) : null}
-
-      {/* WHAT THE MACHINE DID WHILE YOU WERE AWAY, ABOVE THE FOLD.
-          
-          The founder's complaint that this page exists to answer is "I cannot
-          feel the value". The value of this product is not the queue: it is
-          that work was decided, built, shipped and then graded against what it
-          promised. That proof lived in three mute sentences at position six of
-          seven, under a run list, while a count of what he owed was the
-          headline in 32px. So the page led with a debt and buried the return.
-
-          These two blocks are one movement and they are the same question,
-          which is why the arriving answer and the Findings strip already
-          negotiate one door between them: what came back, and what is coming
-          in. They read directly under the box a person hands work to, which
-          makes the page a sequence rather than a set of regions: what needs
-          you, hand something over, here is what came of the last time, here is
-          what is moving, here is your list. */}
-      <HomeAnswers answers={sinceYouLooked} />
-      {/* THE EVIDENCE, DIRECTLY UNDER THE ANSWERS IT BELONGS TO. The answer
-          above says a decision came back this week; this says which one, what
-          it committed to, and what came back. Reading them in that order is the
-          page going from a count to a fact, which is the whole move. */}
-      <WhetherItWorked it={itWorked} />
-      {/* Its sibling, in the same slot. `theBetStillOpen` returns null when a
-          closed loop exists, so exactly one of these ever draws. */}
-      <BetStillOpen it={betOpen} />
-      {/* WHAT IS ARRIVING (founder, 2026-09-02 19:12): the
-          product's central claim, evidence becomes work on its own, provable
-          on the page a person actually lands on. */}
-      <Arriving door={!sinceYouLooked.some((a) => "to" in a.door && a.door.to === "/evidence")} />
-
-      <CrewAtWork workspaceId={activeWorkspaceId ?? null} onOpen={openRun} />
-
-      {/*
-       * THE FIRST THREE RUNS, when there is nothing yet: an ANSWERED runs
-       * read with nothing open and nothing finished, and no bet arrived
-       * (`startersStand`). A failed read drew these over a workspace with a
-       * year of runs, and the morning after the only run finished they came
-       * back above its Finished row (fourth review, 2026-09-09). Written once
-       * from the product's name and the one line the person gave at the
-       * first run screen (Lane 3, listStarterRuns). The reading is shown
-       * while it happens; a press composes, Enter starts.
-       */}
-      {startersStand(runs.data, bets.data?.length ?? 0) && activeProductId && activeProduct ? (
-        <StarterRuns
-          productId={activeProductId}
-          productName={activeProduct.name}
-          onUse={(text) => {
-            setSentence(text);
-            const field = fieldRef.current;
-            if (field) {
-              field.focus();
-              field.select();
-            }
-          }}
-        />
-      ) : null}
-
-      {/* Mounted onto the seed, not before it: mounted earlier it fetched the
-          largest read on the page 170 ms ahead of the seed that carried the
-          same rows (read live 2026-09-08). */}
-      {seeded && !firstRun ? (
-        <YourRuns station={station} onClearStation={() => setStation(null)} />
-      ) : null}
+      <aside data-work-ctx="" className="flex flex-col gap-mrd-6" aria-label="What came of it">
+        {/* WHAT CAME OF THE LAST DECISION, and its sibling in the same slot:
+            `theBetStillOpen` returns null when a closed loop exists, so exactly
+            one of these ever draws. This is the only region in the product that
+            can say the loop closed. */}
+        <WhetherItWorked it={itWorked} />
+        <BetStillOpen it={betOpen} />
+        {/* WHAT CAME IN SINCE YOU LOOKED. */}
+        <HomeAnswers answers={sinceYouLooked} />
+        {/* WHAT IS ARRIVING (founder, 2026-09-02 19:12): the product's central
+            claim, evidence becomes work on its own, provable on the page a
+            person actually lands on. */}
+        <Arriving door={!sinceYouLooked.some((a) => "to" in a.door && a.door.to === "/evidence")} />
+        {/* WHO IS WORKING RIGHT NOW. The one live thing on the page, and it
+            draws nothing when nobody is, which is honest and is most of the
+            time. */}
+        <CrewAtWork workspaceId={activeWorkspaceId ?? null} onOpen={openRun} />
+      </aside>
     </div>
   );
 }
