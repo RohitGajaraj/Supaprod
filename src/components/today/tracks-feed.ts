@@ -4,6 +4,7 @@ import { formatElapsed } from "@/components/meridian/run-rows";
 import { HALT_LINE, TERMINAL_HOLDS } from "@/lib/spine/correction";
 import { waitingOnTime } from "@/components/track/a-calendar-wait-is-not-a-stoppage";
 import { stoppedFor } from "@/components/meridian/stopped-for";
+import { verbWithObject } from "@/lib/spine/what-is-running";
 import { nothingHasPickedItUp } from "@/components/track/nothing-has-picked-it-up";
 import { AGENT_STATIONS, type AgentStation } from "@/lib/agent-vocabulary";
 import { holdLine } from "@/lib/spine/driver";
@@ -497,8 +498,12 @@ function startRowRest(
        and gets its own words: "is working" claims exactly what the row
        supports. */
     const verb = r.working.verb ?? (r.working.tool ? phraseFor(r.working.tool) : null);
-    const object = r.working.verb && r.working.objectLabel ? ` ${r.working.objectLabel}` : "";
-    const doing = verb ? `${r.working.seat} is ${verb}${object}` : `${r.working.seat} is working`;
+    /* The object only when the verb has not already said it. This read
+       "Draft is revising the spec the spec" on the served home, because the
+       guard asked whether a server verb EXISTED rather than what it
+       contained. See `verbWithObject`. */
+    const said = verb && r.working.verb ? verbWithObject(verb, r.working.objectLabel) : verb;
+    const doing = said ? `${r.working.seat} is ${said}` : `${r.working.seat} is working`;
     /* Quiet past the stall threshold: the sentence says so instead of a
        clock that keeps counting a seat that has stopped. */
     const last = r.working.lastCallAt ?? r.working.since;

@@ -29,7 +29,7 @@ import { STALL_MINUTES } from "@/lib/loop-health.functions";
 import { runningNowKey } from "@/lib/query-keys";
 import { HOME_STALE_MS, useSeedInFlight } from "@/components/start/home-read";
 import { listRunningNow } from "@/lib/spine/track.functions";
-import type { RunningSeat } from "@/lib/spine/what-is-running";
+import { verbWithObject, type RunningSeat } from "@/lib/spine/what-is-running";
 
 export type WorkingSeat = {
   runId: string;
@@ -62,9 +62,10 @@ export const QUIET_AFTER_MS = STALL_MINUTES * 60_000;
 export function seatLine(s: WorkingSeat, nowMs: number): { doing: string; quiet: number | null } {
   const quiet = quietFor(s, nowMs);
   const doing = s.verb
-    ? s.objectLabel
-      ? `${s.verb} ${s.objectLabel}`
-      : s.verb
+    ? /* Not `${verb} ${objectLabel}`: the verb usually names the object
+         already, and this line read "revising the spec the spec" on the
+         served home. See `verbWithObject`. */
+      verbWithObject(s.verb, s.objectLabel)
     : s.station
       ? `working at ${AGENT_STATIONS[s.station].name}`
       : "working";

@@ -98,6 +98,50 @@ export function objectLabelOf(object: { kind: string; id: string } | null): stri
   return OBJECT_WORDS[object.kind] ?? "the record";
 }
 
+/**
+ * THE VERB AND ITS OBJECT, WITHOUT SAYING THE OBJECT TWICE.
+ *
+ * SEEN ON THE SERVED HOME, 2026-09-10, in a run row's live line:
+ *
+ *     "Draft is revising the spec the spec"
+ *
+ * Both halves were doing their job. `VERB_BY_TOOL` phrases are complete
+ * clauses that already name what they act on -- "revising the spec",
+ * "committing the change", "opening the pull request" -- and `objectLabelOf`
+ * returns the very same nouns: "the spec", "the change". Two call sites then
+ * appended one to the other whenever the server had supplied a verb, and
+ * neither asked whether the verb had already said it.
+ *
+ * IT IS A SHAPE, NOT A STRING. All 28 verbs in that table carry their object,
+ * so the append is redundant for every one of them that matches; it was only
+ * ever additive for a FILE object, where `objectLabelOf` returns a filename
+ * ("Address.tsx") the verb cannot know. So the rule is not "stop appending",
+ * it is "append what the verb has not already said".
+ */
+export function verbWithObject(verb: string, objectLabel: string | null | undefined): string {
+  if (!objectLabel) return verb;
+  const said = verb.trim().toLowerCase();
+  const object = objectLabel.trim().toLowerCase();
+  if (!object) return verb;
+  /*
+   * ANYWHERE IN THE CLAUSE, NOT ONLY AT THE END. The first version of this
+   * checked `endsWith`, and the cross-product test caught what that misses:
+   * "reviewing the change against the spec" names its object in the MIDDLE,
+   * so a suffix check let "the change" through and rebuilt the same defect
+   * one verb along.
+   *
+   * ON WORD BOUNDARIES, because plain containment is wrong in the other
+   * direction: "the change" sits inside "reading the changelog", and
+   * suppressing it there would drop a fact the verb never carried. The
+   * boundary is what separates "already said it" from "happens to share
+   * letters".
+   */
+  const boundary = "(^|[^a-z0-9])";
+  const escaped = object.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  if (new RegExp(`${boundary}${escaped}([^a-z0-9]|$)`).test(said)) return verb;
+  return `${verb} ${objectLabel}`;
+}
+
 /** One seat, working, as much as the record can say about it. */
 export type RunningSeat = {
   /** The run. Always present, which is why it is the identity here. */
