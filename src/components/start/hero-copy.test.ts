@@ -214,13 +214,20 @@ describe("placeholderFor", () => {
       }),
     ).toBe("Help Prism get 40% of active users to a funded savings goal");
     /* Seen live on Relay, 2026-09-08: "Help Relay every homeowner understands
-       their energy use" is not a sentence. An outcome falls to the plain frame. */
+       their energy use" is not a sentence. An outcome falls to the plain frame.
+       WHICH PLAIN FRAME CHANGED ON 2026-09-10 and this assertion had to change
+       with it. The prompt now follows the composer's shape picker (the two
+       controls contradicted each other on the default), so the fallback is
+       whatever the picked shape asks for. The CLAIM here was never the
+       sentence -- it is that a north star which is not a verb phrase is
+       refused and the ordinary ask is used instead -- so it is now pinned to
+       that, and improving any shape's wording can no longer fail it. */
     expect(
       placeholderFor({
         name: "Relay",
         northStar: "Every homeowner understands their energy use at a glance",
       }),
-    ).toBe("Change one thing in Relay, and say what it should do");
+    ).toBe(placeholderFor({ name: "Relay", northStar: null }));
     expect(placeholderFor(null)).toBe("Make the checkout accept an American Express card");
   });
 });

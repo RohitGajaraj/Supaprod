@@ -170,18 +170,52 @@ const GOAL_VERBS = new Set([
   "speed",
 ]);
 
-export function placeholderFor(product: { name: string; northStar: string | null } | null): string {
-  if (product?.northStar) {
+/**
+ * WHAT THE BOX ASKS FOR, PER SHAPE.
+ *
+ * MEASURED ON THE SERVED HOME, 2026-09-10: the picker read *"Something we
+ * have not built before"* -- its DEFAULT, so this is the first frame of every
+ * arrival -- and the box eighteen pixels above it read *"Change one thing in
+ * A1 delete probe, and say what it should do"*. The two controls of the one
+ * composer disagreed about what kind of work a person was describing, before
+ * they had touched either.
+ *
+ * `placeholderFor` took only the product, so the prompt could not follow the
+ * shape even in principle. Five shapes, one sentence, and the sentence was
+ * written for exactly one of them.
+ *
+ * Each line asks for the two things that shape actually needs, in the same
+ * two-clause rhythm, so changing the picker changes the ask and nothing else
+ * moves.
+ */
+const SHAPE_ASK: Record<WorkShape, (name: string) => string> = {
+  "new-capability": (name) => `Describe something ${name} should do that it cannot today`,
+  "existing-feature": (name) => `Change one thing in ${name}, and say what it should do`,
+  "interface-change": (name) =>
+    `Say what a person sees in ${name} today, and what they should see instead`,
+  "under-the-hood": (name) => `Say what ${name} does today, and what it should do instead`,
+  "incident-fix": (name) => `Say what is broken in ${name}, and what should happen instead`,
+};
+
+export function placeholderFor(
+  product: { name: string; northStar: string | null } | null,
+  shape: WorkShape = "new-capability",
+): string {
+  if (product?.northStar && shape === "new-capability") {
     /* The goal is a sentence in the product's own words ("Get 40% of active
        users to a funded savings goal"), so it follows "Help <name>" with its
-       first letter lowered, and never a preposition it was not written for. */
+       first letter lowered, and never a preposition it was not written for.
+       SCOPED TO `new-capability` since 2026-09-10: a north star is an
+       open-ended outcome, which is what that shape asks for. Over "Something
+       is broken now" it was answering a question the person had just said
+       they were not asking. */
     const goal = product.northStar.trim().replace(/[.]+$/, "");
     const first = goal.split(/\s+/)[0]?.toLowerCase() ?? "";
     if (GOAL_VERBS.has(first)) {
       return `Help ${product.name} ${goal.charAt(0).toLowerCase()}${goal.slice(1)}`;
     }
   }
-  if (product?.name) return `Change one thing in ${product.name}, and say what it should do`;
+  if (product?.name) return SHAPE_ASK[shape](product.name);
   return PLACEHOLDER;
 }
 
@@ -356,6 +390,14 @@ function StartLanding() {
     staleTime: 5 * 60_000,
     enabled: Boolean(activeWorkspaceId),
   });
+  /* THE ROUTE THIS SENTENCE TAKES, picked by the person rather than assumed
+     (fifth review, 2026-09-09). Discover-first stays the default, per the
+     founder's own §5E ruling; a card that carries its own shape overrides it.
+     DECLARED HERE, ABOVE THE PLACEHOLDER, because the box's prompt follows
+     the shape since 2026-09-10 -- the two controls of one composer used to
+     disagree about what was being described. */
+  const [pickedShape, setPickedShape] = useState<WorkShape>("new-capability");
+
   const placeholder = useMemo(() => {
     const goals = productGoals.data ?? [];
     const chosen =
@@ -368,9 +410,9 @@ function StartLanding() {
        the eyebrow read the workspace name over a placeholder about a
        checkout no one here owns). */
     const subject = name ?? activeProduct?.name ?? activeWorkspace?.name ?? null;
-    if (!subject) return placeholderFor(null);
-    return placeholderFor({ name: subject, northStar: chosen?.northStar ?? null });
-  }, [productGoals.data, products, activeProductId, activeProduct, activeWorkspace]);
+    if (!subject) return placeholderFor(null, pickedShape);
+    return placeholderFor({ name: subject, northStar: chosen?.northStar ?? null }, pickedShape);
+  }, [productGoals.data, products, activeProductId, activeProduct, activeWorkspace, pickedShape]);
   /*
    * THE PLACEHOLDER LANDS ONCE. On every full-page arrival the focused box
    * changed its sentence up to three times as the workspace, the product
@@ -383,11 +425,6 @@ function StartLanding() {
    */
   const placeholderReady =
     noWorkspace || (!workspaceLoading && (productGoals.isSuccess || productGoals.isError));
-
-  /* THE ROUTE THIS SENTENCE TAKES, picked by the person rather than assumed
-     (fifth review, 2026-09-09). Discover-first stays the default, per the
-     founder's own §5E ruling; a card that carries its own shape overrides it. */
-  const [pickedShape, setPickedShape] = useState<WorkShape>("new-capability");
 
   const go = useMutation({
     mutationFn: async (job?: ExampleJob) => {
