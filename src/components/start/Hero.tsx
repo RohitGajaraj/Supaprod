@@ -23,6 +23,7 @@ import * as React from "react";
 import { Link } from "@tanstack/react-router";
 
 import type { StartRun } from "@/lib/spine/track.functions";
+import { quotedTitle } from "@/components/start/a-title-inside-a-sentence";
 import { standingState, type RunLike } from "@/components/start/journey-of-a-run";
 import { quietFor } from "@/components/start/CrewAtWork";
 
@@ -43,18 +44,13 @@ function plural(n: number, one: string, many: string): string {
 }
 
 /**
- * A TITLE INSIDE A SENTENCE IS QUOTED AND BOUNDED. Queue titles are written by
- * agents and run past a hundred characters ("Spec: Homeowners cannot
- * distinguish between scheduled firmware reboots and unplanned production
- * outages due to identical UI"), and one of those unquoted in the hero's line
- * reads as the product's own prose rather than as the name of a thing.
+ * A TITLE INSIDE A SENTENCE IS QUOTED AND BOUNDED, and the rule now lives in
+ * `a-title-inside-a-sentence.ts` because a second surface needed it: the home's
+ * "your work moved" line read *"...is cancelled reached Build"* without it. A
+ * copied rule drifts on the day somebody tunes the length, so it moved rather
+ * than being duplicated. Same function, same 72.
  */
-const HERO_TITLE_MAX = 72;
-function quoted(title: string): string {
-  const t =
-    title.length <= HERO_TITLE_MAX ? title : `${title.slice(0, HERO_TITLE_MAX).trimEnd()}...`;
-  return `"${t}"`;
-}
+const quoted = quotedTitle;
 
 export function heroCopy(input: {
   product: string | null;

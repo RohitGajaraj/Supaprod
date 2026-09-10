@@ -19,6 +19,7 @@
  * not a zero, not a reassurance.
  */
 
+import { quotedTitle } from "@/components/start/a-title-inside-a-sentence";
 import type { WorkMoved } from "@/components/start/the-work-moved";
 import { dateTimeInZone } from "@/lib/time-of-day";
 
@@ -221,7 +222,12 @@ export function movedAnswer(moved: WorkMoved): Answer {
          `WhetherItWorked` follows one region down. */
       return {
         read: "answered",
-        line: `${moved.title} reached ${moved.station}.`,
+        /* QUOTED AND BOUNDED. A run title is itself a sentence -- "Warn a
+           homeowner before an installer visit is cancelled" -- so unquoted it
+           read as *"...is cancelled reached Build"* and a reader stumbles
+           mid-line. See `a-title-inside-a-sentence.ts`; `Hero` has held the
+           same rule since 2026-09-08. */
+        line: `${quotedTitle(moved.title)} reached ${moved.station}.`,
         door: { label: "See where it stands", to: "/start" },
       };
     case "many":

@@ -8,6 +8,7 @@ import { describe, it, expect } from "bun:test";
 import { readFileSync } from "node:fs";
 import {
   homeAnswers,
+  movedAnswer,
   waitingAnswer,
   arrivingAnswer,
   releasedAnswer,
@@ -321,7 +322,7 @@ describe("the four, together", () => {
     });
     expect(a[0]).toMatchObject({
       read: "answered",
-      line: "Warn a homeowner before a visit is cancelled reached Design.",
+      line: '"Warn a homeowner before a visit is cancelled" reached Design.',
     });
     /* The debt is still there, one line down. Leading with the news does not
        mean hiding what is waiting. */
@@ -411,5 +412,48 @@ describe("the region is named for what it holds", () => {
        region is worse than a wrongly-labelled one for the reader who most
        depends on it. */
     expect(codeOnly).toContain("aria-label=");
+  });
+});
+
+/*
+ * ── THE TITLE IS QUOTED, AND THE REASON IS A GARDEN PATH ──────────────────
+ *
+ * Read on the served home, 2026-09-10:
+ *
+ *   Warn a homeowner before an installer visit is cancelled reached Build.
+ *
+ * A run title is itself a sentence, so a reader parses *"...is cancelled
+ * reached Build"* and stumbles. Quotation marks are not decoration here; they
+ * are the only thing telling a reader where the name ends and the claim begins.
+ *
+ * `Hero` has held this rule since 2026-09-08 as a private helper. The moment a
+ * second surface needed it, it moved to `a-title-inside-a-sentence.ts` rather
+ * than being copied — a copied rule drifts on the day somebody tunes the
+ * length.
+ */
+describe("a run title inside a sentence", () => {
+  it("is quoted, so the name cannot run into the claim", () => {
+    const a = movedAnswer({ kind: "one", title: "Ship the thing", station: "Build" });
+    expect(a).toMatchObject({ line: '"Ship the thing" reached Build.' });
+  });
+
+  it("is bounded, because agents write titles past a hundred characters", () => {
+    const long =
+      "Spec: Homeowners cannot distinguish between scheduled firmware reboots and unplanned production outages due to identical UI";
+    const a = movedAnswer({ kind: "one", title: long, station: "Build" });
+    const line = (a as { line: string }).line;
+    expect(line).toContain("...");
+    /* The whole line stays readable: the cut is on the TITLE, and the claim
+       after it survives intact. */
+    expect(line).toEndWith(" reached Build.");
+    expect(line.length).toBeLessThan(long.length + 24);
+  });
+
+  it("uses the same rule the hero does, not a second one", () => {
+    /* THE MIRROR. Two surfaces quoting titles by two rules is the drift this
+       move existed to prevent, and it would be invisible until somebody
+       changed one of them. */
+    const hero = code(readFileSync("src/components/start/Hero.tsx", "utf8"));
+    expect(hero).toContain("quotedTitle");
   });
 });
