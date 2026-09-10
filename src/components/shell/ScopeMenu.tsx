@@ -291,16 +291,7 @@ export function AccountMenu({ initials }: { initials: string }) {
       </button>
       {open ? (
         <div className="sp-menu" data-align="end" role="menu" aria-label="Your account">
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              padding: "6px 10px 10px",
-              marginBottom: 2,
-              borderBottom: "1px solid var(--mrd-line-soft)",
-            }}
-          >
+          <div className="mb-mrd-1 flex items-center gap-mrd-4 border-b border-mrd-line-soft px-mrd-4 pt-mrd-3 pb-mrd-4">
             {/* The mark chosen in Settings, at the size its preview draws it,
               with the initials disc as the fallback when nothing is picked.
               Until now the choice rendered nowhere outside that picker. */}
@@ -311,32 +302,17 @@ export function AccountMenu({ initials }: { initials: string }) {
               variant={avatarChoice}
               title="Your mark"
             />
-            <span style={{ minWidth: 0 }}>
+            <span className="min-w-0">
               <span
-                style={{
-                  display: "block",
-                  maxWidth: 190,
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                  fontSize: "var(--mrd-t-base)",
-                  fontWeight: "var(--mrd-w-medium)",
-                  color: "var(--mrd-ink)",
-                }}
+                className="text-mrd-base block truncate font-medium text-mrd-ink"
+                style={{ maxWidth: 190 }}
               >
                 {displayName ?? who.email ?? ""}
               </span>
               {displayName && who.email ? (
                 <span
-                  style={{
-                    display: "block",
-                    maxWidth: 190,
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                    fontSize: "var(--mrd-t-label)",
-                    color: "var(--mrd-mute)",
-                  }}
+                  className="text-mrd-label block truncate text-mrd-mute"
+                  style={{ maxWidth: 190 }}
                 >
                   {who.email}
                 </span>
@@ -354,7 +330,7 @@ export function AccountMenu({ initials }: { initials: string }) {
           >
             Settings
           </button>
-          <div style={{ borderTop: "1px solid var(--mrd-line-soft)", margin: "4px 10px" }} />
+          <div className="mx-mrd-4 my-mrd-2 border-t border-mrd-line-soft" />
           <button
             type="button"
             role="menuitem"
@@ -365,7 +341,7 @@ export function AccountMenu({ initials }: { initials: string }) {
           >
             {leaving ? "Signing out" : "Sign out"}
           </button>
-          <div style={{ borderTop: "1px solid var(--mrd-line-soft)", margin: "4px 10px" }} />
+          <div className="mx-mrd-4 my-mrd-2 border-t border-mrd-line-soft" />
           <button
             type="button"
             role="menuitem"
