@@ -15,17 +15,26 @@ import { Github, Lock, Unlock } from "lucide-react";
 import { Dialog } from "@/components/meridian/Dialog";
 import { Action, Actions } from "@/components/meridian/surface-parts";
 /*
- * ── THE INPUT IS STILL SHADCN'S, AND THAT IS THE HONEST STATE ───────────────
+ * ── AND THE INPUT IS MERIDIAN'S TOO. THE NOTE THAT STOOD HERE WAS WRONG ─────
  *
- * Meridian has a Dialog, an Action and a Picker, and NO text input. So this
- * dialog ports to Meridian everywhere Meridian has an answer and keeps
- * `ui/input` where it does not, rather than either inventing a control here --
- * which would be a design-system addition wearing a component pass's clothes --
- * or leaving the whole dialog on the retired module because one part of it has
- * nowhere to go. The remaining import is the open question, in one line, where
- * the next reader meets it.
+ * It said "Meridian has a Dialog, an Action and a Picker, and NO text input",
+ * and kept `ui/input` on that basis. Meridian has had `Input` since before this
+ * file was touched: it is in `forms.tsx`, with `Textarea` and the labelled
+ * `Field` beside it, and 37 files already import it by name.
+ *
+ * WHAT THE MISTAKE WAS, because the shape of it outlives this file: I listed
+ * `components/meridian/` looking for something called an input, found no
+ * `Input.tsx`, and concluded there was none. `COMPONENTS.md` in that directory
+ * exists precisely to answer this, and its own header says the quiet part --
+ * `ls` will not show you `Block` or `Pre` either, and those exist too. A
+ * directory listing answers "what files are here", never "what parts exist",
+ * and a component living in a file named for its FAMILY is invisible to the
+ * first question and obvious to the second.
+ *
+ * A false gap is worse than a missing port. The port is one import; the note
+ * would have told the next reader that building a text input was open work.
  */
-import { Input } from "@/components/ui/input";
+import { Field, Input } from "@/components/meridian/forms";
 import { toast } from "@/lib/notify";
 import { createRepoForProduct } from "@/lib/connectors/product-binding.functions";
 import { humanWriteError } from "@/lib/roles.functions";
@@ -117,51 +126,54 @@ export function CreateRepoModal({
       </p>
 
       <div className="mt-mrd-4 flex flex-col gap-mrd-5">
-        <div>
-          <label htmlFor="repo-name" className="text-mrd-label text-mrd-ink">
-            Repo name
-          </label>
+        <Field
+          label="Repo name"
+          htmlFor="repo-name"
+          hint="Letters, numbers, hyphens, dots, and underscores only."
+        >
           <Input
             id="repo-name"
             value={name}
             onChange={(e) => setName(slugify(e.target.value))}
             placeholder="my-product"
-            className="font-mrd-mono mt-mrd-2 text-mrd-base"
+            className="font-mrd-mono"
             autoFocus
           />
-          <p className="text-mrd-tiny text-mrd-mute mt-mrd-2">
-            Letters, numbers, hyphens, dots, and underscores only.
-          </p>
-        </div>
+        </Field>
 
-        <div>
-          <label htmlFor="repo-org" className="text-mrd-label text-mrd-ink">
-            Organization <span className="text-mrd-mute">(optional)</span>
-          </label>
+        <Field
+          label={
+            <>
+              Organization <span className="text-mrd-mute">(optional)</span>
+            </>
+          }
+          htmlFor="repo-org"
+          hint="Leave blank to create in your personal account."
+        >
           <Input
             id="repo-org"
             value={org}
             onChange={(e) => setOrg(e.target.value)}
             placeholder="your-org"
-            className="font-mrd-mono mt-mrd-2 text-mrd-base"
+            className="font-mrd-mono"
           />
-          <p className="text-mrd-tiny text-mrd-mute mt-mrd-2">
-            Leave blank to create in your personal account.
-          </p>
-        </div>
+        </Field>
 
-        <div>
-          <label htmlFor="repo-desc" className="text-mrd-label text-mrd-ink">
-            Description <span className="text-mrd-mute">(optional)</span>
-          </label>
+        <Field
+          label={
+            <>
+              Description <span className="text-mrd-mute">(optional)</span>
+            </>
+          }
+          htmlFor="repo-desc"
+        >
           <Input
             id="repo-desc"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Short description"
-            className="mt-mrd-2 text-mrd-base"
           />
-        </div>
+        </Field>
 
         <button
           type="button"

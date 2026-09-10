@@ -10,8 +10,12 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Gift } from "lucide-react";
 import { redeemVoucher } from "@/lib/admin-vouchers.functions";
 import { MonoLabel } from "@/components/supaprod/Primitives";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+/* Meridian's, not shadcn's. `Input` lives in `forms.tsx` and `Action` in
+   `surface-parts.tsx`; neither is findable by listing this directory looking for
+   a file named after the control, which is how both of these survived. Search
+   `components/meridian/COMPONENTS.md`, not `ls`. */
+import { Action } from "@/components/meridian/surface-parts";
+import { Input } from "@/components/meridian/forms";
 import { toast } from "@/lib/notify";
 
 export function RedeemCodeCard() {
@@ -48,7 +52,14 @@ export function RedeemCodeCard() {
         Have a promo or credit code? Enter it to add credits or unlock a plan.
       </p>
       <div style={{ display: "flex", gap: "var(--geist-space-2x)", flexWrap: "wrap" }}>
+        {/* IT HAD NO NAME, ONLY A PLACEHOLDER, and a placeholder is not a label:
+            it is gone the moment a character is typed, so a screen reader
+            arriving mid-edit hears an unnamed box. `every-field-announces-itself`
+            catches exactly this and never looked here -- its DIRS list names
+            eleven directories by hand and `components/settings` is not one of
+            them. Named here; the guard's blind spot is filed separately. */}
         <Input
+          aria-label="Redeem code"
           placeholder="Enter code"
           value={code}
           maxLength={64}
@@ -58,9 +69,17 @@ export function RedeemCodeCard() {
             if (e.key === "Enter" && code.trim() && !redeem.isPending) redeem.mutate(code);
           }}
         />
-        <Button disabled={!code.trim() || redeem.isPending} onClick={() => redeem.mutate(code)}>
+        {/* `busy` carries the pending half; `disabled` keeps the other half,
+            which is that an empty box has nothing to redeem. Two facts, and
+            only one of them is "working on it". */}
+        <Action
+          variant="primary"
+          disabled={!code.trim()}
+          busy={redeem.isPending}
+          onClick={() => redeem.mutate(code)}
+        >
           {redeem.isPending ? "Redeeming…" : "Redeem"}
-        </Button>
+        </Action>
       </div>
     </div>
   );

@@ -15,8 +15,8 @@
     "src/styles.css",
     "src/styles/**"
   ],
-  "totalOccurrences": 1484,
-  "fileCount": 120,
+  "totalOccurrences": 1476,
+  "fileCount": 118,
   "files": {
     "src/components/admin/VouchersPanel.tsx": {
       "import:components/ui": 1,
@@ -56,10 +56,6 @@
     "src/components/connections/BindingPicker.tsx": {
       "import:components/ui": 2,
       "usage:components/ui": 9
-    },
-    "src/components/connections/CreateRepoModal.tsx": {
-      "import:components/ui": 1,
-      "usage:components/ui": 3
     },
     "src/components/discover/DetailKit.tsx": {
       "class:sp-": 5
@@ -224,10 +220,6 @@
     },
     "src/components/settings/MembersCard.tsx": {
       "class:sp-": 1
-    },
-    "src/components/settings/RedeemCodeCard.tsx": {
-      "import:components/ui": 2,
-      "usage:components/ui": 2
     },
     "src/components/shell/AppFrame.tsx": {
       "class:sp-": 44

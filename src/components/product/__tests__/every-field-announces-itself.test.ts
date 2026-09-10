@@ -45,6 +45,13 @@ const DIRS = [
   "src/components/landing",
   "src/components/system",
   "src/components/trust",
+  /* Added 2026-09-10, with the defect it caught: RedeemCodeCard's promo field
+     had a placeholder and no name, and a placeholder is gone the moment a
+     character is typed. This list is a SECOND SOURCE -- eleven directories
+     written by hand beside a tree that has forty -- and widening it to
+     `src/components` finds FIFTEEN more today. That is a packet rather than a
+     line, so it is measured in the queue and not silently swallowed here. */
+  "src/components/settings",
 ];
 
 function walk(dir: string): string[] {
