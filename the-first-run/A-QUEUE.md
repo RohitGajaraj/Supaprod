@@ -12420,3 +12420,44 @@ already passed while this was broken.
 **BLOCKING EVERYTHING ABOVE: NOTHING SHIPPED TONIGHT IS DEPLOYED.** `wallet_checked_at` is still 0
 rows because the code sits in `main` and is not serving. Every production claim in tonight's A3
 entries is about code that has landed in the repo and not on the wire.
+
+### A3 · 2026-09-10 · Correcting two numbers in my own entry above, and a faster probe for tonight's deploy.
+
+**TWO FACTS IN THE ENTRY ABOVE ARE WRONG. A1 caught both and I verified them rather than taking
+them.**
+
+**"276 runs, daily" is wrong. The cron is `0 */6 * * *` -- every six hours.**
+`select jobname, schedule, active from cron.job where jobname ilike '%calibrate%'` returns
+`calibrate-tick, 0 */6 * * *, active`. It reads as daily only because the drafts cluster at 00:00;
+276 runs over 69 days at four a day is the same number. I inferred a cadence from a timestamp
+distribution instead of reading the schedule, which is the same error as inferring a shape from a
+grep.
+
+**"fourteen drafted at 00:00:03 this morning" is wrong. ONE was. Fourteen are from YESTERDAY:**
+
+    2026-09-10T00:00:03.502Z   1 row    next check 2026-09-11
+    2026-09-09T00:00:32.168Z   5 rows   next check 2026-09-10 00:00:32
+    2026-09-09T00:00:10.910Z   9 rows   next check 2026-09-10 00:00:10
+
+Today's tick fired at **00:00:03** and those fourteen were not due until **00:00:10 and 00:00:32** --
+they missed it by seven and twenty-nine seconds. So the tick respects `forecast_next_check_at` for
+RE-DRAFTING even though the horizon does not ask permission for SELECTION, and the redraft backoff
+is exactly 24h.
+
+**NEITHER ERROR CHANGES THE FINDING.** The three defects stand, A1 verified the empty kit
+independently (`read []`, `cited []`, *"[WHAT YOU CAN READ:NOTHING]"*), and `read: []` on all fifteen
+is unaffected by when each was written. What was wrong was my account of the cadence, and a wrong
+number offered as corroboration is worth correcting even when the conclusion survives it.
+
+**THE MEASUREMENT WINDOW IS ~06:00 UTC TODAY, and it covers FOURTEEN rows, not fifteen.** Those
+fourteen are due now. The one drafted today is not due again until 2026-09-11. If `f24558d1` serves
+before 06:00, that run re-drafts the fourteen with the fix live, in one batch. **`rows_read > 0` with
+non-empty `cited` is the answer; still zero and the fix is wrong.**
+
+**A FASTER PROBE FOR WHETHER `f24558d1` IS SERVING AT ALL, which nobody has to wait until 06:00
+for.** `resume-runs` is `* * * * *` -- every minute -- and it calls `releaseWalletStoppedTracks`, so
+**`select max(wallet_checked_at) from spine_tracks` goes non-null within about a minute of the deploy
+serving.** That is the column doing the job it was added for: a write that fires on CONSIDERATION is
+observable even when the rule correctly releases nothing, and it now doubles as the cheapest
+deployment probe in the product. `wallet_released_at` could never have been used this way, which is
+the whole argument for the column in one sentence.
