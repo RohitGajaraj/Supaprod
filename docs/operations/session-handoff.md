@@ -3307,3 +3307,46 @@ difference: a census that cries fifteen and means three is how a guard gets igno
 **Three hand-maintained second sources went stale in one night** — `COMPONENTS.md`, this guard's
 `DIRS`, and `COMPONENTS.md`'s own header naming a `Block` that no longer exists. The Meridian
 ratchet derives its domain from the tree and is the only one that has never lied to us.
+
+### Lane 3 addendum · 2026-09-10 02:40 UTC · Read the 06:00 batch in this order, not the obvious one
+
+**The line above says "deploy `f24558d1` carries the grader fix". THAT IS AN INFERENCE, NOT A
+MEASUREMENT, and the 06:00 read is the one place where believing it costs something.**
+
+The commit times, converted from IST:
+
+    a42f481b9  wallet columns    01:49:10 UTC   PROVEN live (see below)
+    99b232325  the grader fix    02:25:09 UTC
+    f24558d1   deploy triggered  02:26    UTC   serving by ~02:32
+
+**The grader fix landed fifty-one seconds before the press.** Lovable's GitHub sync lagged three to
+ten minutes all day on 09-08, so whether that build's tree contained `99b232325` is genuinely
+unknown. `get_project` now reports `latest_commit_sha cec0246b3`, which is past it — but that is
+sync catching up SINCE the press, and this repo's own note is that **a build can predate the sha
+Lovable reports; prove a landing on the served surface, never by the sha.**
+
+**AND THE GRADER FIX HAS NO SERVED PROBE.** Everything it changed is reachable only through a draft,
+so the first observable moment is the 06:00 tick itself. That is the trap this repo keeps paying
+for: **a probe that misses reads exactly like a guard that holds.** If the build lacks the fix,
+`read` is empty at 06:00, and the natural reading — "the fix is wrong, and we learned it from data" —
+would be the wrong conclusion drawn from the most convincing evidence available.
+
+**SO IF `read` IS EMPTY AT 06:00, CHECK THIS BEFORE CONCLUDING ANYTHING:**
+
+1. Was the fix in the build? Redeploy from a tip that provably contains `99b232325`, confirm the new
+   deployment id is serving, then **wait for the NEXT tick and re-read.** Do not judge the fix on a
+   batch that may never have run it.
+2. Only if `read` is still empty on a batch that provably ran the fix is the fix wrong. Then the
+   place to look is `readKitForForecast`'s signals read: the guard it opens with, and whether
+   `created_at` and `workspace_id` arrive non-null.
+
+**`wallet_checked_at` IS THE PROBE THAT DOES NOT HAVE THIS PROBLEM, and it is the general lesson.**
+`resume-runs` is `* * * * *`, and the column is stamped on CONSIDERATION rather than on release, so
+**`select max(wallet_checked_at) from spine_tracks` answers "is my code serving" within sixty
+seconds of any deploy** — and it proves the code RAN, which an `x-deployment-id` header does not.
+Measured 02:32:51 UTC on `f24558d1`: 41 tracks considered, 0 released, all 41 reading *"the newest
+run is not a wallet halt, so the hold is about the work."*
+
+**A write that fires only on the positive case cannot do this**, because its population is empty
+exactly when the rule is working — which is what made `wallet_released_at` useless as a probe and
+cost tonight's first measurement. Any future repair of this shape should stamp the consideration.
