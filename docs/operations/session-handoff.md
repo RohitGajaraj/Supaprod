@@ -3220,3 +3220,45 @@ full-width row above the pane and `position: sticky` rode it down over the pane 
 - **`e2e/surface-baseline.json` keeps the old paths on purpose.** It is *"what each surface measured
   on 2026-08-27"* and already carries four dead keys. Rewriting a dated measurement's keys makes it
   claim it measured paths that did not exist yet. Same for the `docs/lanes/verify/S4-*` notes.
+
+### LANE 1 addendum — 2026-09-10 ~02:20 UTC — the grading never runs, and a guard that could not see
+
+**The biggest open thing in the product, and it is not a design problem.** The founder's *"I cannot
+feel the value"* has a measurable cause. Measured 2026-09-10 01:56 UTC, samples excluded:
+
+| workspace | overdue, ungraded | pending |
+| --- | --- | --- |
+| Helio Labs | **10** | 28 |
+| My workspace | **5** | 10 |
+| A1 delete probe | 0 | 6 |
+
+15 real forecasts are past their horizon with `forecast_resolved_at` null, oldest 2026-08-18.
+**Fourteen of the fifteen carry a `forecast_next_check_at` that is ALSO in the past** — scheduled,
+came due, nothing ran. Not one of the 51 (samples included) has ever been deferred.
+
+The machinery is complete — `listDueForecasts`, `settleForecast`, `deferForecastCheck`,
+`reopenForecast` — and **every caller is a UI component** (`ForecastDeskPanel`, `ArtifactPane`,
+`use-spine-strip`). No cron, no edge function, no agent. **Grading only happens if a person opens
+the Forecast Desk and does it by hand.** That is the founder's own question turned on us: *what am I
+asking a human to do that an agent should do in the background?* Dispatched to Lane 3 as the tick.
+
+Lane 1's half shipped (`7ccd28bf6`): the entry drew *"you will know in N days"* in two workspaces
+where ten and five earlier bets had lapsed unmentioned, which told the reader the grading works. It
+now says *"10 earlier bets came due and nothing has graded them"* — the fact, never the cause,
+because "grading is manual today" becomes false the day the tick lands. Ranking is now **a result
+outranks a lapse outranks a promise**.
+
+**Measured and deliberately not built:** a workspace with an overdue bet, no result and no pending
+bet would show nothing about value at all. **Zero workspaces are in that state.**
+
+**A guard is only as wide as its domain** (`e8f6f9ba3`). `every-field-announces-itself` scanned 11
+hand-written directories out of 40; `settings` was not one, which is how an unnamed field shipped.
+The domain is now derived. Widening alone would have reported 15 — **4 were comments** (the scan
+reads source text; law 18's own failure), **7 were the guard being too narrow** (`{...rest}`
+pass-through primitives, an `aria-hidden` honeypot, a control nested in a wrapping `<label>`), and
+**3 were real**, all in `BriefFormationFlow`, all named by a placeholder only. Report that
+difference: a census that cries fifteen and means three is how a guard gets ignored.
+
+**Three hand-maintained second sources went stale in one night** — `COMPONENTS.md`, this guard's
+`DIRS`, and `COMPONENTS.md`'s own header naming a `Block` that no longer exists. The Meridian
+ratchet derives its domain from the tree and is the only one that has never lied to us.
