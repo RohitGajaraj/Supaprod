@@ -457,3 +457,31 @@ element before trusting any layout utility beside a project class.
 against a headline of 6, and started writing up a discrepancy. The accessibility tree said
 2 + 4 = 6. Plan's `1` was a run count top-right, not a waiting badge top-left. Read the labels, not
 the pixels.
+
+## Lane 2 session end — 2026-09-10
+
+**The single most reusable thing:** every control that failed tonight shared an assumption with the
+thing it checked. My slice reused the guard's own wrong bound and confirmed itself; two successive
+queries were keyed on the same wrong shape (45.6%, then 0.0% from SQL three-valued logic — a missing
+key makes `jsonb_typeof` NULL, so `NULL = 'number'` is NULL and the filter silently drops the row).
+**The rendered page shares nothing with the query and was the only independent instrument.** Five
+premises died on contact; none became a filed finding, because the page was checked first.
+
+**Before building a guard, ask whether it needs a judgement it cannot make.** Declined two (cache-key
+checker: 365 sites, 6 flagged, 0 real; label-similarity: `MIN_CONTAINMENT` 0.2 fires on its own fix
+at four words). Built one (settings-door census) because the valid set is enumerable and exported.
+Prove a guard by making it FAIL on the real defect, then restore — one that has only ever passed is
+not yet a guard.
+
+**Two claims sharing one card are two claims.** I proved a wall was real (`connection_bindings` = 0),
+told another lane the door was right on the strength of it, and the door
+(`/settings?tab=connectors`) landed on Profile — `connectors` is not a `SectionId`, so
+`normalizeSection` fell to `DEFAULT_SECTION`. Verify the door by opening it.
+
+**Layer 3 pattern that generalises:** a fact identical on every row, already stated elsewhere on the
+page, must not hold the lead — 93.8% of traces call exactly one model. And when a row's meaning is in
+the RESULT rather than the args, read it from a **named field**, never by classifying prose.
+
+**Do not add a second reader of `halted_reason`** — `wallsByTrack` in
+`src/lib/spine/the-wall-the-platform-put-up.ts` is the one reader (Lane 1). A cleared hold ends a
+wall's claim; the discriminator is the hold, not the wall's standing.

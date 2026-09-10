@@ -3465,3 +3465,93 @@ all 22 historically.
 Sequence, in order: **(1)** the lint rule — Lane 3's layer, blocked on nobody; **(2)** the 22-row
 backfill — refused by Lane 3's classifier, with the founder; **(3)** CI database credentials and
 removing the silent `PGHOST` pass — the founder's.
+
+## Lane 2 session end — 2026-09-10
+
+**Territory:** working surfaces and depth. What follows is what changed, what was measured and
+deliberately NOT changed, and the three things I got wrong, because the last group is the most
+reusable.
+
+### Layer 3 (the trace) was rebuilt, and it was the founder's sentence made literal
+
+*"The agent does real work and the user sees almost none of it."* The deepest surface in the product
+spent both of its strongest positions on facts that never changed and dumped raw JSON on one row in
+five.
+
+- **The lead was the machinery.** Twelve rows saying "Critique", six saying "called qwen/qwen-plus",
+  on a page whose header, rail and detail pane all already said both. Measured first: **2,886 of
+  3,076 traces that call a model call exactly one (93.8%)**. The lead now carries the model's own
+  thought; the constant *leaves* rather than moving down. Stops the moment a handoff or fallback
+  makes the fact news. `a-constant-is-not-news.ts`.
+- **710 of 3,490 tool calls (1 in 5) rendered as `JSON.stringify`** — argument an id, result an
+  object. `ToolCallFacts` gained a fourth fact, `outcome`, from **named fields only**.
+  `sources.status` now reads "no sources connected" — and all 124 such calls in the product's
+  history returned zero scout targets, so the fact explaining why Discover finds nothing had been
+  sitting on the deepest page as `{"active_scout_targets":0}`.
+
+### The run screen
+
+- **Two "Stopped" chips 200px apart.** Cut by RULE, not deletion: the header must be saying the same
+  word AND the card must still have a sentence, because three of twelve registers are deliberately
+  the chip alone. `the-header-already-said-it.ts`.
+- **One word, two units.** Road "1 prototype, 3 times" (filings) against card "said this 12 times"
+  (turns) — and the card said Design *filed nothing* while the road said it *filed a prototype*.
+  Four sentences, three files, no shared import. The vocabulary was already on the page in the
+  story's "12 turns" and the pane's "3 versions". `a-turn-is-not-a-filing.ts` + a census.
+- **A pronoun that outlived its quote**, binding to another station's wall.
+- **A preposition that inverted the fact** — "could not start Build **in** 6 turns" reads as a
+  deadline. Now "across".
+- **A stale wall count**, then **a cleared hold** still reporting a stoppage that was over (Lane 1's
+  rule: the discriminator is the hold, not the wall's standing).
+- **Two region labels collided**, meetable only by a screen reader, because the label is announced
+  before the contents.
+- **`trackId` in a query's arguments but not its key**, so two runs in one workspace shared a cached
+  peer count.
+
+### The one that should be read first
+
+**The hold card's only door landed on the Profile page.** `?tab=connectors` is not a `SectionId` and
+not an alias, so `normalizeSection` fell through to `DEFAULT_SECTION`. The single actionable control
+on that card — the half an agent's prose cannot be, because prose is not a link — sent people to
+their account settings from the day it shipped. **And I had already told another lane it was
+correct**, having proved the *wall* was real and never opened the *door*. Two claims sharing one
+card; I checked one. Verified afterwards on production, both halves.
+
+### Three guards proposed, one built
+
+The difference is whether the guard needs a **judgement** it cannot make.
+
+| guard | verdict |
+|---|---|
+| cache-key checker | **declined** — 365 sites, 6 flagged, 0 real |
+| label-similarity scorer | **declined** — `MIN_CONTAINMENT` 0.2 fires on its own fix at four words |
+| settings-door census | **built** — the valid set is enumerable and exported, so no threshold |
+
+The built one was **proved by failing**: the broken href put back, both call sites named, restored. A
+guard that has only ever passed is not yet a guard.
+
+### The instrument lesson, which is the reusable half
+
+Every control that failed tonight **shared an assumption with the thing it was checking**: my slice
+reused the guard's own wrong bound and confirmed itself; two successive queries were keyed on the
+same wrong shape (45.6%, then 0.0% from SQL three-valued logic — a missing key makes `jsonb_typeof`
+NULL, so the filter silently drops the row). Neither figure shipped, for one reason.
+
+**The rendered page shares nothing with the query, and was the only independent instrument all
+evening.** `read_network_requests` in Claude-in-Chrome gives per-request status codes off the served
+build, immune to the page's throttled clock — reload after the first call, because tracking starts
+when the tool does.
+
+Five premises died on contact and none became a filed finding, in every case because the served page
+was checked before the claim was written down.
+
+### Open, and deliberately so
+
+- The two lists of who is working (`TrackRun` and `LiveStation`) show the same seats in two panes.
+  The labels now say their scope; the duplication itself is a design call about which pane owns the
+  question, and is untouched.
+- A fold for consecutive empty searches (91 of 903 traces) was measured and **not built**: the agent
+  already writes the conclusion in the next thought, and the loop guarantees one follows.
+- Settings' section nav overlays its work region once scrolled — handed to Lane 1, now law 30.
+
+**No migrations from this lane tonight.**
