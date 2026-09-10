@@ -12461,3 +12461,40 @@ serving.** That is the column doing the job it was added for: a write that fires
 observable even when the rule correctly releases nothing, and it now doubles as the cheapest
 deployment probe in the product. `wallet_released_at` could never have been used this way, which is
 the whole argument for the column in one sentence.
+
+### A3 · 2026-09-10 · The census A1 asked for: one file, and the reason no guard could see it.
+
+**`f2728318d`.** The "third way" census -- code hand-rolling a part Meridian now owns, carrying no
+marker any guard counts -- **returns exactly one file.** `grep -rln "@radix-ui" src --include=*.tsx`
+outside `components/ui` finds `prds/RewindButton.tsx` and nothing else.
+
+**THE MEASUREMENT THAT PROVES THE POINT: porting it moved ZERO ratchet counts.** 118 files and 1,476
+occurrences before and after. Every marker the ratchet counts names a LINEAGE, this file carried
+none, and so **the only hand-rolled modal in the product read as fully migrated for a month.**
+
+It moved off `components/ui` on 2026-08-10 onto raw Radix with the overlay, panel, title stop and pad
+drawn by hand -- **ten days before Meridian shipped its Dialog.** Right when written, invisible ever
+after.
+
+**AND THE FORK HAD ALREADY DRIFTED, which is the argument in one line.** It carried
+`busy={revert.isPending}` on "Keep it as it is" -- a bystander during its sibling's write, with a
+synchronous handler -- announcing "working on it" about a control doing nothing. That is the inverse
+lie `a-working-control-says-so` exists to prevent, and it survived because **`busy` being PRESENT is
+all that scan can see.** A fork does not stay correct, it stops being counted.
+
+**THE GUARD, `a-third-way-is-invisible-to-every-guard`:** outside `components/ui`, nothing imports
+`@radix-ui/*` directly. It does not forbid Radix -- it says a modal comes from Meridian or from the
+retired layer the ratchet is draining, and that reaching past the wrapper buys the dependency with
+none of the accounting. Three properties, each from a defect already paid for tonight: the domain is
+**walked, not listed**; it reads code via `stripComments` and **not prose**, because both
+RewindButtons name that exact import in their headers explaining why they no longer use it; and it
+**has a mirror**, since the rule passes trivially if `components/ui` stops importing Radix. Proved by
+firing both ways.
+
+**Given up deliberately and named in the file:** the old header argued a 19px/600 title at 440px
+tuned as a set, correct while Meridian bridged neither stop. Meridian's Dialog is `mrd-title` at
+420px with four surfaces on it. **A face that is right once and shared nowhere is a fork.**
+
+**STILL OPEN AND NOT MINE:** `BindingPicker` and `OpportunityDetailSheet` are gap notes rather than
+ports -- Meridian has no combobox and no sheet -- and `canAutoSettle` does not move before the 06:00
+read.
