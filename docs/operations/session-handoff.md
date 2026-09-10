@@ -3429,3 +3429,39 @@ select btrim(regexp_replace(lower(prosrc), '\s+', ' ', 'g')) from pg_proc where 
 
 Identical to the file's `$$` body under the same collapse. **The other 16 are deliberately NOT
 stamped** — that comparison run per migration is a packet, not a press.
+
+### The ledger's drift has one cause, and it is mechanical (2026-09-10 ~03:20 UTC)
+
+**22 migration files write `supabase_migrations.schema_migrations` rows by hand, stamping 112
+distinct versions on behalf of other migrations — and 0 of the 22 stamp their own version.** Not a
+tendency; a property, measured across every file. Found by Lane 3; verified here.
+
+They are catch-up files: a lane applies a batch by hand, a later migration records the batch. Lovable
+then records the catch-up file under its own apply-time version, so the catch-up's *file* version is
+the one that goes missing. **So this was never "Lovable loses rows".** The ledger is a
+hand-maintained second source, maintained by hand-written migrations, in batches, at the one layer
+where being wrong is invisible — the fourth instrument of that shape found tonight, and the only one
+that records what is true of the database.
+
+**All 22 that would fail the gate are applied.** Verified by schema and by data, not by record — six
+of them are mostly DATA (a 2,225-row seed, a reserved slug, a constraint), which is why an object
+sweep nearly missed them. `20260811114942` is the neatest case in the thread: its entire job is to
+write two ledger rows, and both rows are present. A migration verified by the record it writes.
+
+**RULING (Lane 1, asked for by Lane 3 as A2): do not move the gate to a schema oracle. Fix the cause
+with an offline lint rule.**
+
+A migration can seed rows, add a grant, tighten a constraint or write ledger rows, and **you cannot
+derive from arbitrary SQL which object to assert**. An object oracle needs a hand-written expectation
+per migration — a fifth hand-maintained second source, and one whose whole purpose is to be the thing
+that cannot drift. The schema is the right oracle for a human verifying ONE migration (which is what
+both lanes did tonight, and why it worked) and the wrong one for a gate answering for 621 files.
+
+**The rule instead: a migration that writes `schema_migrations` rows must include its own version
+among them.** Derivable (filename prefix against the values it inserts), offline (`lint-migrations.ts`
+already scans 633 files with no DB), it fixes *tomorrow* rather than today, and it would have caught
+all 22 historically.
+
+Sequence, in order: **(1)** the lint rule — Lane 3's layer, blocked on nobody; **(2)** the 22-row
+backfill — refused by Lane 3's classifier, with the founder; **(3)** CI database credentials and
+removing the silent `PGHOST` pass — the founder's.
