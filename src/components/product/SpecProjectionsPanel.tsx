@@ -101,9 +101,9 @@ export function SpecProjectionsPanel({
   }
 
   const stamp = (
-    <div className="flex items-center" style={{ gap: 10, flexWrap: "wrap" }}>
+    <div className="flex flex-wrap items-center gap-mrd-4">
       <VerdictChip tone={DRIFT_TONE[set.drift.state]}>{set.drift.label}</VerdictChip>
-      <span style={{ color: "var(--mrd-mute)" }}>Generated {set.generatedOn}</span>
+      <span className="text-mrd-mute">Generated {set.generatedOn}</span>
     </div>
   );
 
@@ -121,10 +121,10 @@ export function SpecProjectionsPanel({
           boxShadow: "var(--top-light)",
         }}
       >
-        <p style={{ color: "var(--mrd-body)", margin: "0 0 8px" }}>
+        <p className="text-mrd-body" style={{ margin: "0 0 8px" }}>
           No Outcome Contract yet, so there is nothing to project.
         </p>
-        <p style={{ color: "var(--mrd-mute)", margin: 0, lineHeight: 1.6 }}>
+        <p className="m-0 text-mrd-mute" style={{ lineHeight: 1.6 }}>
           Draft one on the Contract tab. The PRD, FRD, status, and one-pager then generate from that
           typed spine automatically, so no document is ever hand-maintained.
         </p>
@@ -178,7 +178,7 @@ export function SpecProjectionsPanel({
             );
           })}
         </div>
-        <div className="flex items-center" style={{ gap: 6, paddingBottom: 8 }}>
+        <div className="flex items-center gap-mrd-3" style={{ paddingBottom: 8 }}>
           <Action
             variant="quiet"
             onClick={copy}
