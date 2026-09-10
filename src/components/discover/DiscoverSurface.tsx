@@ -2669,7 +2669,30 @@ export function DiscoverSurface({
        * down (`level={2}`), so this is additive rather than a rewrite of
        * what the page reports.
        */}
-      <PageHeading station="sense" title="Findings" sub="What came in, and what it is becoming." />
+      {/*
+       * ── "FINDINGS" NAMED A CONCLUSION AND HELD AN ARRIVAL ──────────────
+       *
+       * The page's own subtitle is *"What came in"*. A finding is what you
+       * found OUT -- a conclusion -- and this holds raw signals from sources,
+       * clustered into themes. The rail's own note for this row says the same
+       * thing in different words: *"what came in from my sources"*.
+       *
+       * AND IT COLLIDED WITH `Outcomes` ("Every decision, what it expected,
+       * and what happened"). A person looking for *what did we learn* had two
+       * plausible doors, and the one called Findings was the inbox for
+       * evidence that has not concluded anything yet.
+       *
+       * `Evidence` is the founder's own word for it: the 2026-08-27 ruling is
+       * to use what practitioners say in-product as well as public, and
+       * "evidence" is on that keep list. It also stitches the rail to the
+       * entry, whose one sentence about the product reads *"Seven stations
+       * take one sentence FROM EVIDENCE to shipped"* -- the first noun of the
+       * product's own description is now a place you can go.
+       *
+       * The route stays `/arriving`: renaming paths is a separate, wider edit
+       * and is filed in the contract.
+       */}
+      <PageHeading station="sense" title="Evidence" sub="What came in, and what it is becoming." />
       <PageHeading
         level={2}
         title={headline}

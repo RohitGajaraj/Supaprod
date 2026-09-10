@@ -1,3 +1,15 @@
+/*
+ * "Findings" -> "Evidence", 2026-09-10. The page's own subtitle is "What came
+ * in", and a finding is what you found OUT -- a conclusion. It also collided
+ * with `Outcomes`, so a person looking for "what did we learn" had two
+ * plausible doors and the one called Findings was the inbox for evidence that
+ * has concluded nothing yet. "Evidence" is the founder's own keep word for
+ * in-product use, and it is the first noun of the entry's sentence about the
+ * product: "from evidence to shipped".
+ *
+ * The KEY moved with it -- `f` to `e` -- because this file's own rule is that a
+ * key is a letter of the label a person can SEE.
+ */
 import { describe, it, expect } from "bun:test";
 import { PRIMARY_NAV, navKeyHint, NAV_CHORD_PREFIX } from "@/lib/nav-model";
 import { JUMP_DESTINATIONS } from "@/lib/palette-sections";
@@ -66,13 +78,13 @@ describe("derivation law - the shortcut range", () => {
     expect(PRIMARY_NAV.map((d) => d.label)).toEqual([
       "Home",
       "Inbox",
-      "Findings",
+      "Evidence",
       "Outcomes",
       "Team",
       "Sources",
       "Settings",
     ]);
-    expect(PRIMARY_NAV.map((d) => navKeyHint(d))).toEqual(["h", "i", "f", "o", "m", "u", "s"]);
+    expect(PRIMARY_NAV.map((d) => navKeyHint(d))).toEqual(["h", "i", "e", "o", "m", "u", "s"]);
     expect(NAV_CHORD_PREFIX).toBe("g");
   });
 });

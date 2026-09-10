@@ -1,10 +1,22 @@
+/*
+ * "Findings" -> "Evidence", 2026-09-10. The page's own subtitle is "What came
+ * in", and a finding is what you found OUT -- a conclusion. It also collided
+ * with `Outcomes`, so a person looking for "what did we learn" had two
+ * plausible doors and the one called Findings was the inbox for evidence that
+ * has concluded nothing yet. "Evidence" is the founder's own keep word for
+ * in-product use, and it is the first noun of the entry's sentence about the
+ * product: "from evidence to shipped".
+ *
+ * The KEY moved with it -- `f` to `e` -- because this file's own rule is that a
+ * key is a letter of the label a person can SEE.
+ */
 import { describe, expect, it } from "bun:test";
 import { chipLabel, contextForPath, scopeForPath } from "./ask-context";
 
 describe("ask-context - contextForPath", () => {
   it("maps each canonical destination to its plain-words label", () => {
     expect(contextForPath("/today", null)).toBe("Today");
-    expect(contextForPath("/arriving", null)).toBe("Findings");
+    expect(contextForPath("/arriving", null)).toBe("Evidence");
     expect(contextForPath("/plan", null)).toBe("Plan");
     expect(contextForPath("/knowledge", null)).toBe("Outcomes");
   });

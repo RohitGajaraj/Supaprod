@@ -1,3 +1,15 @@
+/*
+ * "Findings" -> "Evidence", 2026-09-10. The page's own subtitle is "What came
+ * in", and a finding is what you found OUT -- a conclusion. It also collided
+ * with `Outcomes`, so a person looking for "what did we learn" had two
+ * plausible doors and the one called Findings was the inbox for evidence that
+ * has concluded nothing yet. "Evidence" is the founder's own keep word for
+ * in-product use, and it is the first noun of the entry's sentence about the
+ * product: "from evidence to shipped".
+ *
+ * The KEY moved with it -- `f` to `e` -- because this file's own rule is that a
+ * key is a letter of the label a person can SEE.
+ */
 import { describe, it, expect } from "bun:test";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -31,7 +43,7 @@ describe("nav-model - the three primary destinations", () => {
     expect(PRIMARY_NAV.map((n) => n.label)).toEqual([
       "Home",
       "Inbox",
-      "Findings",
+      "Evidence",
       "Outcomes",
       "Team",
       "Sources",
@@ -105,7 +117,7 @@ describe("nav-model - the three primary destinations", () => {
     expect(PRIMARY_NAV.map((n) => navKeyHint(n))).toEqual([
       "h", // Home
       "i", // Inbox
-      "f", // Findings
+      "e", // Evidence
       "o", // Outcomes
       "m", // teaM
       "u", // soUrces

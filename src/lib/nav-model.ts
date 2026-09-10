@@ -116,7 +116,7 @@ export const PRIMARY_NAV: readonly NavItemDef[] = [
   },
   {
     to: "/arriving",
-    label: "Findings",
+    label: "Evidence",
     zone: "home",
     tagline: "What came in from your sources since you last looked.",
   },
@@ -176,7 +176,12 @@ export function navKeyHint(item: NavItemDef): string {
     case "/approvals":
       return "i"; // Inbox
     case "/arriving":
-      return "f"; // Findings
+      /* `e` for Evidence, and it is free: h i f o m u s were the taken set and
+         `f` left with the old label. The rule this file states is that a key is
+         a letter of the label a person can SEE, so a rename moves the key with
+         it -- a `g f` that opens a row reading "Evidence" is a shortcut nobody
+         can derive and nobody will remember. */
+      return "e"; // Evidence
     case "/outcomes":
       return "o"; // Outcomes
     case "/crew":

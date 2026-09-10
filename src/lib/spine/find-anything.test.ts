@@ -57,7 +57,7 @@ describe("GROUP_LABEL: the packet's own group headings, not KIND_WORD's sentence
   });
 
   it("names Findings and themes, not KIND_WORD's theme -> cluster", () => {
-    expect(GROUP_LABEL.findings).toBe("Findings and themes");
+    expect(GROUP_LABEL.findings).toBe("Evidence and themes");
   });
 
   it("covers every key FindAnythingResult has", () => {

@@ -278,7 +278,7 @@ const RAIL = [
    *
    *   Home       what should it do next, and where is everything
    *   Inbox      what needs me (the only counted row)
-   *   Findings   what came in from my sources
+   *   Evidence   what came in from my sources
    *   Outcomes   what happened to what we decided
    *   ---
    *   Team       who does the work, and their limits
@@ -317,7 +317,7 @@ const RAIL = [
   },
   {
     to: "/arriving",
-    label: "Findings",
+    label: "Evidence",
     Icon: IconArrived,
     count: null,
     owns: OWNS_NOTHING,

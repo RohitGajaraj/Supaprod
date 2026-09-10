@@ -194,7 +194,7 @@ export const GROUP_LABEL: Record<keyof FindAnythingResult, string> = {
   decision: "Decisions",
   prototype: "Prototypes",
   changeset: "Pull requests",
-  findings: "Findings and themes",
+  findings: "Evidence and themes",
   sources: "Sources",
   conversations: "Conversations",
   people: "People",

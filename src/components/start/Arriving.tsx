@@ -176,9 +176,9 @@ export function Arriving({ door = true }: { door?: boolean } = {}) {
     <section
       data-mrd=""
       className="flex flex-wrap items-baseline gap-mrd-3 font-mrd"
-      aria-label="Findings"
+      aria-label="Evidence"
     >
-      <Eyebrow>Findings</Eyebrow>
+      <Eyebrow>Evidence</Eyebrow>
       <span className="text-mrd-base text-mrd-mute">{line}</span>
       {/* "/discover" -> "/arriving" (P-14a, 2026-09-02). The door is the
           caller's to withhold: on the home the arriving answer one line up
