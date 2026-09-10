@@ -3,6 +3,28 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronsUpDown } from "lucide-react";
 import { toast } from "@/lib/notify";
+/* THE TWO SHADCN IMPORTS STAY UNTIL MERIDIAN HAS A COMBOBOX (named 2026-09-10).
+   The read states inside this panel are already Meridian's -- `Reading` and
+   `ReadFailedLine` below, and the trigger is drawn in `--mrd-*` -- so what is
+   left is the COMBOBOX ITSELF and not its contents.
+
+   Meridian has the PANEL: `results-popover.tsx` is a floating listbox that is as
+   wide as its content needs. It does not have the CONTROL. `Picker` is a native
+   select element, which cannot search or hold server-filtered rows; `Search` is
+   an inline field that narrows a list it is already holding, and its own header
+   says so.
+
+   THE REASON NOT TO PORT IT ANYWAY IS THE KEYBOARD CONTRACT. `FindAnything` is
+   the one place that composes `ResultsPopover` into an async listbox, and it
+   hand-rolls that contract itself: arrow keys, Enter, `role="option"` rows,
+   `aria-activedescendant` wired to generated ids. Rebuilding it here would be
+   the SECOND hand-rolled copy of a combobox in this product, and the two would
+   drift, because nothing tests that they agree. `cmdk` brings that contract
+   already built.
+
+   So the honest gap is a Meridian combobox -- `ResultsPopover` plus the keyboard
+   contract `FindAnything` already proved, extracted once so both callers share
+   it. That is a design-system addition and it wants its own pass. */
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Command,

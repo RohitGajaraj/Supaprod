@@ -78,6 +78,11 @@ const EXEMPT: ReadonlyArray<{ file: string; expr: string; why: string }> = [
     why: "Skip and the three Backs are bystanders blocked during Save-and-continue's versioned upsert; their handlers are synchronous setPhase moves, so busy would announce work they do not perform (answers/UL0-004 C-01 and C-03)",
   },
   {
+    file: "src/components/decisions/RewindButton.tsx",
+    expr: "revert.isPending",
+    why: "Cancel is a bystander during Revert's write; its handler is a synchronous setOpen(false), so busy would announce work it does not do. It stays DISABLED rather than losing the prop because revertDecisionToPrevious is already in flight and nothing cancels it, so a clickable Cancel would close the question while the revert lands anyway",
+  },
+  {
     file: "src/components/studio/RepoGateDialog.tsx",
     expr: "provision.isPending",
     why: "'Not now' and 'Connect a repo' are bystanders during 'Provision a starter repo'; both handlers are synchronous (onOpenChange, and onOpenChange + navigate), so busy would announce work neither performs. And Connect must stay DISABLED rather than lose the prop: provisionThenRetry re-runs the interrupted act on the surface that mounted this, and navigating to /sources mid-flight fires that retry at an unmounted caller",

@@ -120,6 +120,22 @@ import { listBriefItems } from "@/lib/briefs.functions";
 import { setOpportunityBriefLink } from "@/lib/brief-opportunity.functions";
 import { getOpportunityJudgment } from "@/lib/decision-judgment.functions";
 import { listLearnings } from "@/lib/outcome.functions";
+/* THE LAST SHADCN IMPORT IN THIS FILE, AND IT STAYS UNTIL MERIDIAN HAS A SHEET
+   (named 2026-09-10). Everything else here already moved: Action, Region,
+   PageHeading, Picker, Reading, ReadFailedLine, RecordSpeaks, NothingYet, Value,
+   Field, Input, Textarea, AgentMark, AgentPulse. What is left is the SHELL.
+
+   Meridian has a `Dialog` and it is the wrong part for this. A Dialog is a
+   centred 420px pane for a short question that blocks; this is an edge-anchored
+   panel holding a whole opportunity — timeline, analytics, critic review,
+   judgment, learnings — that a person reads and works inside. Forcing it into
+   the Dialog would not be a port, it would be putting a document in a
+   question's box.
+
+   So the gap is a SHEET: same focus contract as Dialog (in on open, trapped,
+   returned to the opener, Escape, scrim, scroll lock) anchored to an edge and
+   sized for content rather than for a sentence. That is a design-system
+   addition, not a components pass, so it is named here and not invented. */
 import {
   Sheet,
   SheetContent,
