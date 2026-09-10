@@ -3676,3 +3676,213 @@ film masters** — nothing of tonight's, and not committed.
 **The append-never-overwrite rule was tested for real:** Lane 3 hit a rebase conflict in both handoff
 files and kept both sides in file order. Zero conflict markers, nothing truncated, all three lanes
 present in both files.
+
+## Lane 2 session end · 2026-09-10 · The run went round, and the join between layer 2 and layer 3 was empty
+
+**Pushed to `main`. HEAD `e1d40a890`, 0 ahead / 0 behind. tsc 0 · 15,882 pass / 0 fail / 0 error ·
+`bun run build` exit 0 · eslint 0 errors on every file touched · working tree clean.**
+
+Three commits: `ea8ea51b2` (the laps and four /outcomes fixes), `8f9ce8079` (tasks name their
+spec), `e1d40a890` (the copy defect the served page found).
+
+### 1. A run that goes in circles now says so, and 23% of them do
+
+**Measured before anything was built**, on production, over every track that has ever taken a turn.
+A leg is a station the work arrived at; consecutive turns at one station are one leg:
+
+| | |
+|---|---|
+| tracks with turns | 117 |
+| tracks that visit a station twice | **27 (23%)** |
+| tracks that visit one station 3+ times | 19 (16%) |
+| of the 27, a clean repeating cycle | **23** |
+
+The commonest shapes are `sense, decide` x3 and `define, design, build` x3. **All three
+`given-up` runs in the founder's own workspace are the second**, every lap ending on the
+identical sentence: *"No repository is connected for this workspace."*
+
+`transcriptSections` opens a new section every time the station changes — correctly — and had no
+idea it had opened Plan for the third time. Eleven sections in one flat column, peers of each
+other. That is the founder's *"the stations do not form a flow, the journey is broken"* exactly:
+in a transcript the flow IS the order the work walked.
+
+The column now leads with **"Three times round Plan, Design and Build."**, plus where true *"The
+last lap filed nothing that was not already on the record."*, and carries a seam per lap.
+
+**Matched on kind and TITLE, never on artifact ids.** A re-filed prototype is a new row with a
+new id every lap — the same drawing on `6cc7a010` is prototypes `161e1663`, `aa884e5b` and
+`96b427ed` — so an id comparison would call three copies of one thing three new things. The
+second sentence is suppressed entirely while any title is still loading, because the chain query
+is a separate poll and an empty title book would assert the most damning line on the screen out
+of an absence of data.
+
+`src/components/spine/the-run-went-round.ts`. Silent on the 90 of 117 runs that walked a line.
+Guard proved by failing.
+
+### 2. THE CORRECTION THAT MATTERS MOST, AND THE SERVED PAGE IS WHAT FOUND IT
+
+**My fixture was cleaner than the product.** The SQL collapsed consecutive turns at one station
+into one leg. `transcriptSections` does not — a `move` row opens a new section even when it moves
+to the station the work is already at — so on `6cc7a010` Design's two seats draw as two sections
+and the real sequence is `Plan, Design, Design, Build` x2. The lead would have read **"Twice round
+Plan, Design, Design and Build."**
+
+Collapsed in `roundLead` only. The cycle IS four sections long and the seams have to land on all
+four; deduping before detection would move `lapStarts` and put "Second time round" in the wrong
+place.
+
+**This is the fourth session running in which the served page, and only the served page, found
+the defect.** It cost one read.
+
+### 3. 58% of every task in the database has no link to the spec it implements
+
+| | |
+|---|---|
+| tasks with no `prd_id` | **264 of 457 (58%)** |
+| task rows filed as a track member | 199 |
+| ...on a track that also holds a prd | **183 (92%)** |
+| tasks in the founder's workspace | 43 |
+| ...linked to a spec | **0** |
+
+`tasks.prd_id` has existed as long as the table. `tasks.create` — the only tool an agent has for
+filing one — never offered the field in its schema and never wrote it.
+
+`/plan/spec/5446f8a8` says **"0 tasks on this spec. No GitHub issue yet."** One click away the run
+screen quotes Plan's own words about that same spec: *"Three implementation tasks created"*, and
+again *"The spec ... has been broken down into the following tasks"* naming five. **The seat did
+the work, said so in prose, and had no field to say it in.**
+
+**The read side is not at fault and was not touched.** The rail filters on `prd_id`, refuses to
+claim a count when the read failed, and was right to print 0. The column was empty.
+
+Fixed at the cause: `tasks.create` takes an optional `prd_id` and, on a run, reads the track's
+newest `prd` member — the same three-way guard `prd.draft` uses for the bet it serves, and the
+third use of the pattern `ToolCtx.trackId`'s own doc argued for: *"the difference between a link
+and a hope"*. The spec comes back in the tool result so the seat can see what it was attached to.
+
+### THE BACKFILL THAT IS READY TO RUN, AND WHY IT IS NOT IN THE TREE
+
+**165 rows across 35 specs. Measured, guarded, reversible, NOT APPLIED.** The Lovable MCP token
+expired mid-session (`requires re-authorization`). The rule is that a lane applies its own
+migration by hand and never leaves one for Lovable to apply on merge, so the file was **held out
+of the tree** rather than shipped unapplied.
+
+Re-authorize the MCP, run this, expect **165**, then commit it as
+`supabase/migrations/<version>_tasks_name_the_spec_they_implement.sql` and stamp the ledger row.
+
+```sql
+update public.tasks t
+set prd_id = m.spec_id
+from (
+  select
+    tm.artifact_id as task_id,
+    (
+      select pm.artifact_id
+      from public.spine_track_members pm
+      where pm.track_id = tm.track_id
+        and pm.artifact_kind = 'prd'
+        and pm.created_at <= tm.created_at
+      order by pm.created_at desc
+      limit 1
+    ) as spec_id
+  from public.spine_track_members tm
+  where tm.artifact_kind = 'task'
+) m
+where t.id = m.task_id
+  and m.spec_id is not null
+  and t.prd_id is null;
+
+create index if not exists tasks_prd_id_idx
+  on public.tasks (prd_id) where prd_id is not null;
+```
+
+**The three guards, each measured rather than assumed.** Only where `prd_id is null` (0 of the 199
+carry one today, so the guard protects a re-run and makes the statement idempotent). Only where a
+spec PRECEDES the task on its own track (34 of 199 have none; they stay null, because inventing a
+link for a task filed before any spec existed is the fabrication this repo fails builds over).
+Newest preceding, not first and not newest overall — tracks that go round revise the spec on the
+second lap, so a task filed on lap two belongs to the spec that was standing when it was filed.
+
+### 4. /outcomes: four fixes, and the first is a tenancy defect
+
+1. **"Forecasts due (9)" was not this workspace's.** `c8ffbbe7` holds six forecasts and NONE
+   overdue; the desk drew nine from Helio Labs — crypto wallet parity, $7.99 pricing — in a
+   workspace named "A1 delete probe". All three desk reads were unscoped, and the desk has exactly
+   one caller in the tree: `/outcomes`, a workspace record. It also put a contradiction on one
+   scroll: *"You called it on 6 of the last 9"* (unscoped, `decisions.forecast_resolution`, every
+   workspace) four regions above *"No forecast has been graded yet."* (this workspace,
+   `insights.resolution`). One noun, two tables, both true. Scoped rather than labelled, because a
+   cross-workspace queue is a real thing and this product already has one — the Inbox, which the
+   same page links to two regions down.
+2. **Nine rows ending in the byte-identical string** *"draft: the evidence did not settle it"*.
+   The constant leaves the rows and is said once in the region's sub with the count. Back the
+   moment one row differs or one row has no draft. Found independently by Lane 1 the same morning.
+3. **Four consecutive never-happened lines** — three in "What the record has changed so far" and
+   then a whole region reading "Nothing standing yet." 381 characters of admission fold into one
+   line keeping every noun and every act, 149 characters. Fires at two, never at one. The door
+   survives the fold. The partition moved off a regex on the lead onto a field, so a positive line
+   opening *"No fewer than 4 outcomes..."* can never be folded away.
+4. **Six of eight decision rows ended in the word "hold"**, and two printed their own title back
+   as `Forecast: <the title>` (2 of 204 claims in the whole record are their own title; **both are
+   in the workspace he was looking at**). "hold" is a state and not a verdict — this file's own
+   header says so — so it leaves the rows when it is on all of them and the coverage line says it
+   once. A settled hit or miss is never suppressed however uniform the column. Guarded so the
+   claim and the word can never BOTH leave: that would make "carries a forecast" and "no forecast"
+   one picture.
+
+### THE GUARD THAT CAUGHT ME, AND THE WAY I ALMOST BEAT IT
+
+`a-read-serves-the-workspace-you-are-in.test.ts` failed my first scoping draft and it was right:
+I resolved `current_user_default_workspace` server-side, and since `20260907010000` a person can
+hold two workspaces — the default is not the one they have open. That guard's own header records
+A1 reading *"1 of 2 graded forecasts came true"* on this exact surface, and it was Helio Labs'.
+
+**Then my second draft made the guard PASS by blinding it.** I moved the resolve into a shared
+helper; the scanner reads source text and cannot see through a call, so the file dropped to zero
+without the read being fixed. I inlined it back into all three, and said so in the code.
+
+**A guard you silently defeat is worse than a guard you fail.** The ratchet is one file lower,
+honestly, and `src/lib/forecast.functions.ts` is off the baseline.
+
+### The defect class, for the eleventh time, now written once
+
+**A value identical on every rendered row distinguishes nothing.** Three more removed tonight,
+which makes eleven in this repo, so the comparison finally lives in one file:
+`src/lib/a-value-on-every-row.ts`. **What to DO about a constant is never general and stays at the
+call site** — on the agent roster it leaves because the heading already says it; on the forecast
+desk it moves UP into the region's sub, because nothing else on the page says it at all.
+
+### NOT VERIFIED ON THE SERVED BUILD, AND THIS IS THE FIRST JOB NEXT SESSION
+
+- **Chrome cannot reach a dev server from this worktree.** `curl` gets 200 on `127.0.0.1`, `::1`
+  AND the LAN address; Chrome shows an error page on all three, including `/health`. Lane 3 hit
+  the identical wall last session. **Do not spend an hour on it again** — walk `supaprod.ai`.
+- **At the last read the deploy had not landed.** `/outcomes` still drew the four admission lines
+  separately, so `ea8ea51b2` was not live. The page no longer draws "Forecasts due (9)" — **that
+  is an ABSENCE and an absence proves nothing about a deploy.** Rule 18 wants a string only the
+  commit introduced. Use one of:
+  - `Nothing has been rated, re-ranked or graded yet.` (`/outcomes`)
+  - `None of them has been settled yet.` (`/outcomes` › Decisions)
+  - `Three times round Plan, Design and Build.` and `Second time round`
+    (`/track/6cc7a010-18e5-4e13-ad82-8d8d06687119`, the run the whole feature was measured on)
+
+### Open, and deliberately so
+
+- **The /evidence empty state.** Five separate restatements of "nothing yet" before a single
+  control (`DISCOVER` / `Evidence` / *"What came in, and what it is becoming."* /
+  *"Nothing has come in yet."* / *"Nothing is connected yet, so there is nothing to read."*),
+  then ~230 words of prose — a 57-word disclaimer about the sample workspace and a 67-word legend
+  for a ring, a number and a bar on an illustration of a row the reader does not have yet.
+  **Lane 1's law 31 already covers the heading stack and they have said "Nothing has come in yet."
+  is the right one to keep.** The prose below it is untouched, and each sentence in it is
+  separately argued in the file — read those arguments before cutting.
+- **The right rail says "READING FOR YOU · Research · last read 1d ago" on the same screen that
+  says nothing is connected.** Not investigated. It may be honest (a scout target with no source)
+  or it may be the contradiction it looks like.
+- **Lane 1's motion-vs-result figure, verified with one correction.** Whole database: 46 hit,
+  23 miss, 28 inconclusive = 97 resolved. Samples excluded it is 6 hit, 3 miss, 9 inconclusive, so
+  their "9 with a hit/miss verdict" is exact. **And the damning half holds: 0 of all 97 carry
+  `forecast_observations`, `forecast_predicted` or `forecast_metric`.** Every graded forecast in
+  the product's history was graded by narrative. The band columns exist and are universally empty.
+  **If /outcomes ever leads with proof, it will be empty** — the honest lead there is what is
+  stuck, on whom, and for how long.

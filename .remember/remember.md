@@ -1,576 +1,139 @@
-# JOURNEY SWEEP — 2026-09-02 ~03:00 IST — THE STATION STRIP FOLD, AND WHAT EACH STATION PRODUCED
+# LANE 2 — 2026-09-10 — THE RUN WENT ROUND, AND THE JOIN BETWEEN LAYER 2 AND LAYER 3 WAS EMPTY
 
-**Branch `main` · HEAD `dc4854abb` · 0 unpushed · 0 behind origin/main · tsc 0 · 13,601 pass / 0
-fail · working tree clean**
+**Branch `worktree-2` pushed to `main` · HEAD `e1d40a890` · 0 ahead / 0 behind origin/main ·
+tsc 0 · 15,882 pass / 0 fail / 0 error · `bun run build` exit 0 · working tree clean**
 
-**Everything is pushed. Lovable deploys from GitHub, so this session's work is shipped.**
+**Everything is pushed. Lovable deploys from GitHub, so this session's code is shipped.
+IT IS NOT YET VERIFIED ON THE SERVED BUILD — see the last section, which is the first thing
+to do next.**
+
+---
 
 ## THE THING TO KNOW BEFORE YOU TOUCH THIS
 
-**The horizontal seven-station strip is gone from every workspace screen.** It draws only inside a
-run now, and the whole fold rests on ONE condition in `AppFrame.tsx`:
-
-```tsx
-{strip && strip.mode === "tab" ? (
-```
-
-**Four publishers still push a `nav` strip** — `WorkspaceSpine` for the life of the session, plus
-`DiscoverSurface`, `InboxSurface` and `Board` calling `useSpineStrip` directly. **None was
-removed**, deliberately: a surface reporting what it is doing is not the defect, drawing a
-permanent band from it was. So **gating on `strip` alone puts the band back on every screen with
-nothing to notice.** `the-strip-is-a-runs-step-list.test.ts` exists for exactly that.
-
-**The founder asked for a reference point before it went and it is written down, not photographed.**
-`docs/design/station-strip-before-the-fold.md` carries the markup, the CSS, the measurements and
-the reasoning. `docs/screenshots/` is gitignored, so the two captures will not survive a clone —
-that is why the doc is prose. **Read it before proposing the band come back.** It also records the
-two founder-reported CSS fixes a rebuild would quietly lose: `overflow-x: auto` and
-`min-width: 108px` (now 124px) **are a pair**, and with `clip` + `min-width: 0` the seventh chip
-vanishes off the right edge again.
-
-## THE CORRECTION THAT MATTERS MOST
-
-**I filled `RunMapStation.outcome` twice, and the first one was wrong in a way that looked right.**
-
-Version one counted rows in `agent_runs` and rendered "3 turns, 2 with failures" per station. True,
-verified against SQL, and the wrong answer: it described the **work** where the field's own
-docstring asks for the **product**.
-
-`whatItProduced()` in `what-it-produced.ts` had been in the tree the whole time, reading
-`spine_track_members` — the table that records which artifact each station filed — reachable through
-`getTrackChain`, **which the run screen already polls** under `["spine-track-chain", trackId]`. The
-right build needed no new server function, no new query and no new vocabulary. Mine needed all
-three, and `getTrackStationWork` was deleted again in the same session it was added.
-
-**Why I missed it:** I queried `information_schema` for tables carrying a `track_id`, saw
-`spine_track_members` in my own results, and read past it as plumbing. It is the join table, which
-is to say it is the answer. **A parallel read-only audit agent found it.**
-
-It now reads, on run `ce846e9b`:
+**A run that goes in circles now says so, and 23% of them do.** Measured on production over
+every track that has ever taken a turn, before anything was built:
 
 ```
-Discover   Discover filed 1 finding.
-Decide     Decide filed 1 decision.
-Plan       Plan filed 16 tasks and 5 specs. 12 of them repeat 5 things already filed.
-Design     Design filed 10 prototypes. 10 of them repeat 3 things already filed.
-Build      Build filed 1 run.
-Ship       (nothing — not reached)
-Learn      (nothing — not reached)
+tracks with turns                        117
+tracks that visit a station twice         27   (23%)
+tracks that visit one station 3+ times    19   (16%)
+of the 27, a clean repeating cycle        23
 ```
 
-Plan and Design are the argument for the whole change: *"12 of them repeat 5 things already filed"*
-says the run is going in circles, which is what a person opens that screen to learn.
-
-## THE OPEN DECISION, AND IT IS THE FIRST THING TO ASK HIM
-
-**The strip and the left pane's route now print the IDENTICAL sentence, 400px apart** —
-"Discover filed 1 finding." twice on one screen, because both read it from the same chain. That is
-the defect this whole pass removed everywhere else, and I introduced it at the end.
-
-**My inclination, not yet approved:** the strip keeps the sentence (it is the glance and the
-control, and it never scrolls away); the left route drops to holds and steps only.
-
-## WHAT ELSE IS STILL OPEN
-
-1. **"Build filed 1 run." is true about membership and thin about outcome.** Build's expected
-   artifact is a `changeset` and there is no changeset row — the member is a `mission`. Build made
-   **55 tool calls on that run, all repo reads, and staged nothing.** The sentence is not wrong; the
-   run is. **That is a finding about the build path**, not about the line.
-2. **`TrackChain` is the biggest station display on the run screen at 2,706px** and is untouched.
-   The run screen drew the stations **four** times (not three, which is what I wrote first) plus a
-   fifth in prose, "Now: Build. Next: Ship." Removing the tab row took it to one tablist and one
-   control; the other three remain as readouts.
-3. **`bun run lint` is red** and was before this session: ~334 `no-explicit-any` plus
-   `react-refresh` warnings. Not touched.
-4. **`bun run docs:check` is red on four PRE-EXISTING orphans**, all under the gitignored
-   `docs/screenshots/`: `spec-after-radio.md`, `spec-retry.md`, `approved-spec-snapshot.md`,
-   `spec-page-snapshot.md`. Nothing this session added to that list.
-
-## THE DEFECT CLASS THAT PRODUCED MOST OF THIS SESSION
-
-**A value printed identically on every row distinguishes nothing.** Found and fixed in eight
-separate places: 16 agent cards ending "Runs on its own", every armed switch reading "Running on
-its own.", 40 audit rows printing the word "agent", all 16 Brand rows ending "Learned", 24 Insights
-rows leading "An outcome memo", every handoff row saying "the run moved on its own", the CI list
-stamping one verdict on every expectation, and four of seven strip chips carrying nothing.
-
-**The rule that fixes it:** print it when it DISCRIMINATES, computed over the rendered set, and stay
-silent when it does not. **Never suppress an exception** — a person is required, something is
-switched off, something failed. Those are what the reader came for.
-
-**The trap inside the rule, learned the hard way on the audit trail:** adding a `title` tooltip
-fixes a CUT string and does nothing for a REPEATED one. Six rows on Record shared a subject, so the
-tooltip handed back the same sentence six times. A repeated row needs a **different fact** (there,
-the exact timestamp), not the hidden half of the same one.
-
-## TWO THINGS ABOUT WORKING IN THIS CHECKOUT
-
-**Another session (`supaprod-eb`) is live in this same worktree.** It archived `AGENTS.md`,
-`CLAUDE.md` and `GEMINI.md` to `docs/archive/`, unregistered the SessionStart injection, and hardened
-`playwright.config.ts` to exclude every UNTRACKED spec in `e2e/` (computed from `git ls-files`) after
-my agents left probe specs behind twice. Root now holds `README.md` and `CLAUDE.md` only.
-
-**My `git add` swept its three staged renames into `bed7bfe7c`**, whose message is about automation
-switches. It chose to leave them rather than rewrite shared history. **Commit explicit paths:
-`git commit <path> -F <file>`, never `git add -A`, and check the index before committing** — it may
-already hold another lane's work.
-
-**Four MCP route files arrived in the tree with their object literals collapsed onto one line** by
-some formatter. Whitespace only, semantically identical, and they FAILED `prettier --check` while
-the committed versions passed. Restored with `prettier --write`, which reproduced the committed
-content exactly — proof the diff was formatting. Not mine, nothing lost.
-
-## WHAT WAS VERIFIED IN A BROWSER, NOT JUST READ
-
-Every fix in this session's 34 commits was checked on the running app at `localhost:8080` signed in
-as Maya Ruiz / Helio Labs / Prism. **Three defects were only findable that way** and code review had
-not caught them: `?queue=1` silently stripped by the router, the front door printing the same
-sentence twice while its own test stayed green, and Quality > By surface rendering **8463%**.
-
-**And two numbers were only correct because they were checked against SQL rather than against the
-screen.** "18 agents finished" was 2 agents × 9 runs each. `passRate * 100` was a judge score out of
-100, so every surface on Quality was green permanently, whatever it scored.
-
-## 2026-09-02 20:20 IST — A1 lane (Fable). P-01 and P-10 DONE on the live site; suite green.
-Queue `the-first-run/A-QUEUE.md`; report `A1-REPORT.md`. Live at `d43fc2829`. In flight: P-11 (A3), P-24 (A2). Date: 15 Sep complete, 23 Sep public.
-
-## 2026-09-02 22:05 IST — A1. Seven packets DONE and live (P-01, P-10, P-11, P-12, P-13, P-17, P-24). In flight P-05 (A2), P-16 (A3). Suite 13,653 / 0. Lovable publish builds the commit it holds at that moment; check latest_commit_sha before walking.
-
-## 2026-09-03 03:05 IST — A1 (Fable). 15 packets DONE and live; P-18 rejected (one fix); P-14 ruled per row (R-34 no lanes, R-35 a mission without a track is not a run). R-30 was inert in production (approval-policy forced review), fixed and published; first unattended PR on the bound repo (PR #4, 20:51 UTC); then two more Build-path defects (re-drive in pr_open; cancelled gate parks the run) with A2. Track 6817e386 stopped via stop_requested_at until fixed. Honest run 2fdf93b6 still parked. Date call unchanged.
-
-## 2026-09-03 06:05 IST — A1 (Fable). Twenty packets done/live. The Build path ran unattended (PR #4) and exposed nine defects, all fixed but one ordering fix in hand; the correction loop behind weeks of duplicates is named and fixed (P-03c); a schema-vs-queries test closes the dead-join class. Founder decides PR #4. Extension down since 04:12; live walks pending. Date call unchanged.
-
-## A1 · 2026-09-03 14:05 IST · the seeder rule moved into the database; P-35 done; Start's Arriving line still by person
-
-- **Lovable's `send_message` never delivered** (idle 300 s, no message in `list_messages`); do not rely on it to apply SQL. `query_database` takes one `sql` string; a 91 KB function was staged in a scratch table in four md5-checked chunks and would have executed, except that a `git pull` first showed A2 had withdrawn the file (a61243fdd) for a trigger migration. **Pull before executing anything prepared over more than a few minutes.**
-- `20260909020000` verified by objects: 12 `mark_sample_rows` triggers, function present, rolled-back probe true/false, 0 unmarked of 2,467; ledger row inserted by A1 at 13:49 IST after the checks. Lovable drops `schema_migrations` rows; the ledger check is A1's after every apply.
-- Twelve Helio decisions carry `is_sample = true`: seven are seeder titles in the real workspace, five are Helio's own written from a parent opportunity that was marked on the day. Ruling in the queue under P-33; fix is A2's.
-- Start's Arriving line reads `getSenseCoverage` and `getThemePromotionCounts` (`discovery.functions.ts` 1263 and 599) with no `workspace_id` filter. Third and fourth readers of the P-33 item (1) defect; A2 told, guard test to be extended.
-- P-35 verified by reintroduction (scratch `select("*")` on signals fails the guard naming the file); published at 13:43 IST (Lovable at 2e8868d17).
-
-## A1 · 2026-09-03 15:40 IST · the honest run, two rulings, and the evidence number
-
-- Honest run `870b70d3` (founder, 14:12 IST, Helio Labs, product Prism by the switcher): five Sense passes on a no-evidence sentence; the Researcher wrote two signals into the workspace (14:41); Decide declined the sentence on them (15:00); Critic upheld; Learn at 15:10. Nobody pressed. R-36 (carry on the person's word, no attempt) and R-37 (Sense reads, never writes) in RULINGS.md; P-40 and P-41 built by A2, published 14:56 and 15:15, proved live (Arriving 15 → 17 → 13).
-- **943 of 1,512 signals are `source = 'agent'`; Helio 96 of 277.** Excluded from every evidence count from 15:15; marked `loop_authored`, never deleted.
-- The switcher (workspace and product) is per-user server state on the shared demo account: do not switch from A1's tab while the founder is about to press. Probe workspace `a1-delete-probe` (owner demo user, no member row) exists for the P-39 delete walk; walk it after his second run starts, then it is gone.
-- Live and verified this stretch: P-16b (both halves), P-36, P-39 items 1 and 2 (item 3 redirected to `changeset-deploy.server.ts` via `ci-poll-tick.ts`), P-33 §5 (A2's walk by rule 18), P-35. Rules 17 and 18 in §0.
-- Timer wakes: a background `sleep N; echo` gives one notification; the hook clock runs a few minutes behind the labels I write.
-
-## A1 · 2026-09-03 17:45 IST · the afternoon after the honest run
-
-- Live and verified since 15:40: P-32 (warm first row 1.2 s by its own marks; cold Worker 5 s first byte is a hosting item for the founder), P-42 (grader read kit; live read on the 06:00 UTC tick), P-43, P-44's door (lands on `/sync` with the product; Helio Labs has no live source beyond the repo, a founder decision), P-34 (by object), P-39 items 1 to 3 on the code; P-37's design walked, three Meridian components and two surfaces served (gate card slots fixed, verdict leads the row).
-- One ruling reversed on A2's evidence (P-04: the settle gate stays; the grader had no evidence, eight verdicts at confidence 1.0 with nothing behind them). P-42 came out of it.
-- Queue rebalanced at 16:10: A3 holds P-45, P-46 (READY) and P-38 (BLOCKED: its session's permission check refused the cron migration; A1 refused to run it for A3; the founder approves in A3's session or says the word to A1). A2 holds P-37's surfaces.
-- Lovable's bot pushes `Work in progress` commits that requote five files every time it regenerates types.ts; reverted twice (e619e836e, 502ad462b). Read its commit before publishing.
-- Founder inputs still open at 17:45: the second sentence under Relay (proof of P-40/P-41 live), the tablet track's release gate (since 12:13), P-38's approval, the seven Prism and Trellis decisions. The `a1-delete-probe` workspace (owner demo user, no member row) still exists for the P-39 delete walk; walk it after his run starts, then it is gone.
-- The switcher and the theme are per-user state on the shared demo account; the page went dark at 17:10 without either lane touching it.
-
-## A1 · 2026-09-03 20:10 IST · both lanes idle; the day's close
-
-- 40 of 47 packets DONE with A1's evidence. Closed since 17:45: P-38 (founder approved in A3's session; verified by object, 36/37 cron jobs on supaprod.ai with deadlines, ledger 20260909050000), P-46 (founder approved; publish gates PC-04 and the beta stories still open; nothing went outward), P-47 (by repro), P-43, P-44's door and header; P-45 retired (my premise error).
-- P-37: gate card, transcript row, calendar wait served and verified; A2's 691f87dba (character quiet, composer promise) published 18:44 but the live run at Learn/`needs-evidence` still showed the Supa line and the default placeholder at 19:42; A2 has the read. Remaining items listed under P-37 in the queue.
-- Two of my claims were wrong today and are recorded as such: P-45's premise (unverified mount), the calendar-wait evidence (a stale DB read). Re-read the row and say when.
-- Founder inputs open: the second sentence under Relay (proof of R-36/R-37 live), the tablet release gate (`0c7374b6`, pending since 12:13 IST), the seven Prism/Trellis decisions. Helio Labs has no live source beyond the repo (founder decision). Probe workspace `a1-delete-probe` still exists for the P-39 delete walk.
-- Tomorrow 06:00 UTC: the grader's first real read (P-42); check `forecast_resolution_log` for `read` and `cited` and the Learn tab.
-
-## A1 · 2026-09-03 23:05 IST · late evening
-
-- 49 of 55 packets DONE with A1's evidence. Live since 21:00: P-37 (five surfaces), P-48, P-49, P-51, P-52 (Choice, Quiet), P-54 (proved with focus verified first). P-50 served; one fix pending (composed question). P-53 in progress (A3). P-55 (A2, proposal only).
-- **A1's own error at 22:09 IST:** typed into what `find` called the Ask textbox on the approvals page; the page's single-letter hotkeys settled a seeded proposal (`60000000-0b00-4000-8000-000000000004` → now); restored to backlog at 22:11 by exact id. Never type on a page with single-letter shortcuts without `document.activeElement` proving the field; clicks only where possible.
-- Gate kept on A2's evidence (three shapes in one primitive); its split is P-52 + P-53. CrewChrome's local Gate is deliberately separate (A3).
-- Founder items open: the walk of the run screen (P-37), the second sentence under Relay, the tablet release gate, the seven Prism/Trellis decisions, the demo queue's aging rule (P-55 proposal).
-- 00:10 IST 09-04: P-50 DONE live; P-55 verified (66 = 35/10/8/4/4/3/2, 11 over 30d; 65 = 66 minus the open card); P-56 published 23:53, live read pending; P-57 filed (twin specs on the brief path, title cut at 120) and moved to A2; A3 on P-53. Lovable held P-56's file at 00:06 but served the old build 13 min after publish: read again, do not republish.
-- 02:00 IST 09-04: founder asleep, full authority handed to A1 at 00:09. Done since: P-53, P-56, P-57, P-57b, P-59, P-60, P-62, P-66, P-67, P-69 (all published except P-67, test-only). Filed: P-58, P-59b, P-61, P-63, P-64, P-65, P-68, P-70 (+P-69 done). A3 silent since 00:47 → P-68 to A2. Tablet track deferred to 02:01 UTC. The preview token IS configured (Connections reads Configured); the fault is no retry and no reason. Probe workspace has a run at Decide; delete after. Use the hook clock for times.
-- 05:00 IST 09-04: 68/79. R-38, R-39, R-40 written. Tablet track deferred to 01:24 UTC, attempts 1, not promoted (PR #4 inert). Probe has 3 tracks; keep for P-75 re-walk. Open: A2 P-59c, P-75, P-74, P-73; A3 P-64, P-58b, P-65. Third probe sentence at 05:21 decides P-71. Times: read the hook line.
-- 09:40 IST 09-04: 81/93. Build fixed at 08:05 (rule 21); served build proven by headers. R-39 live (fifth probe sentence, press recorded). A2: P-86 honest Ship; A3: P-93. Tablet track deferred to 03:18 UTC 09-05. P-42 read after 17:30 IST. Gate scripts must not `git reset --hard` while a queue commit is unpushed (lost one at 09:03).
-
-## A1 11:45 IST 09-04
-Ship track 2fdf93b6 deferred to 08:13 UTC for the CI fix loop; gate 0189ad0a declined with reason via the transcript card (banner decline is silently refused, P-115); ghosts 5198e875/0f4de13b and run 2a4da7ba halted (P-114 class: 13 stranded waiting_approval runs, resume sweep starved by 7 July fixtures). Rule 22: three READY packets ahead per lane. P-96/P-97 published e7b8bec6. Next: fix-loop dispatch on PR #5 after the Ship try ends.
-
-
-## A1 12:30 IST 09-04
-THE HONEST SHIP IS LIVE: PR #5 merged 06:22:41Z, preview 06:44, promoted 06:58:42Z; prod https://cad-60000000-ae547426aa32.cadencehostingtest.deno.net 200 + /health ok. Presses: merge (Waiting), spec approve, design gate approve, Send it back to Ship, Promote it. Walls filed: P-114 (live), P-115 (live), P-118 (live), P-122, P-123 (A2 now), P-124. Founder: announce (outward), Cohere payment method, Deno plan.
-
-## A1 13:22 IST 09-04 (restart)
-Ship live (P-86 DONE). Published: P-96 P-97 P-103 P-114 P-115 P-117 P-118 P-119 P-120 P-123 P-125. Owed live reads: P-119 (Waiting/Team item), P-125 (map 1512), P-121 (Ship July line). P-121 on main, A3 numbers clean, A1 gate interrupted by restart: re-run tsc+suite (+build when disk allows) then publish. Disk: ENOSPC 13:10, 561 MB free; founder's files fill the volume. Lanes: A2 P-118b→P-116→P-112→P-113; A3 P-122→P-124→P-126→P-104→P-105→P-109. Founder: announce, Cohere card, Deno plan, disk. Probe tracks deferred to 09-06 07:02Z; tablet to 09-05 03:18Z; P-42 read after 17:30 IST.
-
-
-## A1 14:01 IST 09-04
-Published on A1 gate: P-117 P-118 P-119 P-120 P-121 P-122 P-123 P-125 P-118b P-116 P-124 (14,469 pass). Disk incident 13:10-13:18 (9.1 GB freed, memory written). Gate runs from scratchpad/gate.sh (rtk hook parse error). Chrome extension dead since 13:31: owed live reads P-119 P-121 P-125 P-118b P-122 P-124. Filed P-127 P-128 P-129. Lanes: A2 P-127→P-112→P-113→P-128; A3 P-126→P-129→P-104→P-105→P-109.
-
-## A1 15:27 IST 09-04
-Announcement public (/p/checkout-no-longer-asks-for-an-address-it-already-has-ea1316) with founder's yes. Profile tz Asia/Kolkata. Published: P-112 P-118c P-129 P-130(partial). Live DONE: P-119 P-121 P-124 P-125 P-118b P-129. Owed: P-127 header (needs a drive), P-118c receipt (~15:47), P-112 card (next Build). Filed P-118c P-119b P-131 P-132 P-133 P-134. A2 buffer thin after P-113: refill.
-
-## A1 16:59 IST 09-04
-Published: P-131 P-132(x3 runs) P-134 P-119b P-113 P-113b P-118c P-128 P-128b(code complete, walk blocked on founder's repo). R-41 placed. Announcement public. Cohere/Deno pending founder; repo Supaprod/helio-status-site denied at prompt. P-135 attribution: timer excluded entry-load; cache headers overwritten HTML-only; landing count-exact. Lanes: A2 P-135→P-137→P-138; A3 P-133→P-136→P-104→P-105→P-109→P-130b. P-42 grader read after 17:30.
-
-## A1 18:22 IST 09-04
-Published: P-104 P-133 P-136 P-139. Live DONE: P-131 P-133 P-136. Grader 12:00Z resolved nothing; P-137 read: eval refs resolve but never produced, no analytics, spec-contract reader drops object clauses. P-135 on branch a2-p135-edge-cache (3 commits), landing waits on founder's "go" (A1's attempt denied at prompt; A2 declined to route around). Founder open: P-135 go, second repo, Cohere card, Deno plan, zone cache rule. Lanes: A2 P-137→P-138; A3 P-140→P-105→P-109→P-130b.
-
-- A1 19:55 IST 09-04: P-137/P-138/P-109/P-127 live DONE; P-142 published (filter landed on a retired reader, rule 24); check:unreachable red on main, rule 25, P-146 (A3); P-144/P-145 filed (A2); creditsDiag numbers sent to A3.
-
-- A1 21:24 IST 09-04: P-142 closed; P-140/141/143/144(s1,s2) published; F-201, F-202; rules 25, 26; P-146 to P-152 filed; grading path measured (0 readings, forecast_observations holds populations, P-150).
-
-## A3 (Sonnet 5) · 21:49 IST 09-04 (session close)
-
-Founder close-out via A1 at 21:35: finish P-151, no more P-146, handoff, push, stop. Landed:
-f58ab7816 (P-140 proper: batched credits read fixes credits:null, F-201 partial-batch fix) +
-P-141; 3fb2bc9f5 P-143 (hold card zone-aware, horizon vs backoff); 763c56051 P-146 batch
-(functions 179→153, components 43→30, baseline needs ≤139/≤26, NOT reached, packet stays IN
-PROGRESS); 51385cb9b P-151/F-202 (a press on deferred work now actually drives it via
-driveTrackOnce, not just clears the hold). No migration written this session. Deleted origin's
-wip/p35-discovery-functions (superseded by main). P-153/154/155 filed by this lane, being
-reviewed by A1 (packets are A1's to file going forward — report gaps, don't self-file). Next A3
-on P-146: studio.functions.ts (15/25 orphaned) and design-scaffold.functions.ts (4 orphaned) are
-the biggest remaining, both need per-export triage since both have real live consumers too. Full
-detail in docs/operations/session-handoff.md's own entry at this timestamp.
-## A2 21:45 IST 09-04 (session end)
-Landed: P-135(branch) P-137 P-138 P-142 P-144(s1,s2,s3) P-150 move 1. Scope 3 gated 2f38eda34 → landed 38b0710b6 (A1 gate 173, 14,775 pass, src lint 82→75 files). P-150 move 1 gated at 14,787 pass / 0 fail, tsc 0, build 0. MIGRATION APPLIED: 20260909093200_p150 adds decisions.forecast_clause_id (uuid, nullable, no backfill; 0 of 422 linked); types.ts updated. LEFT: P-150 move 2 (the rule — bandIsWellFounded/tierActionFor still read the seat's declared number) and move 3 (fix the 7 rows: NULL for the four populations, the two 1s stay); P-145/P-148/P-149 untouched; for P-145 also measure getFocusNext on Helio (P-154). P-144 scope 3 is correct and INERT: 0 of 133 specs carry a reading. Branches: a2-p135-edge-cache KEEP (8a05f546a, 4360353f0, 26240f97b — 235 lines of server.ts not on main, waits on founder); p137-learn-sources 52130eda3 content identical to main, safe to delete; a2-wip-p33-sample-door d760bd387 NOT on main (5 files/~280 lines). I deleted no remote branch — destructive, and the instruction was relayed via A1, not from the founder direct. FIRST THING TO KNOW: my gate's `lint | grep error | head -5` could not fail (five pre-existing errors sort first) and hid 12 errors across 3 packets already reported as gated; read a check's whole output once before trusting it. LIVE DEFECT: forecast_observations holds populations, so tierActionFor would answer open-work on a session count the day readings exist — P-150 move 2 before P-149.
-- A1 22:09 IST 09-04 (session end): lanes closed on the founder's word, both handoffs verified; origin holds main alone (every other branch verified and deleted, P-33's WIP archived as a tag); P-135 landed and published on its own; published tonight one gate per landing: P-137, P-138, P-109, P-140 diag, P-142, P-143, P-142c, P-144 s1, P-140, P-141, P-144 s2, P-144 s3 + P-146 batch, P-151 + P-150 m1, P-135; rules 24 to 26; the gate is five lines; next A1 reads P-151's press on 2fdf93b6 first.
-
-## Lane 1 · 10:36 IST 09-08
-Three landings on main and published: the home (dbe5029d2: hero, road, run rows with Journey marks, presence strip), the rail (e4c09a9bf: Home Inbox Findings Outcomes | Team Sources; AgentPresence in Meridian), the first run (b4e4c0902: one screen). Founder rules relayed to Lanes 2 and 3 and written into DESIGN-SYSTEM.md. Next: header live line on AgentPresence off Lane 3's running-now key; live read of the rail; gallery pages.
-
-## Lane 1 · 10:58 IST 09-08
-Four more landings (header idle fact, live-work key + push, in-place ask on the home, header verb). Main red on one P-59c guard from Lane 2's run-screen rewrite, reported. Deploy of b6378d3b8 requested; dd143e399 and 8a5b917fe follow when Lovable syncs.
-
-## Lane 1 · 11:14 IST 09-08
-Five more small landings (PageHeading station, Start a run, contract doc, hero counts stopped runs, bet card clamp); all green. Live: header idle fact. Founder's workspace seen on the new home. Open: BoardPanel fold (seven guards), hold card in place (Lane 2).
-
-## Lane 1 · 11:26 IST 09-08
-Four more: Journey roles, one-number waiting (rail row + hero + Inbox page share one queue read), Outcomes foot door removed, HoldCard in place under held rows. Live: Start a run, hero stopped count, header fact. Publish of 685d7b709 requested.
-
-## Lane 1 · 11:34 IST 09-08
-ae799bbd0: run rows named, Inbox count spoken. Live: "6 calls are waiting for you." No type-scale lift (deliberate).
-
-## Lane 1 · 11:40 IST 09-08
-Verified live: hold card in place, Inbox count, hero number. d572b8272 aligns "Start a run". Depth-page walk notes sent to Lane 2 (Findings heading, Outcomes negations and "substrate", Sources' 22 negation rows).
-
-## Lane 1 · 11:47 IST 09-08
-3b6a9d718 product_named from FirstRun; 726f257b1 BoardPanel deleted (four guards, ratchet re-frozen). Lane 2 landed the depth headings.
-
-## Lane 2 · 11:52 IST 09-08 · run screen rebuilt; depth stitched
-Main cced15d0e, all pushed, published through d6ae7d99a (tip next). Run screen: Journey in the header (one station display, pressable, draws from the route first), one Now card in a state-decided register (run-now.ts; QUIET for a calendar wait, with the source gap named), transcript cut into station sections (live turn open, repeats folded, day markers, trace door), five-row proof panel (run-proof.ts), pane product-first with folded versions and depth doors (spec, decision, learning), embeddable gate on the preview frame, HoldCard standalone (Lane 1 mounts it on the home), shell follows the object. Depth headings match the rail with station eyebrows; Outcomes leads with facts, nudge under the record, one wait line per page. In flight: a subagent rebuilding /sync (Sources); gate, commit, publish. Open: spec editor station eyebrow; /ship and /learn have no door (delete or fold); /prds is an empty Outlet; repo lint pre-existing red; rebase after Lane 3's P-146 lands. Rule learned: decide a register once, on purpose, in a pure function; walk live after every publish.
-## Lane 1 · 11:52 IST 09-08
-9bb4eb264: hero names the largest queue family; placeholder "Help Prism ...". Seen live on Helio Labs. Push race: use fetch + rebase origin/main + push HEAD:main.
-
-## Lane 1 · 12:06 IST 09-08
-bebf8227a skipped-step short line; ef9dd9661 hero waits for its name. Publishes queued; family sentence and placeholder owed a live read.
-
-- Lane 2 12:24 IST 09-08: Sources rebuilt, /prds redirects, transcript polls live from the first second; probe run 7eb5fa85 watched live (working register good; running rows and presences reach the screen late, with Lane 3); the 12:14 500s on marketing routes are the Worker cache lookup, Lane 1 fixing.
-
-## Lane 1 · 12:36 IST 09-08
-Landing page 500s (12:16 to 12:33) were the Worker's P-135 cache lookup rejecting before the try on Lovable's runtime ("Cache API is not yet supported for dynamically-loaded workers"). Fixed 280bb7f80 + aacc1a81b, deployed faa89898, all 13 routes 200, F-203. Lane 3 owns standing the store down. 6101b8095 (placeholder subject) on main, undeployed. Prove a public-route 500 by bypassing the path on production, not in workerd.
-
-## Lane 1 · 13:08 IST 09-08
-9db5733f live: routes 200, / reads BYPASS twice; skipped-step row Decide + "Put Plan back on the route" seen live on Prism. Landed 378522d27 (hero waits for the queue read) and the Choice.tsx correction (flex-1 label, max-w-[40%] fact, `sub`). Main red on Lane 2's press-site guard (five run.mutate("press"), pinned four). Lovable sync stalls; an empty commit wakes it.
-
-## Lane 3 · 13:40 IST 09-08 (session close)
-Main 4659d788a+. P-146 DONE (gate green 127/26, 24 fns + 10 components deleted by name, keepers named in the baseline); P-152 three passes (src files with errors 75 → 41; 249 test-mock anys left); P-155 DONE live (only Qwen is configured in production). Built for the lanes: listRunningNow.now + runningNowKey + useRunningNowPush; self-check why/instruction split; deployments.embeddable (migration 20260909100100 applied+ledgered) and frame-src https: (the blank frame was OUR CSP); getTrackActivity throws on a failed read + useTrackActivityPush; getTrace.run; listReleasesAwaitingVerdict (P-147 read, Lane 2 mounts). Outage 12:16-12:33: Lovable's dynamically loaded Worker has no Cache API; Lane 1's try + my stand-down; BYPASS is healthy. Ledger F-204..F-209. Open: F-205 stop leaves approvals, F-206 no public prototype, F-207 driver skips spec/design gate, F-208 no claim release, P-130b, P-151 press, test-mock anys. Never prettier types.ts; gate on fails:0 before push; rebase conflicts land on the two baselines (re-freeze, do not merge JSON).
-
-- Lane 2 13:45 IST 09-08: push hook mounted; trace page keeps its run (seat, station, sentence, door back); put-back press on held runs (live on 6199f3df); Choice row fixed via Lane 1 review; Outcomes lists shipped-awaiting-verdict on the settle panel and its own shipped region (76689408f). Open: re-walk a fresh run focused; /ship, /learn no rail door; spec editor eyebrow.
-- Lane 3 14:25 IST 09-08: F-205 landed; agent_runs + spine_tracks now in the realtime publication (they were NOT, every socket was silent); starter runs (listStarterRuns, migration 20260909100400); objectLabel; claimId on whoHoldsThePath; test-mock lint pass (41 → 15 files). Unreachable 126/26. F-206/F-208 presses with Lane 2; F-207 founder's call.
-
-## Lane 1 · 14:30 IST 09-08
-Entry review (6 lenses, 2 agents at a time) landed in 6995c805f, ec5abfa74, c2fb51362, bd9aacf77, 9fbe95e08: /start gate exemption removed (fresh signups never saw FirstRun), home reads holdTone/nothingIsComing, --mrd-seat-1..5, rail+strip on listRunningNow naming seat/verb/object, first-home polish. Deploy a12d4679 pressed 14:28. Open: shell --sp-* tokens, ExampleJobs running chip, cursor anchor. Lovable sync stalls repeatedly; read_file, not the sha.
-
-## Lane 2 · 15:10 IST 09-08
-Third addendum in docs/operations/session-handoff.md: the live station (100f44fe6), one seat one name (b8f6c1fca), F-206 Share and F-208 Release the claim, Outcomes and Sources read states, lint clearance; walk findings for Lanes 1 and 3 (composer start not driven off-screen, row mark green, rail row truncates, top strip pairs the seat with the last finished run). Open: /start hero silent on cold read (Lane 1), Now card between seats, spec editor eyebrow, /ship and /learn doors.
-- 16:05 Lane 2 later: transcript seat colour on every turn; Ship/Learn eyebrows and doors from the run; forecasts desk and settle gate on Outcomes; Lane 3 closed the composer-start and home-name gaps.
-
-## Lane 1 · 19:52 IST 09-08
-Founder's three rulings landed (dc46271a8): hold hue is a sand, all status hues down, road colour in ring+glyph only; rows on a grid (Row align/timeWidth, JOURNEY_ROW_WIDTH, fixed control slot); rail glyphs not arrows, Start a run focuses the composer, Setup tier named. f1d408a45 phone batch; 03d2b1872 stall clock. Both review workflows died at the session limit; journals read, confirmed items landed. Deploy pending on Lovable sync.
-- 20:15 Lane 2 evening: Findings leads with the one cluster to start with; header calendar wait quiet; Ship hold sentence wraps; a Lovable build can predate the sha it reports, verify on the surface.
-
-## Lane 3 · 21:35 IST 09-08 (evening close)
-Main 4d50df6ac+. F-212 the Inbox queue read: 12 serial Worker-to-PostgREST hops (Postgres ~20 ms total) → 2 hops (996ab01dc), live 995 to 1,519 ms handler on 2e038667; approvals_queue_counts (5f6487d90, migration 20260909100500) for the "N waiting in X" line, Lane 2 mounted it (f4cf505da). F-213 the shell strip's listStudioSessions 11 hops / 3.8 s in-Worker → 3 hops (3be14ea45), live on c52a04db: worker-total 1,502 ms; countNeedsYouCalls one hop (a06a5c4c4); listRunningNow, the live feed, five hops → two (5a6b00615); the home's longest chain four → three via a deployments!inner embed on the changeset's mission (3fea10214, verify 'live since' on Helio Labs track 2fdf93b6 once 7187cb60 serves); getTrackActivity three → two (44ba22a50); creditsSpentByTrace one SQL call (b663d059d, migration 20260909100600, credit_ledger_ai_event_idx), home read four → three. 7187cb60 served: home prints 'Live since 12:28' through the embed; listRunsForStart still 3.3 to 5.3 s cold and mounted FOUR times per /start (layout prefetch, readHome, YourRuns useQuery without staleTime, push invalidate): Lane 1's, told twice. Then e8c062d27: getTrackToolCalls one SQL call (track_tool_calls, migration 20260909100700; args slimmed and `found` counted in Postgres, 240 KB → 86 KB on 2fdf93b6). Read 72c04f6e: listRunsForStart 3 per arrival at 981 to 2,361 ms (credits call in), queue 3 per home load, 39 server calls per /start; credits and 'live since' print. Then 212153b00: the 170 KB / 5 s call on every page was listMissions via useLiveAgents + AppFrame's marks (NOT the transcript; the build's resolver map names an id: grep .output/server/_ssr for the 12-hex id); mission_marks (migration 100800) answers the eight fields in one hop, ~7 KB. Migrations this evening: 100500 to 100800, all applied + ledgered. a51dbf53 served: the 170 KB call was STILL there, and it was getMission (a POST: no payload in the URL; the built chunk names it), called by TrackActivity per mission for its handoff rows. 382a72682: listMissionHandoffs (agent_messages alone, one hop) for the run screen; getMission three hops from nine via latest_run_checkpoints (migration 100900), no `input`. Verified on 15a8b47b (pressed 02:2x IST on 5f79db91a): run screen 2fdf93b6 makes no getMission call, nothing over 20 KB (largest 13.6 KB), slowest handler 1.7 s warm (the strip). Then Lane 1's fourth-review pair (f812cba50): keepStarterRuns no longer turns a transient throw into a final refusal (NULL + claim re-stamp + sweep retry; only an empty model answer is a refusal, in a person's sentence); openFirstRun folds FirstRun's seven server calls into one (seedWorkspaceCore / completeOnboardingCore / upsertBriefItemCore are plain functions now), Lane 1 mounts it (unreachable held at 126 by name, 3a5d7513d). Resumed 07:1x IST 09-09 on the founder's word: c57182f2c retires the three wrappers openFirstRun replaced (completeOnboarding, seedWorkspaceForTrack, recordOnboardingMilestone), seed guard re-pinned onto the cores, unreachable 129 → 126 by name; updateProject kept on purpose (the only product-rename writer; Settings surface tomorrow). Lane 1 presses deploys as master now. Next: read the first-run press on their build (one call, not seven). F-214 a signup no longer held 12 s for the starter runs: claim + kick behind the response + minute sweep as the guarantee, starterRunsState decides (4d50df6ac); StartRun.working.verb/objectLabel from nowPerTrace. Also: lastCallAt + STALL_MINUTES + refusal final (2d059de97), catalog seat name (85783d22a), start driven by the sweep within 60 s (9d30d3162), DELIBERATE_READS register (ad3b778ad), P-130b server half (588907227). The guard for hop depth is src/__tests__/a-wire-that-counts-rounds.ts. Next: census the next read over a second (getLiveActivity ~1.1 s, six per Inbox load).
-
-## Lane 1 · 20:57 IST 09-08
-Round three landed: d57a5613d (live seat reaches every reader; keyboard honest; rail crew quiet like the strip) and 2161e7888 (copy register; doors: Inbox press on the hero, station caption with Show all, FirstRun sign-out). Shell reads gated on the workspace (9a3e73713, ca0690457). Two asks with Lane 3: async starter generation, working.verb/objectLabel. Deploy pending.
-
-## Lane 1 · 21:16 IST 09-08
-Round three closed; 32f76297 pressed on 711054c36 (row verb from nowPerTrace, placeholder verb guard, one clock). Nothing owed underneath. Shared shell is on Helio Labs / Relay, light theme.
-
-## Lane 1 · 21:48 IST 09-08
-Round three second half on main (a19c75fdb): header says "call"; header seat goes quiet with the strip; home strip's facts and door skip the gate; focus returns to the row body after an answer; one door to Findings; the two "on Today" doors go to Inbox and ?queue is gone. Then 6a9c54b26: listRunsForStart once per arrival (home-read.ts, loader prefetches readHome, staleTime 10 s, pushes cancelRefetch false). Lane 2 pressed 9043ee80 on a19c75fdb; I press the next on 6a9c54b26 when it serves. Ledger F-215, F-216.
-
-## Lane 1 · 22:12 IST 09-08
-822c0d7a4 pushed (seed gates: useSeedInFlight for shell/rail/strip, home seeded only for a known workspace, YourRuns mounts onto the seed, first SUBSCRIBED does not refetch). Needs a deploy press + live count. Round four runs as workflow wf_719dcad9-5e8; journal under the session's subagents/workflows dir; verify each finding against HEAD before landing. Production is supaprod.ai.
-- 23:45 Lane 2 resume point: Inbox count line live; tool-calls read now one SQL call (Lane 3); f105b0dd pressed on the tip; on resume read run 2fdf93b6 on it, then the founder's two calls.
-
-## Lane 1 · 01:48 IST 09-09
-Resumed after the reset. f105b0dd verified: readHome once, runs read once, 34 calls per arrival (was 46). F-216 closed in full. Round four resumed (wf_719dcad9-5e8) against 62dd6da99.
-
-## Lane 1 · 07:12 IST 09-09
-Round four landed: 7ea9db5d0 (shell), 8fbc07303 (home, worktree agent), bae976611 (one-call press), 663808eac (phone/rail, worktree agent). Ledger F-217..F-221. Worktrees removed. Needs a deploy press and a live read.
-
-## Lane 3 · session end · 07:40 IST 09-09
-Closed on the founder's word after c57182f2c (wrappers retired, unreachable 126 by name). The session's shape: on this Worker a slow read is sequential round trips (~275/550 ms each), never the query; eleven reads collapsed with round-counting guards (queue 12→2, strip 11→3, running 5→2, needs-you 2→1, activity 3→2, home chain 4→3, credits/transcript/marks/handoffs to one SQL call each, getMission 9→3); five migrations 100500–100900 applied + ledgered; every lane ask landed the hour it came (openFirstRun last). Pending by name: updateProject kept for a product-rename Settings surface; first-run press unverified live (one call, not seven; Lane 1 walks it); listPendingOutcomes 1.2–2 s for 964 B; listStudioSessions 1.5–1.7 s; getTrackChain/getTrackGates three serial reads; the Worker's cold start (platform). Name a server fn from its id: grep .output/server/_ssr for the 12-hex id, read createServerRpc name. Lane 1 presses deploys as master. Full entry in docs/operations/session-handoff.md.
-
-
-## Lane 2 · session end · 07:50 IST 09-09
-Landed: settled runs stop polling (5c03c297b); the /learn fold into Outcomes (53155ae45). Pending: the /ship fold (composer, release document have no other home), Findings beyond the lead (brain_last_seen read is Lane 3's), the Cohere billing fault (founder), the Worker cold start above every handler. Look into: the fold live on the first build past 53155ae45; LearnRecord's record workspace follows the gate's focused bet. Observations: a Lovable build can predate its reported sha, watch x-deployment-id not the asset hash; one seat one name one colour; the demo shell is shared, switch back after probe walks.
-- 08:35 Lane 2 end-off: /ship folded into Outcomes (bd34e58e7); Findings says what arrived since the last look and stamps after counting (cdef49998). Pending: Cohere billing (founder), Worker cold start (Lane 3), meridian-surfaces.ts lists stub routes. Verify both folds live on the first build past bd34e58e7.
-
-## Lane 1 · 09:12 IST 09-09
-Round five landed: 495aae117 (route picker + Findings headline, F-222/F-223), 2bc811f08 (eight dead ends and retired words), 30532d8b7 (Settings Autonomy folds into Team). Dispatched: four to Lane 2 (the Inbox call with no run is the big one), three to Lane 3 (driver) plus the double-filed prototypes. Open on my lane: AskPane hard-codes the shape; the Safety room duplicates five BoundaryPane views.
-
-## Lane 3 · 09:50 IST 09-09 (reopened, pending list closed)
-Reads: listPendingOutcomes 3→2, getTrackChain/getTrackGates 3→2 (a7eb68bc2). listStudioSessions NOT done (agent hit usage limit; its third hop is ai_events cost per trace, fold it with a SQL sum like credits_spent_by_trace). Lint: src is clean; the 34 remaining errors are .claude/workflows/*.js (top-level return is the Workflow runtime's shape) and archived docs, and eslint.config.js is hook-protected for the founder, so that call is his. Built: product rename in Settings (c3a2205aa), listTrackDecisions for Lane 2 (a7eb68bc2). Four production write bugs fixed (90d0a5298, 33eed1b52): stale pending_gates (the hold hid the record that says the hold is over; repairStaleGates in the minute sweep), a call could not name its run (link was on the write, nothing read it; ApprovalQueueItem.trackId), the retry press stamped driven_at so the card's "next turn" was false, and design.draft filed byte-identical duplicates (23 of 59). Learn no longer burns attempts on a verdict only a person can give.
-Verified after: the gate repair took 6 tracks to 1 and the false wait to 0 in two sweeps (04:15 UTC), and job_runs is where a sweep's truth is (job_name cron.resume-runs, status, duration_ms), never the commit. Two measurement traps, both hit tonight: elapsed time counted from the wrong instant and across IST/UTC, and a server function identified by size and timing instead of by the built chunk's own createServerRpc name. Read the units the source prints; identify a thing by its own record.
-Closed at zero: 55ced586 (04:52:35 UTC) took tracks carrying a settled gate 1 to 0 in two sweeps; the second query-side filter (excluding [] via PostgREST) also failed silently, so the emptiness test moved into JS and the read takes all 74 open tracks. The MCP cannot test a PostgREST filter: it runs SQL, and the failure was in PostgREST's parsing/casting.
-
-## Lane 3 · 2026-09-09 afternoon
-A defect family named with Lane 1, four sightings in a day: a surface stating what it had not read. Mine were the queue caught into an empty list ("Nothing waits on you" on a failed read) and "Agents are idle" from a head query's null count cast to zero by ?? 0. A head query answering null and one answering zero are the same shape on the wire; take the flag off the query's answer, never off the count. THE RULE that found three of the four: when you cannot test whether a claim is true, render a second independent view of the same fact from a different read where one glance takes in both. Tension with "one count, one source", resolved by case: one source for a number a person acts on, two views for a claim nobody can test. Also: the decide loop closed at the write, with the measurement that forbids loosening it to paraphrases (a reversal scores HIGHER than a rewording, 0.889 vs 0.800, because claim-word measures are verb-blind). And three of my own tests never ran, appended with `it` into a file importing `test`; audited all eleven of my guards, declared == ran.
-Sharper form of the rule (Lane 1, design contract 0e156a7ee, supersedes my acts-on/can't-test split): a fact has one source; a claim ABOUT that fact must be DERIVED from it, never asserted alongside it. One count one source is untouched; what changes is that a clause hanging off a count has to read something, and an underived claim needs something in view that can contradict it because a sentence cannot contradict itself.
-
-## Lane 3 · 19:27 IST 09-09
-Union-cast census (Lane 1's pattern: grep `as <UnionName>`, sort into derived / membership-checked / claim). Two claims on this lane, both closed at 32f5eeeb0: the self-improve mode read from a column with no CHECK is a membership test now; the graph key parser STAYS a cast with its reason written down, because the keys are the module's own writers so an unknown kind means the round trip is broken, and neither dropping the node nor silently drawing a kind that does not exist is honest. Keeping a thing and stating the reason beat removing it twice today.
-Station strip 3 hops to 2 (e59d65380, migration 20260909101000). The third round existed only for four joins whose keys the second round already held. One PostgREST aggregate over studio_changes.changeset_id plus mission_spec_titles and mission_routed_stations. VERIFY THE NEW READ AGAINST THE OLD ON PRODUCTION BEFORE MOVING THE CALLER: after the caller moves there is nothing left to compare to. Both LEFT JOINs deliberate (6 missions point at a deleted agent; a spec the caller cannot read keeps its link with a null title).
-Then deleted what I had just made fast (3343b18e3, 20260909101100 drops run_trace_costs): cost_usd was rendered by no surface. Verifying a read proves it is correct, never that anyone wanted it -- ask what renders it FIRST. Swallowed errors in the same handler answered two different ways: missions throws (an empty list is drawn as seven empty stations, and the strip's "count unavailable" is only reachable by throwing); the gate count travels as null and runState resolves an unread count toward the look, because a glance at a run that needs nothing is cheaper than a person waiting on a machine that says it is busy.
-The round-counting wire can now FAIL a read: `wireError("...")` from a fixture resolves as { data: null, error }. Every finding today turned on the difference between an error and an empty answer, and a fake that only returns rows cannot test it.
-Swept for a second cost_usd and found none: no discarded read binding anywhere in src/lib or src/routes, and no other returned field that costs a dedicated read and reaches no surface. Negative result, recorded so nobody re-runs it.
-Wall-clock CLOSED on the served build cd9307f4: listStudioSessions worker-total 591 ms and 527 ms on two loads, from 3,734/3,856 ms at eleven hops. Identified by the built chunk's createServerRpc name, never by size or timing. Lane 1's Chrome extension was fully disconnected and mine was live: a dead instrument on one lane is not a dead instrument, so ask the other lane before recording something as unmeasurable. Pending: the Worker cold start (platform, not mine to fix); eslint.config.js is still the founder's call. meridian-surfaces.ts is gone from the tree, so that Lane 2 note is dead.
-Closing (Lane 3): law 12 needs a COMPLETE mirror, not just a neighbour assertion. Emptying my reachability sweep failed all six tests; without the disjoint-and-complete half it would have failed none, because "X is not in the reachable set" is trivially true of an empty set. A reachability sweep degrades to silence, not noise. Guards: c5e64264e (refusal pair), 20bbf5737 (a-state-nothing-can-produce: check:unreachable one level down, drives producers over an enumerated input space because a grep for the state name passes). The rule under all three of today's guards: a check cannot drift from the thing it checks if it is DERIVED from it (the type's own record, the record it guards, the driver's own HOLD_LINE). And the non-code one: both guards came from the other lane seeing what the owner could not from where they stood -- ask the other lane before recording something as impossible.
-
-
-## Lane 2 · 20:40 IST 09-09
-Four pushed: 0cd46310a (the story speaks at the live edge), the fourth "3 prototypes" cut from the transcript header, ffda2316c (the Inbox settled line), c8abc5124 (three of twelve registers drop their headline), ce4fc41a7 (the tally census).
-THE SESSION'S SHAPE, one defect family in three costumes: **a surface printing a string written for a different job.** The transcript header restated a count three other surfaces carry. The Inbox's settled line printed `item.approveConsequence` -- the label under the pending card's Approve BUTTON -- as the record of a completed judgement ("You approved | Approve · unblocks Build for this spec"), while ten past-tense sentences written for that exact slot sat behind `?? SETTLED_APPROVE[kind]` on a non-optional field and had never once rendered. Three of twelve Now registers put the chip's own word in the headline eight pixels away. Every decline in the product printed one family's consequence generalised to ten.
-TWO TRAPS WORTH THE NEXT SESSION'S TIME. (1) **A cast fixture does not leave a branch uncovered, it silently covers the WRONG one and reports green.** `decideSettledLine` had a suite; its fixture was five fields `as ApprovalQueueItem` with no `approveConsequence`, so every assertion ran the fallback branch production never takes. (2) **A source-scanning guard must strip comments first** -- the census failed the very file it had just fixed, because the docstring explaining the fix quoted the hand-typed call it had removed.
-THE CENSUS FOUND MORE THAN IT WAS ASKED TO. Lane 1 and I had counted four tally emitters by eye on one page; scanned by mechanism it is **nine**, plus three that emitted into nothing (`station-outcome.ts`, `what-each-station-did.ts` deleted with their suites; `what-it-produced.ts` quarantined because `the-row-and-the-strip-agree-on-what-was-produced` pins Start's row to it and no live emitter shares its convention). Signature is two conditions and both are load-bearing: selects a word by count AND takes it from the artifact vocabulary. Drop the second and `where-the-crew-stands.ts` matches (agents by trust rung, same sentence shape); drop the first and fifteen files match.
-MEASURED, and it changes what either lane should conclude from a screenshot: of 21 pending gates, 14 carry a `run_id` and **all 14 of those runs have a null `track_id`** (created 16/17 July, before the loop wrote the link). Modern gates resolve fine (48 of 64 cancelled, 196 of 211 runs in the last week). So Lane 1's [0]/[7] door -- pending card AND settled line -- is correct code that renders on nothing in today's queue.
-Pending: re-point the Start-row contract at a live emitter so `what-it-produced.ts` can go; the `failed` node fill in the fail hue (judged only on a `stopped` node); Lane 3's Server-Timing strip read, still unclaimed by me.
-
-## Lane 1 · 23:00 IST 09-09
-Shipped and verified live: the `Mission completed:` prefix out of `decisions.title` at its writer plus a 10-row backfill of the pending ones (the entry quoted it as "Start with ..."); the hero's calls line down from four clauses over three subjects to a direction plus at most one run fact; `<DecisionsPanel />` scoped to the active workspace (/outcomes said "8 decisions are on the record" and "57 of 75 · Show 67 more" on one page — the workspace holds 8, the USER holds 75); `/arriving` from four statements of "nothing has arrived" to two, and its loudest one claimed "your sources" on a workspace with none.
-**The boot frame is the one to check first.** Every authenticated URL opened on a black field: the server's HTML for a signed-in route carries no rail, no nav, no title, and `_authenticated` is `ssr: false`. `src/components/shell/BootShell.tsx` puts the product's frame into the root document, hidden, revealed by an inline script when a session exists and the path is not public; `AuthedLayout` removes it on mount (NOT `RootComponent` — the root mounts before the auth gate resolves and removing it there hands back the empty field for the length of the gate).
-**IT HAS SERVED ONCE AND THEN STOPPED SERVING, and that is the open thread.** I have the served HTML with the full frame and the real mark in it. Minutes later the same URL, the same `x-deployment-id`, returned a build with zero references to it, while `read_file` showed `__root.tsx` WITH the import. One deployment id served two different builds and the second was older. **Verify by grepping the served HTML for the thing you shipped, more than once; the id and `latest_commit_sha` were both stable and correct-looking while the content went backwards.**
-Four corrections I made to my own claims today, all the same shape — a number that fit the story I already had, sent before it was checked: "the sweep is close to stopped" (60 of 74 stale; 51 are stale by design, real number 11); the waiting-expires threshold set to `isOverdue`'s day by assertion when Lane 2's measured p99 of real sweep gaps is 2.07 days, so a day is inside normal; "83 of 101 lessons" called a scoping defect when I had measured `learnings` and the block reads `agent_memory`; and amplifying Lane 2's empty `scout_targets` into "the loop has no input" when 1,524 signals exist, written by agents rather than ingested. Every one was caught by another lane's measurement, not mine.
-Also grouped a measurement on a workspace NAME and got 15 where the id gives 6 — "Helio Labs" is seven distinct workspaces.
-
-## Lane 2 · 23:55 IST 09-09
-THE SESSION'S REAL OUTPUT IS A LAW, not the fixes: **a defect that exists only BETWEEN elements is invisible to any gate that examines one element.** Six instances, every one found by reading a served page, none by 15,433 tests: one count on four surfaces; a chip and its headline 8px apart on five registers; the Inbox printing the Approve BUTTON'S LABEL as the record of a finished act; four trace rows reading "0 results" while the model narrated four different searches; a loading state saying "reading" five times from five regions; and my own door repeating the quote above it. Every element correct in each case. The guard shape that catches them is a CENSUS OVER A COLLECTION, not an assertion about a row -- three exist now (tally emitters, Now registers, surface registry) and all three have earned their keep, one by failing my own new file.
-THE FUNNEL, all 121 tracks ever: 82 standing at Discover, 9 Decide, 3 Plan, 11 Design, 4 Build, 4 Ship, 8 Learn. **One has ever shipped. Two have ever reached a learning.** The loop completes ~1.7% of the time. But 59 of 121 DID attach a finding, so runs do start from evidence -- it arrives by agent runs writing signals, not via "Connect a source" (0 of 23 workspaces have ever had a scout target; 1,524 signals exist).
-TWO UNREACHABLE-COPY FINDS IN ONE NIGHT, same shape: the Inbox's ten past-tense settled sentences behind a `??` on a never-null field, and `VERDICT_LINE`'s three behind a hard-coded `verdict: null` at the call site. **A hard-coded null is worse than a missing argument** -- the compiler is satisfied and the call site reads as a decision rather than a gap.
-INSTRUMENTS LIED THREE TIMES IN ONE NIGHT, always toward the story that fit: Lane 1's `curl` check (no cookies, different edge response), their "123 round trips" (the answer was bytes), my scout-target count (I counted the feature, not the thing). Every one was caught by ANOTHER lane's measurement, never by its owner. Read each other's pages, not your own.
-TWO GUARDS REFUSED MY WORK AND BOTH WERE RIGHT: the surface registry (a new `.functions.ts` with no home), and `a-null-under-a-heading-is-a-broken-promise` (I gated the panes on the track read; a heading over an empty field reads as "this is empty", not "this is loading"). The second is also the product's own stated principle one level up -- the tree keeps its shell and waits inside the work region.
-Pending, in order: the finish state cannot yet say what changed and what it was worth (territory 2); re-point the Start-row contract so `what-it-produced.ts` can leave the tree; layer 2 (the artifact pane) is the least examined surface in my territory; and NOTHING has been verified on a screen since the fold, because the dev server runs without SUPABASE_SERVICE_ROLE_KEY by design -- record that as a fact, two lanes have burned time on it.
-
-## Lane 1 · 00:10 IST 09-10 (continuing)
-**The boot frame is verified live** — caught it mid-load on a real navigation to /sync and screenshotted it, then queried a second later and it was gone with `.sp-app` mounted. Geometry matches `AppFrame` exactly (header 56, rail 223, mark x18/y17/w21) so nothing moves at hydration. **The instrument lesson is the bigger one: I reported it dead for an hour using `curl | grep`. Curl carries no session cookie and the edge answers it differently. Verify with an in-page `fetch` from a signed-in tab, or by the rendered behaviour.** Instruments ranked worst-to-best in the deploy memory.
-**The entry now says something about value on the founder's own workspaces**, which it could not before: every workspace holding a graded outcome is seed data, and his two hold 16 runs and zero, so `WhetherItWorked` cannot draw for the person who asked for it. `BetStillOpen` is its sibling — the soonest forecast NOT yet due, verbatim, with the date. Returns null whenever a closed loop exists, so exactly one draws. Verified live on A1 (bet due Sep 11, `data-whether-it-worked` absent).
-Also live: Findings four "nothing has arrived" statements down to two and the loudest one no longer claiming sources that do not exist; the Inbox card no longer restating its own title (a collision MY prefix fix created four hours earlier).
-**Laws 14–19 published.** 14 is Lane 2's (a defect between elements is invisible to a single-element gate) with their flip condition and their precondition — a census over a fact you cannot name from a column is a classifier wearing a census's clothes. 17 is Lane 3's p99. **19 is filed OPEN, not settled: `you` and `stopped` render byte-identical** (fill oklch(0.28 0.14 315), measured on the served road) — three runs needing an answer and two that gave up are one pixel. Every non-hue channel has a written owner, so settling it means taking one from another state and that reaches all three lanes.
-`no-two-states-look-the-same.test.ts` is the census that would have caught it: it names the exact colliding pair, carries a mirror that fails when the MEASUREMENT breaks rather than the code, and fails if the known-open pair is ever settled without the exemption coming out.
-**The endpoint lesson, twice in one night:** the paint collision and my Inbox collision were both caused by changes that were individually correct. A review checks a change against its own reason; what no diff shows is the state it arrives at.
-
-## Lane 2 · 01:40 IST 09-10
-The four I filed as open are closed, and three of them were blocked on ANOTHER LANE rather than on design. That is the session's practical lesson: name the field you need and hand it over with the measurement, then build the surface half the hour it lands. `decisions.call` (S3) unblocked the story's verb; `ArtifactView.filedAt` (S3) unblocked the version list; S1's boot frame closed the black screen I reported. Three cross-lane loops closed in one night on a product whose complaint is that nothing joins up.
-TWO UNREACHABLE-COPY FINDS, same shape, four hours apart: the Inbox's ten past-tense settled sentences behind a `??` on a never-null field, and `VERDICT_LINE`'s three behind a HARD-CODED `verdict: null` at the call site. A hard-coded null is worse than a missing argument -- the compiler is satisfied and the call site reads as a decision rather than a gap.
-S3's number beat mine twice, both times by measuring the population before touching anything: my one trace of identical tool calls was one of ~1,000 (`ai_events.output_preview` keeps what the model emitted; `tool_calls.args` is POST-PARSE and strips undeclared keys), and my three drawings sharing an attachment second were 1,155 of 1,522 members -- three quarters -- because the driver attaches a station's whole output in one write.
-A NEW LAW, agreed with S1: **the review boundary is the change, and the defect is at the destination.** A diff shows what moved; nothing shows what it landed NEXT TO. Four instances in one night, each individually correct: their paint move, their prefix removal, their crew header, and my own `theQuoteAlreadySaidIt` -- I built it to stop a sentence appearing twice, keyed it on STATION identity, and the served page showed it printing that sentence two lines under the quote it existed to suppress. Mitigation: when you change a value in a shared table, look at every OTHER value in it, not the one you touched.
-Comparing two implementations proves they AGREE, never that either is RIGHT. `what-it-produced.ts` was undeletable because a contract pinned it; the contract now scores against the CONVENTION (`KIND_WORD` + `joinPlainly`) and the module is gone.
-
-## Lane 1 · 02:45 IST 09-10
-**I stopped fixing details on surfaces and walked one piece of work from the entry into its run, cold.** Every finding came from the walk, and the two best exist BETWEEN screens where no single-surface check can reach: every run row was a `<button>` over a bare `navigate()` (no cmd-click, no copy-link, no hover destination — on the one screen whose job is showing several runs at once), and a run stopped for six days said *"Design has been run many times over"* while the record held twelve `out_of_credit` halts averaging **612ms**. Twelve refusals at the door; the station never ran.
-**Law 23: a cause the record holds outranks a shape the product inferred.** Five of the eight tracks that have ever halted halted out of credit, two of them wearing `going-in-circles`, and no top-level surface had said the word. The inferred sentence was not wrong — it was the weaker of two true things with the stronger sitting unread in the column beside it.
-**Law 19 is CLOSED and the answer was none of its three candidates.** The channel is the LINK between stops: it has carried no state of a station in its life, so nothing is taken from anything — and it says the one thing colour cannot, which is *continuation*. `you` is a gate and the road runs on when you press it; `stopped` is a loop that ran out of road. The link leaving a stopped station is cut. Full size only; the row carries it in structure.
-**A polling read that always fails is never "finished failing".** `runs` refetches every 10s, so a read failing on every attempt returns to `fetching, no data` every 10s — byte-for-byte a read still loading. The entry hung on "Still reading" forever with a Try again that re-ran the same failure. **`failureCount` remembers; `isError` keeps settling back** because a poll spends its retries again on every tick.
-**AN EMBED IS A CLAIM ABOUT A FOREIGN KEY.** I added `workspaces(account_id)` to the home's largest read. `spine_tracks` has FKs to learnings, opportunities and themes and **none to workspaces** — the embed 400s and `failSoftOrThrow` kills the reader. I checked the column existed and inferred the relationship. Guarded now: every embed in `src/` must name a key read off `pg_constraint`.
-**AND THEN I WITHDREW A WORKING FEATURE ON EVIDENCE I HAD ALREADY DISQUALIFIED.** A second failure in a function I had just broken read as the same cause. My instruments: a throttled tab whose elapsed counter had frozen, and hand-built calls returning 500 for *every* endpoint including unrelated ones — a control failing as badly as the case. I wrote that down and acted on the conclusion anyway. **Withdrawing is a change and carries the same burden of evidence as shipping.**
-**`git merge-base --is-ancestor <fix> <built-sha>`** is the command that says whether a deploy can possibly contain your work. I lost twenty minutes blaming Lovable's sync for holding my own bug.
-Two guards re-pointed from spelling to claim, both found by accident: the Ask default line ("Waiting on you since 5 days" — the guard asserted the source line and its NAME is a claim about the sentence), and `the-bar-counts-gates-on-open-tracks`, which sliced its subject by a terminator that function does not use and was reading a later function's comments.
-
-## Lane 2, 2026-09-10 late: five defects that lived between two correct elements
-
-All found by reading a rendered page, not a diff. All law 14 — each element individually right and
-individually tested, the defect only in the gap.
-
-- Two "Stopped" chips 200px apart (two deciders, seven and twelve branches, agreeing by construction
-  not contract). Cut by rule: header says the same word AND the card still has a sentence.
-- "One more wall is behind this one" about a credit halt on an account topped up five days later.
-  Now reads standing through `wallsByTrack`, subtracting only a provable `gone`, matched on the slug.
-- "3 times" (filings) against "12 times" (turns) — four sentences, three files, no shared import.
-  `a-turn-is-not-a-filing.ts` + a census over all four.
-- "Said **this** 12 times" after the quote it pointed at moved to the story: bound to another
-  station's wall.
-- "could not start Build **in** 6 turns" reads as a deadline and inverts the fact. Now "across".
-
-**Instruments, twice in one evening.** My diagnostic reused the guard's own wrong bound, so it
-confirmed itself; Lane 1's hand-built control failed as badly as the case under test. Neither of us
-asked what the instrument would say if we were wrong.
-
-**`read_network_requests` (Claude-in-Chrome) is the missing instrument** — per-request status codes
-off the served build, immune to the page's throttled clock. Reload after the first call: tracking
-starts when the tool does, so an empty first capture means "started late", not "nothing fired".
-
-**Do not add a second reader of `halted_reason`.** `wallsByTrack` in
-`src/lib/spine/the-wall-the-platform-put-up.ts` is the one reader; `isSlug` is exported because the
-column holds two live vocabularies (halt-path slugs, sweeper prose).
-
-## Lane 2, 2026-09-10: layer 3 (the trace) rebuilt
-
-- **The lead was the machinery.** 12 rows saying "Critique", 6 saying "called qwen/qwen-plus", on a
-  page whose header and rail both already say it. 93.8% of traces (2,886/3,076) call exactly one
-  model, so it is a constant almost always. Lead now goes to the model's thought;
-  `a-constant-is-not-news.ts` returns null on a handoff or a fallback, when the fact becomes news.
-- **710 of 3,490 tool calls (1 in 5) rendered as `JSON.stringify`** — argument is an id, result is an
-  object. `ToolCallFacts` gained `outcome`: what came back, in words, from NAMED FIELDS only.
-  `sources.status` → "no sources connected" (all 124 such calls ever returned zero scout targets).
-  Null on the run screen by design — the server passes `{count}` because a real result cannot travel.
-- **Measured and NOT built:** a fold for consecutive empty searches (91/903 traces). The agent
-  already writes the conclusion in the next thought and the loop guarantees one follows. Promoting
-  it was the whole fix; a generated summary would talk over the agent.
-- **A cleared hold ends a wall's claim** (Lane 1's rule). `theBlockerItAlreadyNamed` reads turns that
-  never go away, so a released run kept being reported as blocked. The discriminator is the hold, not
-  `now: "gone"` — the wall can stand while the run is no longer stopped by it.
-
-**The instrument lesson, three times in one night:** every failed control shared an assumption with
-the thing it checked — my slice reused the guard's own wrong bound; two successive queries were keyed
-on the same wrong shape (45.6%, then 0.0% from SQL three-valued logic). **The rendered page shares
-nothing with the query, and was the only independent instrument.** Check findings against it.
-
-## LANE 1 — 2026-09-10 ~01:40 UTC — laws 28, 29, 30
-
-**Renamed four jargon routes, joined the queue into the road, and found a two-column layout that had
-never once rendered.** Six commits, all pushed. tsc 0 · 15,779 pass / 0 fail · build clean.
-
-**The lesson that cost the most:** a route path and a module path are the same shape. `/crew` is
-both the URL and a segment of `@/components/crew/CrewMethods`, so a plain `s|/crew|/team|g` renamed
-both and silently repointed 38 imports at directories that do not exist. Only the build caught it,
-after 180 files were already wrong. `perl` with `(?<![A-Za-z0-9_/])/crew(?![A-Za-z0-9_-])` separates
-them; BSD `sed` has neither lookbehind nor `\b`.
-
-**The lesson that generalises furthest:** my rename edited 137 files INCLUDING every test literal, so
-15,803 tests passed while verifying nothing. A guard and the thing it guards, edited by one command,
-cannot disagree. Injecting a dead `/arriving` failed 2 tests; removing the slug migration failed
-`reserved-workspace-slugs` by name. Nothing green means anything until you have watched it go red.
-
-**The find I did not make:** Lane 2 walked `/settings` on the served build and found the nav
-overlaying the work region. `.sp-inner` is `display: grid`, the route wrote flex, and every flex
-utility on it was inert — no error, no console output, the nav highlighting correctly, all content
-in the DOM. The page succeeded at being unreadable. Read `getComputedStyle().display` on the real
-element before trusting any layout utility beside a project class.
-
-**And one I nearly filed wrongly:** I read the road's badges off a screenshot, counted 7 waiting
-against a headline of 6, and started writing up a discrepancy. The accessibility tree said
-2 + 4 = 6. Plan's `1` was a run count top-right, not a waiting badge top-left. Read the labels, not
-the pixels.
-
-## Lane 2 session end — 2026-09-10
-
-**The single most reusable thing:** every control that failed tonight shared an assumption with the
-thing it checked. My slice reused the guard's own wrong bound and confirmed itself; two successive
-queries were keyed on the same wrong shape (45.6%, then 0.0% from SQL three-valued logic — a missing
-key makes `jsonb_typeof` NULL, so `NULL = 'number'` is NULL and the filter silently drops the row).
-**The rendered page shares nothing with the query and was the only independent instrument.** Five
-premises died on contact; none became a filed finding, because the page was checked first.
-
-**Before building a guard, ask whether it needs a judgement it cannot make.** Declined two (cache-key
-checker: 365 sites, 6 flagged, 0 real; label-similarity: `MIN_CONTAINMENT` 0.2 fires on its own fix
-at four words). Built one (settings-door census) because the valid set is enumerable and exported.
-Prove a guard by making it FAIL on the real defect, then restore — one that has only ever passed is
-not yet a guard.
-
-**Two claims sharing one card are two claims.** I proved a wall was real (`connection_bindings` = 0),
-told another lane the door was right on the strength of it, and the door
-(`/settings?tab=connectors`) landed on Profile — `connectors` is not a `SectionId`, so
-`normalizeSection` fell to `DEFAULT_SECTION`. Verify the door by opening it.
-
-**Layer 3 pattern that generalises:** a fact identical on every row, already stated elsewhere on the
-page, must not hold the lead — 93.8% of traces call exactly one model. And when a row's meaning is in
-the RESULT rather than the args, read it from a **named field**, never by classifying prose.
-
-**Do not add a second reader of `halted_reason`** — `wallsByTrack` in
-`src/lib/spine/the-wall-the-platform-put-up.ts` is the one reader (Lane 1). A cleared hold ends a
-wall's claim; the discriminator is the hold, not the wall's standing.
----
-
-## Lane 3 · 2026-09-10 · Six instruments reported a clean world they had never looked at
-
-The night's one lesson, in the form it kept taking: **an instrument's DOMAIN is the part nothing
-tests.** Six separate cases, and only the Meridian ratchet — which derives its domain from the tree —
-never lied.
-
-**A directory listing answers "what files are here", never "what parts exist."** I filed a gap saying
-Meridian had no text input. It has had `Input` in `forms.tsx` all along, imported by 37 files. I had
-run `ls` on `components/meridian/` looking for a file named after the control. **A false gap is worse
-than a missing port**: the port is one import, the note tells the next reader that building it is
-open work.
-
-**A guard's `DIRS` answers "where did someone think to look."** A placeholder-only input shipped in
-`components/settings` because that guard named eleven directories by hand out of forty. Widening it
-found fifteen more — of which **four were comments, seven were the guard being too narrow, and three
-were real.** Report that difference: a census that cries fifteen and means three gets ignored.
-
-**A ratchet marker names a LINEAGE, so it is blind to a third way.** `prds/RewindButton.tsx`
-hand-rolled a modal on raw Radix ten days before Meridian shipped a Dialog. It carried no
-`components/ui` count, so every guard read it as fully migrated. **The diagnostic: port the file and
-re-freeze. If no count moves, the marker set cannot see that shape of debt.** It moved zero.
-
-**A write that fires only on the POSITIVE case is unfalsifiable**, because its population is empty
-exactly when the rule works. `wallet_released_at` read 0, and "the rule works" and "the rule is not
-deployed" were the same reading. Stamp the CONSIDERATION instead: `wallet_checked_at` now moves every
-minute and answers "is my code serving" in sixty seconds — and proves the code RAN, which a
-deployment header does not.
-
-**A cast is not a check, and the seam between a SELECT and its consumer is where that hides.** The
-forecast grader ran daily for three weeks, never failed, and wrote "nothing could be read" for every
-overdue forecast — because its caller selected six columns and then built the evidence-kit argument
-with `(raw as { created_at?: string | null }).created_at ?? null`. The kit's read was guarded on that
-field, so it never executed once. Every test passed: the kit is driven directly with a hand-built row
-that HAS the field. **Fix the shape, not the instance** — name the select as a const and assert that
-every field the consumer reads off the row appears in it.
-
-**And the comment trap, which cost the two lanes six findings in one night.** Five were scans reading
-prose AS code (I failed a guard by writing the words "a native select element"). The sixth was the
-mirror and the best one: a SQL function body compared 697 characters against 270 and 1,057, matching
-neither file that defines it, which reads exactly like a function edited by hand in production. It is
-the same function — the stored `prosrc` carries none of the eight `--` comments the migration body
-has. **Strip them, carefully, because those bodies are full of quoted regex literals a naive stripper
-eats,** and the hashes are identical. Same root every time: **the instrument read text where it meant
-to read meaning.**
-
-**The cause underneath the ledger drift, since it generalises:** 22 migrations write
-`supabase_migrations.schema_migrations` on behalf of others, stamping 112 versions, and **none stamps
-itself** — so the catch-up file is always the one missing. Fixed at the cause with an offline lint
-rule, which **nearly repeated the mistake it fixes**: with no cutoff it fails the build on 22 applied
-files, and a guard that cries 22 and means zero is one somebody switches off. It has an effective
-date, and the 22 are pinned BY NAME rather than by count, because a cutoff is exactly the thing that
-gets nudged forward to bless a new offender.
-
-**On working with the other lane:** three of my numbers were wrong tonight (16 not 22, "daily" not
-every six hours, "fourteen drafted this morning" when it was one) and each was caught by stating it
-precisely enough to be checked. **Run the check the way the CHECKER runs it** rather than
-reimplementing it alongside and comparing your own answer to the world. And when a peer's ruling
-contradicts you, look for the counter-evidence in your own message first — mine was there both times.
-
-## LANE 1 SESSION END — 2026-09-10 ~04:00 UTC — five instruments that lied
-
-**Ten commits, laws 28–30, every one verified on the served build.** Closed at ahead 0 / behind 0,
-with all three lanes verified by me before close.
-
-**The one thing to carry.** Five separate instruments reported a clean world they had never looked
-at: `COMPONENTS.md` went stale and cost a lane a wrong "Meridian has no text input" while `Input`
-sat in `forms.tsx` with 37 importers; `every-field-announces-itself` walked 11 hand-written
-directories out of 40; my own route guards passed because my sweep had rewritten their literals; the
-grading tick logged 276 runs and zero failures while never once reading the evidence; and
-`check-migrations.sh` has never run at all. **The Meridian ratchet derives its domain from the tree
-and is the only one that never lied.** Derive a domain, never list it.
-
-**And subtract the guard's own blind spots before reporting a census.** Lane 3's "fifteen findings"
-was 4 comments, 7 blind spots and 3 real. My "54 migrations" was 22; their "16" was also 22. A census
-that cries fifteen and means three is how a guard gets switched off — which is exactly what happened
-to the migration gate.
-
-**My worst error was an inference wearing a measurement's clothes.** I grepped callers of
-`settleForecast` and `listDueForecasts`, found only UI components, and told a peer and the handoff
-that grading never runs. I never searched `auditDueForecasts`. There was a tick, every six hours, for
-months. An incomplete grep is an inference, and I had "a recorded cause outranks an inferred shape"
-already written down.
-
-**What worked:** making every guard fail before trusting it; reading the accessibility tree instead
-of the pixels; and Lane 2's line, which I am keeping — every control either of us lost time to
-tonight shared an assumption with the thing it was checking, and **the served page was the only one
-that did not**.
+The commonest shapes are `sense, decide` three times over and `define, design, build` three
+times over. **All three `given-up` runs in the founder's own workspace are the second one**,
+each lap ending on the identical sentence: *"No repository is connected for this workspace."*
+
+`transcriptSections` opens a new section every time the station changes — correctly — and had
+no idea it had opened Plan for the third time. Eleven sections in one flat column, peers of
+each other. The transcript now leads with **"Three times round Plan, Design and Build."** and
+the column carries a seam per lap: *First / Second / Third time round*.
+
+`src/components/spine/the-run-went-round.ts`, wired in `TrackActivity.tsx`. Silent on the 90 of
+117 runs that walked a line.
+
+## THE CORRECTION THAT MATTERS MOST, AND IT CAME FROM THE SERVED PAGE
+
+**My fixture was cleaner than the product.** The SQL that measured the shapes collapsed
+consecutive turns at one station into one leg. `transcriptSections` does not: a `move` row opens
+a new section even when it moves to the station the work is already at, and on `6cc7a010`
+Design's two seats draw as two sections. The real sequence is
+
+```
+Plan, Design, Design, Build   x2
+```
+
+so the lead would have read **"Twice round Plan, Design, Design and Build."** — the first
+sentence on the most important screen in the product, and not a sentence anybody would write.
+
+Found by reading the served transcript rather than the fixture. Fixed in `roundLead` only:
+the cycle IS four sections long and the seams must land on all four, so deduping before
+detection would move `lapStarts` and put "Second time round" in the wrong place.
+
+## THE SECOND FIND, AND IT IS THE FOUNDER'S "NOTHING JOINS UP" AS A COLUMN
+
+**58% of every task in the database has no link to the spec it implements.**
+
+```
+tasks with no prd_id                            264 of 457   (58%)
+task rows filed as a track member               199
+...of those, on a track that also holds a prd   183          (92%)
+tasks in the founder's workspace                 43
+...of those, linked to a spec                     0
+```
+
+`tasks.prd_id` has existed as long as the table. `tasks.create` — the only tool an agent has for
+filing one — never offered the field and never wrote it. `/plan/spec/5446f8a8` says **"0 tasks on
+this spec"** while the run screen one click away quotes Plan's own words about that same spec:
+*"Three implementation tasks created"*, and again *"...has been broken down into the following
+tasks"* naming five. **The seat did the work, said so in prose, and had no field to say it in.**
+
+The read side is NOT at fault and was not touched: the rail filters on `prd_id`, refuses to claim
+a count when the read failed, and was right to print 0.
+
+Fixed at the cause (`registry.server.ts`): `tasks.create` takes an optional `prd_id` and on a run
+reads the track's newest `prd` member — the third use of the pattern `ToolCtx.trackId`'s own doc
+argued for, *"the difference between a link and a hope"*.
+
+## THE ONE THING LEFT UNDONE, AND IT IS READY TO PASTE
+
+**The 165-row backfill is written, measured and NOT applied.** The Lovable MCP token expired
+mid-session (`requires re-authorization`). This repo's rule is that a lane applies its own
+migration by hand and never leaves one for Lovable to apply on merge, so **the file was held out
+of the tree rather than shipped unapplied.** The whole statement is in
+`docs/operations/session-handoff.md` under "The backfill that is ready to run", with its guards
+and expected counts. Re-authorize the MCP, run it, verify 165, then commit the file.
+
+## /OUTCOMES: FOUR FIXES, AND THE FIRST IS A TENANCY DEFECT
+
+1. **"Forecasts due (9)" was not this workspace's.** `c8ffbbe7` holds six forecasts and NONE
+   overdue; the desk drew nine from Helio Labs — crypto wallet parity, $7.99 pricing — in a
+   workspace named "A1 delete probe". All three desk reads were unscoped and the desk has exactly
+   one caller in the tree: `/outcomes`, a workspace record. It also put a straight contradiction
+   on one scroll: *"You called it on 6 of the last 9"* (unscoped, `decisions.forecast_resolution`)
+   four regions above *"No forecast has been graded yet."* (this workspace, `insights.resolution`).
+   One noun, two tables, both true.
+2. **Nine rows ending in one byte-identical string.** The constant leaves the rows and is said
+   once in the region's sub with the count. Back the moment one row differs.
+3. **Four consecutive never-happened lines**, 381 characters, fold into one keeping every noun
+   and every act. 149 characters. Fires at two, never at one.
+4. **Six of eight decision rows ended in the word "hold"**, and two printed their own title back
+   as their forecast (2 of 204 claims in the record are their own title; both in his workspace).
+
+## THE GUARD THAT CAUGHT ME, AND THE WAY I ALMOST BEAT IT
+
+`a-read-serves-the-workspace-you-are-in.test.ts` failed my first scoping draft, and it was right:
+I resolved `current_user_default_workspace` server-side, and since `20260907010000` a person can
+hold two workspaces — the default is not the one they have open.
+
+**Then my second draft made the guard PASS by blinding it.** I moved the resolve into a shared
+helper; the scanner reads source text and cannot see through a call, so the file went to zero
+without the read being fixed. I inlined it back into all three. **A guard you silently defeat is
+worse than a guard you fail.** The ratchet is one file lower, honestly.
+
+## WHAT IS NOT VERIFIED, AND IT IS THE FIRST JOB NEXT SESSION
+
+**Nothing this session has been seen on the served build.**
+
+- **Chrome cannot reach a dev server from this worktree.** `curl` gets 200 on `127.0.0.1`, `::1`
+  AND the LAN address; Chrome shows an error page on all three, including `/health`. Lane 3 hit
+  the identical wall last session. Do not spend an hour on it again — walk `supaprod.ai`, which
+  is the better instrument anyway.
+- **The last production read showed the four admission lines still separate**, so the commit was
+  not live at 14:2x IST. `/outcomes` no longer draws "Forecasts due (9)" — **but that is an
+  ABSENCE and an absence proves nothing about a deploy.** Rule 18 wants a string only the commit
+  introduced. Use one of these:
+  - `Nothing has been rated, re-ranked or graded yet.` (`/outcomes`)
+  - `None of them has been settled yet.` (`/outcomes` › Decisions)
+  - `Three times round Plan, Design and Build.` and `Second time round`
+    (`/track/6cc7a010-18e5-4e13-ad82-8d8d06687119`, which is the fixture the whole feature was
+    measured on)
+
+## THE DEFECT CLASS, AND IT IS THE SAME ONE AS LAST SESSION
+
+**A value identical on every rendered row distinguishes nothing.** Removed from three more places
+tonight, which makes eleven in this repo. So the comparison finally lives in one file,
+`src/lib/a-value-on-every-row.ts`. **What to DO about a constant is never general and stays at the
+call site**: on the agent roster it leaves because the heading already says it; on the forecast
+desk it moves UP into the region's sub, because nothing else on the page says it at all.
