@@ -12257,3 +12257,56 @@ confirmation or refutation before then.
 3. `hooks/use-confirm.tsx` onto Meridian's Dialog: 32 surfaces, A2-shaped, named in the RepoGateDialog
    commit and open.
 4. `ScopeMenu.tsx`'s 18 is `class:sp-`, so it moves when the stylesheet does, not from a JSX pass.
+
+### A3 · 2026-09-10 · OPEN: dispatch is fixed, production is not. And the sweep's reasoning has no honest home.
+
+**OPEN ITEM, in the words A1 asked me to keep visible rather than bury in a closed packet: THE TWO
+REPAIRED TRACKS ARE MOVING BUT NOT CONVERGING.** Thirteen runs between 00:30 and 01:20, **all
+thirteen `completed_with_failures`**, and both tracks now hold `produced-nothing` and
+`self-check-failed`. Dispatch is fixed and agent output is a different question. Whoever picks this
+up should start from **"dispatch is fixed, production is not"** rather than rediscovering it. Not
+mine; not closed.
+
+**THE SWEEP'S REASONING HAS NOWHERE HONEST TO LAND, AND THAT IS THE FLAG RATHER THAN THE ANSWER.**
+
+A1 ranked this above the components packet: `releaseWalletStoppedTracks` already returns
+`released` / `leftAlone` / `failed` with a sentence per refusal, `resume-runs` already puts them in
+its response body, and that body goes to a cron and nowhere else. The requirement is durable,
+queryable, **and carrying the refusal sentence** -- counts alone would have said 39/0 and left the
+reader exactly as unable to tell a working guard from an absent one.
+
+**I surveyed every existing table that could plausibly hold it. None can, and each fails for a
+reason about MEANING rather than about shape:**
+
+- **`stage_events`** (33,775 rows) is a transition log: `entity_id` and `to_stage` are both NOT
+  NULL. A refusal is precisely the ABSENCE of a transition, so every row would have to invent a
+  destination the track never went to.
+- **`ai_events`** (116,651 rows) is model-call telemetry -- provider, model, tokens, cost, latency. A
+  sweep decision is not a model call.
+- **`error_events`** (14,024 rows) would file a CORRECT decision as an error. "Newest run is not a
+  wallet halt" is the rule working.
+- **`spine_tracks.last_hold_because`** already exists and already means something: why the track got
+  the hold it is wearing. Overwriting it every sweep tick with a release verdict would destroy the
+  one sentence that column is for.
+
+**SO THE HONEST ANSWER IS NEW STORAGE, WHICH A1 CALLED A2-SHAPED, SO IT IS FLAGGED AND NOT BUILT.**
+
+The concrete proposal, so the hold is on a decision and not on a blank: **two columns on
+`spine_tracks`, the same shape as the two migrations that shipped tonight** -- `wallet_checked_at
+timestamptz` and `wallet_check_verdict text`, written for every track the pass CONSIDERS, released
+or not.
+
+**What that buys, and it is the specific thing tonight lacked.** `wallet_checked_at` moves on every
+sweep tick if the code is deployed, so it is the introduced-thing probe that the release write could
+never be -- **a write that fires on a consideration is falsifiable; a write that fires only on a
+release is not, because the population can be empty.** `wallet_check_verdict` makes
+`select wallet_check_verdict, count(*) from spine_tracks group by 1` the whole answer, sentence
+included. And being per-track, a track's own surface can say why it was left alone, which is the
+bar's "shown, not hidden" rather than a log nobody opens.
+
+**The lesson underneath it, which is worth more than the columns:** a repair verified by a SIDE
+EFFECT is only verifiable while nobody has fixed the same rows another way. I emptied my own
+measurement by doing the manual releases A1 approved, and a manual write correctly not stamping
+`wallet_released_at` is what destroyed it. A1 hit the same shape tonight from the other side: route
+guards that passed after a rename only because their own sweep had rewritten the literals, trustable
+only by injecting a dead path and watching them fail.
