@@ -12361,3 +12361,62 @@ CHECKS.** The ratchet derives its domain from the tree and works. `COMPONENTS.md
 and went stale, and it cost me a wrong gap. This guard's `DIRS` is a second source and is currently
 hiding fifteen findings. **A guard is only as wide as its domain, and a hand-written domain is the
 one part of a guard nothing tests.**
+
+### A3 · 2026-09-10 · The forecast grader runs every day. It has never once looked at the evidence.
+
+**The packet was "grading is manual, nothing runs it, build the tick". THE TICK EXISTS AND IT RUNS.**
+`brain.calibrate-tick`: **276 runs, daily, zero failures**, newest 2026-09-10 00:00:03. It reaches
+every overdue forecast and drafts a verdict for each -- all fifteen carry one, fourteen written at
+00:00:03 this morning. The derive-flag gating was already fixed; the file says *"the horizon does not
+ask permission."*
+
+What it wrote, on every one of them:
+
+    verdict inconclusive · confidence 0 · read 0 · cited 0
+    "Graded without evidence. Nothing dated after this decision could be read."
+
+**Thirteen of those fifteen had between one and nineteen eligible signals sitting in their window.**
+The grader was never blocked. It was **stating that the world was empty, confidently, once a day, for
+three weeks, having never looked at it.**
+
+**DEFECT 1 -- A CAST OVER A COLUMN NOBODY FETCHED.** `readKitForForecast` opens its signals read with
+`if (decision.workspace_id && decision.created_at)`. `auditDueForecasts` selected six columns,
+`created_at` was not among them, and the caller wrote
+`created_at: (raw as { created_at?: string | null }).created_at ?? null`. **A cast is not a check.**
+`created_at` was null on every row, the guard false on every row, and **the signals read never ran
+once, for any forecast, ever.** `product_id` was null by the same cast and silently WIDENED the
+scope -- the opposite direction, equally unintended, unobservable while the read never ran.
+
+**DEFECT 2 -- AN EXCLUSION THAT DROPPED EVERY ROW IT DID NOT NAME.** The loop-authored filter was a
+bare `.neq` pair, and `NULL <> 'loop_authored'` is NULL rather than TRUE. **428 of 1,524 signals
+carry `source_kind` null**; across the fifteen the bare pair admits 56 rows where the null-safe form
+admits **181**. Sixty-nine per cent of the eligible evidence discarded by a filter written to exclude
+the loop's own writing. **The identical SQL fact is already documented one module over**, in
+`listDueForecastsImpl`: *"the loudest possible way to get this wrong and still look like it works."*
+
+**DEFECT 3 -- A FAILED READ REPORTED AN EMPTY WORLD.** `const { data } = await q` discarded the
+error. Throws now; the caller already catches per row, so an unreadable table costs one draft rather
+than every forecast's honesty.
+
+**WHY EVERY TEST PASSED: THE KIT IS TESTED, THE SEAM IS NOT.**
+`the-grader-reads-evidence-before-it-grades` drives `readKitForForecast` with a hand-built decision
+that HAS `created_at`. The kit is correct and its test proves it. Nobody tested whether the CALLER
+hands it a row containing the fields it is guarded on. The new guard **derives one side from the
+other** -- every field the kit argument reads off `raw` must appear in the select -- rather than
+listing expected columns, which would be a third source and would drift the same way. Fourth
+instance tonight of that one shape.
+
+**NOT CLAIMED, AND THIS IS THE OPEN QUESTION: NO FORECAST SETTLES YET.** `canAutoSettle` still
+requires a settled linked outcome, and **that gate is deliberate and well-argued** -- eight rows once
+drafted at confidence 1.0 about nothing, because a model asked to judge with no evidence still
+answers. What changed is that the grader can finally SEE evidence before being gated on it. **Whether
+the gate should now move is a judgement call and it is A2-shaped.**
+
+**THE NEXT STEP IS A MEASUREMENT, NOT CODE.** After this deploys, read the drafts. If `rows_read`
+rises above zero and verdicts begin citing sources, the gate is the only thing left. **If it stays
+zero, the fix is wrong**, and that should be learned from the data rather than from the tests that
+already passed while this was broken.
+
+**BLOCKING EVERYTHING ABOVE: NOTHING SHIPPED TONIGHT IS DEPLOYED.** `wallet_checked_at` is still 0
+rows because the code sits in `main` and is not serving. Every production claim in tonight's A3
+entries is about code that has landed in the repo and not on the wire.
