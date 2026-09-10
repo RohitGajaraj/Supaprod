@@ -31,6 +31,33 @@
  *      is the same Radix primitive underneath, so the semantics (focus trap,
  *      Escape, the cancel/action pair) are unchanged and only the skin moved.
  *
+ * ============================================================================
+ * 2026-09-10: AND THAT PORT BECAME DEBT THAT LOOKED LIKE PROGRESS.
+ * ============================================================================
+ *
+ * The 08-10 pass above moved off `components/ui` by importing raw
+ * `@radix-ui/react-alert-dialog` and hand-drawing the overlay, the panel, the
+ * title stop and the pad in Meridian tokens. That was the only thing available:
+ * **Meridian shipped its Dialog on 2026-08-20, ten days later.**
+ *
+ * WHAT MADE IT INVISIBLE. Every marker the ratchet counts names a LINEAGE --
+ * `class:sp-`, `import:components/ui`, `usage:components/ui`, `raw-colour`.
+ * This file carried none of them, so it read as fully migrated while being the
+ * only hand-rolled modal left in the product. **A third way is invisible to
+ * every guard that watches the first two.** It was found by census rather than
+ * by any check: one grep for `@radix-ui` outside `components/ui` returned this
+ * file and nothing else.
+ *
+ * Its twin, `decisions/RewindButton.tsx`, moved to Meridian's Dialog earlier
+ * today, which left two files described in their own headers as twins wearing
+ * different faces. That is the thing this pass closes.
+ *
+ * WHAT IS GIVEN UP, NAMED RATHER THAN LOST. The block below used to argue for a
+ * 19px/600 title on 1.32 at 440px, tuned as a set against 14px prose. Meridian's
+ * Dialog uses `mrd-title` at 420px, and four other surfaces already wear it.
+ * **A face that is right once and shared nowhere is a fork**, and the reason the
+ * old note gave -- that Meridian bridged neither stop -- expired with the part.
+ *
  * WHAT THE SUCCESS LINE IS ALLOWED TO CLAIM, unchanged from the toast it
  * replaces because that sentence had already been corrected once and the
  * reasoning holds: `revertPrdToPrevious` ALWAYS restores `body_md` and
@@ -45,7 +72,7 @@ import { useState } from "react";
 import { failureLine } from "@/lib/error-copy";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import * as AlertDialog from "@radix-ui/react-alert-dialog";
+import { Dialog } from "@/components/meridian/Dialog";
 import { Action, Actions } from "@/components/meridian/surface-parts";
 import { revertPrdToPrevious } from "@/lib/artifact-rewind.functions";
 
@@ -86,77 +113,56 @@ export function RewindButton({ prdId, hasSnapshot, onCommit, onReverted }: Rewin
   if (!hasSnapshot) return null;
 
   return (
-    <AlertDialog.Root open={open} onOpenChange={setOpen}>
-      <AlertDialog.Trigger asChild>
-        {/* MERIDIAN'S `Door` PAINT ON A RAW BUTTON, AND THE RAW BUTTON IS THE
-            POINT. This sits mid-sentence in the context rail, so it wants the
-            door's shape — inherited size, dotted underline going solid on hover
-            — and not `Action`'s 32px control box, which would tower over the
-            12px prose around it.
+    <>
+      {/* MERIDIAN'S `Door` PAINT ON A RAW BUTTON, AND THE RAW BUTTON IS THE
+          POINT. This sits mid-sentence in the context rail, so it wants the
+          door's shape -- inherited size, dotted underline going solid on hover
+          -- and not `Action`'s 32px control box, which would tower over the
+          12px prose around it.
 
-            It is not the `Door` COMPONENT because `AlertDialog.Trigger asChild`
-            clones its child with a ref and its own props, and `Door` accepts a
-            closed prop list and spreads no rest, so the ref and the dialog's
-            state attributes would be dropped on the floor. A DOM element
-            forwards both natively. Convert it the day `Door` spreads its rest
-            props, not before. */}
-        <button
-          type="button"
-          className="rounded-mrd-xs text-mrd-prose text-mrd-body underline decoration-mrd-line decoration-dotted underline-offset-[3px] transition-colors hover:text-mrd-ink hover:decoration-mrd-edge hover:decoration-solid"
-          style={{ transitionDuration: "var(--mrd-d-press)" }}
-        >
-          Rewind
-        </button>
-      </AlertDialog.Trigger>
-      <AlertDialog.Portal>
-        {/* Dimmed, not blurred. The glass ban is this surface's own ruling. */}
-        <AlertDialog.Overlay className="fixed inset-0 z-40 bg-mrd-scrim" />
-        {/* THE TITLE STOP AND THE WEIGHT ARE THE RETIRED ONES, DELIBERATELY.
-            19px on 1.32 with the gate's tracking, 600 weight over 14px prose,
-            24px of pad, 440px wide. Meridian bridges neither: --mrd-t-* has no
-            19px stop and the weight tokens were never exposed to Tailwind
-            (every-meridian-utility-paints refuses font-mrd-w-*), so both stay
-            explicit literals - the ratchet law makes today's design the floor,
-            and this dialog was tuned as a set. */}
-
-        <AlertDialog.Content className="fixed top-1/2 left-1/2 z-50 w-[440px] max-w-[92vw] -translate-x-1/2 -translate-y-1/2 rounded-mrd-pane border border-mrd-line bg-mrd-float p-mrd-6 shadow-mrd-pane outline-none">
-          <AlertDialog.Title
-            className="m-0 text-[19px] leading-[1.32] font-[600] text-mrd-ink"
-            style={{ letterSpacing: "-0.019em" }}
-          >
-            Take the crew's edit back?
-          </AlertDialog.Title>
-          <AlertDialog.Description className="mt-[12px] mb-0 leading-[1.55] text-mrd-prose text-mrd-body">
-            This restores what the spec said before the last agent edit. The version on screen is
-            kept too, so this is itself reversible.
-          </AlertDialog.Description>
-          {/* `Actions` SETS NO OUTER MARGIN, deliberately, so the space above
-              the row is stated here rather than baked into the component. */}
-          <Actions className="mt-mrd-5">
-            <AlertDialog.Action asChild>
-              <Action
-                variant="primary"
-                busy={revert.isPending}
-                onClick={(e) => {
-                  // The dialog closes on its own success rather than on the
-                  // press, so a refused revert leaves the confirm on screen with
-                  // the receipt behind it rather than dismissing over a write
-                  // that did not happen.
-                  e.preventDefault();
-                  revert.mutate();
-                }}
-              >
-                {revert.isPending ? "Taking it back" : "Take it back"}
-              </Action>
-            </AlertDialog.Action>
-            <AlertDialog.Cancel asChild>
-              <Action variant="quiet" busy={revert.isPending}>
-                Keep it as it is
-              </Action>
-            </AlertDialog.Cancel>
+          It is not the `Door` COMPONENT because `Door` accepts a closed prop
+          list and spreads no rest, so it has nowhere to put an `onClick`.
+          Convert it the day `Door` spreads its rest props, not before. */}
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="rounded-mrd-xs text-mrd-prose text-mrd-body underline decoration-mrd-line decoration-dotted underline-offset-[3px] transition-colors hover:text-mrd-ink hover:decoration-mrd-edge hover:decoration-solid"
+        style={{ transitionDuration: "var(--mrd-d-press)" }}
+      >
+        Rewind
+      </button>
+      <Dialog
+        open={open}
+        onClose={() => setOpen(false)}
+        title="Take the crew's edit back?"
+        actions={
+          // The way out FIRST and the confirming action LAST. Meridian's Dialog
+          // right-aligns this row and owns that rule, which is the other thing
+          // the hand-rolled version got to decide for itself: the old markup put
+          // the confirming action first in DOM order and relied on the caller to
+          // keep it there.
+          <Actions>
+            <Action variant="quiet" onClick={() => setOpen(false)} disabled={revert.isPending}>
+              Keep it as it is
+            </Action>
+            <Action
+              variant="primary"
+              // `busy` and not `disabled`, which the hand-rolled version already
+              // had right on this control and wrong on its neighbour.
+              busy={revert.isPending}
+              // The dialog closes on its own success rather than on the press,
+              // so a refused revert leaves the confirm on screen with the receipt
+              // behind it rather than dismissing over a write that did not happen.
+              onClick={() => revert.mutate()}
+            >
+              {revert.isPending ? "Taking it back" : "Take it back"}
+            </Action>
           </Actions>
-        </AlertDialog.Content>
-      </AlertDialog.Portal>
-    </AlertDialog.Root>
+        }
+      >
+        This restores what the spec said before the last agent edit. The version on screen is kept
+        too, so this is itself reversible.
+      </Dialog>
+    </>
   );
 }

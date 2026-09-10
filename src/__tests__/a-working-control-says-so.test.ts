@@ -78,6 +78,11 @@ const EXEMPT: ReadonlyArray<{ file: string; expr: string; why: string }> = [
     why: "Skip and the three Backs are bystanders blocked during Save-and-continue's versioned upsert; their handlers are synchronous setPhase moves, so busy would announce work they do not perform (answers/UL0-004 C-01 and C-03)",
   },
   {
+    file: "src/components/prds/RewindButton.tsx",
+    expr: "revert.isPending",
+    why: "'Keep it as it is' is a bystander during 'Take it back'; its handler is a synchronous setOpen(false), so busy would announce work it does not do. The hand-rolled version this replaced carried busy on it, which is the inverse lie this guard exists to prevent, and it passed unnoticed because busy being PRESENT is all the scan can see. It stays disabled rather than losing the prop: revertPrdToPrevious is already in flight and nothing cancels it",
+  },
+  {
     file: "src/components/decisions/RewindButton.tsx",
     expr: "revert.isPending",
     why: "Cancel is a bystander during Revert's write; its handler is a synchronous setOpen(false), so busy would announce work it does not do. It stays DISABLED rather than losing the prop because revertDecisionToPrevious is already in flight and nothing cancels it, so a clickable Cancel would close the question while the revert lands anyway",
