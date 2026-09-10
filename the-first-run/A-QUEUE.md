@@ -12498,3 +12498,38 @@ tuned as a set, correct while Meridian bridged neither stop. Meridian's Dialog i
 **STILL OPEN AND NOT MINE:** `BindingPicker` and `OpportunityDetailSheet` are gap notes rather than
 ports -- Meridian has no combobox and no sheet -- and `canAutoSettle` does not move before the 06:00
 read.
+
+### A3 · 2026-09-10 · Verification pass: the migration ledger and the repo disagree by one row.
+
+Idle protocol (a), turned on the one second source I helped create tonight. **The repo's
+`supabase/migrations/` and `supabase_migrations.schema_migrations` are two records of the same fact,
+and two records drift.** Diffed for the window this week's work touched (2026-09-09 onward):
+
+    in the repo, NOT in the ledger :  20260909100800_mission_marks
+    in the ledger, no repo file    :  none
+
+**One row, and it is not mine** -- my five are all present (`101000`, `101100`, `101200`, `100100`,
+`100200`, plus tonight's `100300`).
+
+**IT WAS APPLIED, NOT SKIPPED, and that distinction is the whole reason to report rather than
+assume.** `public.mission_marks(uuid, integer)` exists on production with the signature the file
+declares, `security invoker`, `stable`, `search_path=public`, and both correlated subqueries
+(`current_agent_slug`, `track_id`) in its body. So the effect is in place and the ledger simply does
+not know.
+
+**WHAT I DID NOT VERIFY, stated because stamping a ledger on a partial check is how a wrong record
+becomes a trusted one:** byte-equality of the deployed body against the file. Postgres normalises
+whitespace, so `md5(prosrc)` cannot be compared to the file directly. I checked shape, security mode,
+volatility, `search_path` and two distinguishing substrings. **If the applied version differs subtly
+from the file, inserting the ledger row would freeze that difference as "applied and correct".** So
+the row is NOT inserted; the owning lane should confirm the body and stamp it.
+
+Low blast radius either way: the file opens with `drop function if exists`, so a re-run is safe.
+
+**ONE THING I CHECKED AND IT IS NOT A FINDING**, recorded so nobody re-opens it. The migration says
+`revoke all ... from public` then grants only `authenticated`, and production shows
+`anon=X | authenticated=X | service_role=X`. That looked like a partial application. It is not:
+**286 of the 351 public functions carry `anon=X`**, which is Supabase's default privilege set, and
+revoking PUBLIC does not remove a direct role grant. The function is `security invoker` and RLS on
+`missions` returns nothing to an anonymous caller, so nothing leaks. **A number that made a single
+row look alarming stopped being alarming the moment it had a denominator.**
