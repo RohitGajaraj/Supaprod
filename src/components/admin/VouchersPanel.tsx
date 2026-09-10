@@ -12,6 +12,17 @@
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+/* MERIDIAN HAS NO SHEET (2026-09-10), and this is the SECOND file to want one:
+   `discover/OpportunityDetailSheet.tsx` is the other, and between them they make
+   the case that this is a missing part rather than one surface's preference.
+
+   Meridian's `Dialog` is not it. A Dialog is a centred 420px pane for a short
+   question that BLOCKS; both of these are edge-anchored panels holding a record
+   a person reads and works inside. The gap is a sheet with Dialog's exact focus
+   contract -- in on open, trapped, returned to the opener, Escape, scrim, scroll
+   lock -- anchored to an edge and sized for content. Checked against
+   `components/meridian/COMPONENTS.md` rather than by listing the directory,
+   which is how a false gap got filed earlier tonight. */
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { toast } from "@/lib/notify";
 import { humanWriteError } from "@/lib/roles.functions";

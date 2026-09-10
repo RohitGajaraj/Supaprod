@@ -6,6 +6,20 @@
 import { useCallback, useMemo } from "react";
 import { EmbeddedCheckout, EmbeddedCheckoutProvider } from "@stripe/react-stripe-js";
 import { useServerFn } from "@tanstack/react-start";
+/* HELD ON VERIFICATION, NOT ON MERIDIAN (2026-09-10). Meridian HAS a Dialog and
+   it would need one change to fit: it is `w-full max-w-[420px]`, and this pane
+   is `max-w-2xl` (672px) because it holds Stripe's embedded checkout iframe,
+   which has a minimum width of its own. That cap is an unargued default rather
+   than a decision -- Dialog's header argues its HEIGHT behaviour at length and
+   says nothing about width -- so a width affordance is a small, legitimate raise
+   under the standing grant.
+
+   What stops it is that THIS IS CHECKOUT. Re-parenting a live payment iframe is
+   a change only a browser can confirm, the suite and the build cannot see it,
+   and breaking checkout is the worst outcome a components pass can buy. Chrome
+   cannot reach this worktree's dev server tonight. So it waits for a lane that
+   can watch it, and the reason is written here rather than left as a file
+   nobody explains. */
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { getStripe, getStripeEnvironment } from "@/lib/stripe";
 import { createCheckoutSession, createTopUpCheckout } from "@/lib/payments.functions";

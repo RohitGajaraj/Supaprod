@@ -7,6 +7,17 @@ import { readFailureMessage } from "@/lib/roles.functions";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+/* MERIDIAN HAS NO ANCHORED DISCLOSURE POPOVER (2026-09-10). Three parts come
+   close and each is the wrong one, which is worth naming so nobody re-checks:
+   `ResultsPopover` is a `role="listbox"` with a 480px floor, and this is PROSE
+   at 280px, so the semantics and the width both fight it; `MoreMenu` is a menu
+   of ACTS a surface offers, and this offers none; `Reveal` is the right idea and
+   the wrong geometry -- it expands text in place rather than floating, and
+   moving this from floating to inline is a layout decision rather than a port.
+
+   So the gap is a small anchored panel of explanatory text, with the click-away
+   and Escape that `MoreMenu` already implements once. Checked against
+   `components/meridian/COMPONENTS.md`, not by listing the directory. */
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { getRoadmapHistory } from "@/lib/roadmap.functions";
 import { summarizeRoadmapHistory, type RoadmapAuditRow } from "@/lib/roadmap-audit";
