@@ -47,6 +47,7 @@
 // target there. It stays until the app-wide retirement ruling lands; filed as
 // requests/L0-004.
 
+import { useFocusTrap } from "@/hooks/use-focus-trap";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -105,6 +106,28 @@ const INTRO = -1;
 const REVIEW = STEPS.length; // 4
 
 export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
+  /*
+   * `aria-modal="true"` IS A CLAIM, AND IT WAS NOT TRUE.
+   *
+   * This is the only hand-rolled modal in the product that composes NOTHING:
+   * measured 2026-09-10 against the six other surfaces carrying
+   * `role="dialog"` outside Meridian, every one of which reaches for
+   * `useFocusTrap`, `lib/overlay` or Meridian's own `Dialog`. This one had a
+   * scrim, a fixed inset, its own Escape handler, and no trap.
+   *
+   * `aria-modal="true"` tells assistive technology that everything behind this
+   * is inert. Without a trap that is a lie told to exactly the people who
+   * cannot see it is a lie: a screen reader announces the page as blocked
+   * while Tab walks straight out of the dialog into the surface underneath.
+   * It is the product asserting a state the record does not hold, which is the
+   * same rule that keeps status colour off a pending bet.
+   *
+   * The component mounts only while open, so the trap is unconditional. The
+   * PORT to Meridian's `Dialog` is a separate packet and is named in the queue
+   * rather than folded in here -- this makes the existing claim true, which is
+   * the defect.
+   */
+  const trap = useFocusTrap(true);
   const qc = useQueryClient();
   const fList = useServerFn(listBriefItems);
   const fUpsert = useServerFn(upsertBriefItem);
@@ -179,6 +202,7 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
 
   return (
     <div
+      ref={trap}
       role="dialog"
       aria-modal="true"
       aria-label="Form your strategic brief"
