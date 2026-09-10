@@ -164,9 +164,31 @@ export function roundSeam(lap: number): string {
  * "Three times round Plan, Design and Build." Station NAMES, because the
  * column's headers carry names and a lead that said `define` would be the
  * only place in the product using the column key.
+ *
+ * ── A STATION NAMED TWICE IN A ROW IS ONE STATION ────────────────────────
+ * Caught by reading the SERVED transcript of `6cc7a010` rather than the
+ * fixture. The SQL that measured the shapes collapsed consecutive turns at
+ * one station into a single leg; `transcriptSections` does not always, because
+ * a `move` row opens a new section even when it moves to the station the work
+ * is already at. On that run the real section sequence is
+ *
+ *   Plan, Design, Design, Build   x2
+ *
+ * -- Design's two seats drew as two sections -- so the lead would have read
+ * *"Twice round Plan, Design, Design and Build."*, which is not a sentence
+ * anybody would write.
+ *
+ * Collapsed HERE and not in the detector, deliberately. The cycle is four
+ * sections long and the seams have to land on all four of them; deduping
+ * before detection would move `lapStarts` and put the seam in the wrong
+ * place. What the reader needs from the lead is which stations the work keeps
+ * walking, and naming one of them twice tells them nothing the column does
+ * not already show.
  */
 export function roundLead(round: Round, nameOf: (s: AgentStation) => string): string {
-  const names = round.cycle.map(nameOf);
+  const names = round.cycle.map(nameOf).filter((name, i, all) => i === 0 || name !== all[i - 1]);
+  /* A cycle that is one station repeated collapses to that station, which is
+     the honest reading of `Design, Design` walked twice: it went round Design. */
   const list =
     names.length === 1
       ? names[0]!

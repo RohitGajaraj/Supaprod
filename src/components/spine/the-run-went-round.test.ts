@@ -141,6 +141,26 @@ describe("roundLead is a sentence, in the words the column already uses", () => 
     );
   });
 
+  it("names a station once even when the cycle walks it twice in a row", () => {
+    /*
+     * READ ON THE SERVED TRANSCRIPT of `6cc7a010`, not on a fixture. The SQL
+     * that measured the shapes collapsed consecutive turns at one station into
+     * one leg; `transcriptSections` does not, because a `move` row opens a new
+     * section even when it moves to the station the work is already at. Design
+     * drew as two sections there, so the real cycle is four long and the lead
+     * would have said "Plan, Design, Design and Build".
+     */
+    const r = theRunWentRound(legs("define design design build define design design build"))!;
+    expect(r.cycle).toEqual(legs("define design design build"));
+    expect(r.lapStarts).toEqual([0, 4]);
+    expect(roundLead(r, nameOf)).toBe("Twice round Plan, Design and Build.");
+  });
+
+  it("collapses a cycle that is one station repeated to that station", () => {
+    const r = theRunWentRound(legs("design design design design"))!;
+    expect(roundLead(r, nameOf)).toBe("Four times round Design.");
+  });
+
   it("falls back to a numeral past the point where a word is read", () => {
     expect(timesWord(3)).toBe("three times");
     expect(timesWord(7)).toBe("7 times");
