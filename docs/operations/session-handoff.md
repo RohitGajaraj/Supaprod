@@ -3886,3 +3886,196 @@ desk it moves UP into the region's sub, because nothing else on the page says it
   the product's history was graded by narrative. The band columns exist and are universally empty.
   **If /outcomes ever leads with proof, it will be empty** — the honest lead there is what is
   stuck, on whom, and for how long.
+
+---
+
+## LANE 1 SESSION END — 2026-09-10 — the entry rebuilt, ten dead addresses, and a guard that went blind
+
+**Pushed to `main` at `ac63223f0`, six commits on top of Lane 2's `b4b23f535`. 0 ahead / 0 behind,
+working tree clean. Rebased cleanly twice; nothing of Lane 2's touched.**
+`bunx tsc` 0 · `bun test` **15,857 pass / 0 fail** · `bun run build` exit 0 · `docs:check` clean.
+
+**NOT YET VERIFIED ON THE SERVED BUILD.** At close, Lovable's `latest_commit_sha` was still
+`b4b23f53` — Lane 2's tip, not mine. Deploying at that moment would have built a tree without any of
+this. See the last section for exactly what to read on the served page to settle it in one pass.
+
+### What the founder said, and what the last answer got wrong
+
+> *"A user lands on home and it is not appealing, carries no message, shows no journey. I cannot
+> feel the value and I cannot see any real connectivity. Layers 1, 2 and 3 do not stitch together,
+> and it reads as a dump of data and content. I need real change, not another pass of polish."*
+
+He had said *"shows no journey"* once before. The previous answer moved the seven-station road from
+eighth position to first, and it shipped. **He looked at it and said the same sentence again.** That
+is the only proof worth having that the placement was never the defect.
+
+**A journey is not a diagram of stages. A journey is one thing moving through time.** The band
+renders identically for any workspace holding the same counts: it is the machine's self-portrait,
+and it is layer 2 — the layer this product rents rather than owns — given the largest region on the
+most important screen.
+
+### The finding the whole rebuild rests on
+
+**The entry already had every field it needed and was throwing them away on every poll.**
+
+`getApprovalsQueue` is fetched by the home under the shell's key, so the home pays for the *whole*
+Inbox payload — and rendered **one integer, one noun and one title** off it. Dropped every tick:
+`evidence[]`, `impact`, `forecast{claim,howWeWillKnow,horizonDate}`, `approveConsequence`,
+`rejectConsequence`, `agentSlug`, `gatesLiveWork`, and **`trackId`** — the join back to the run list
+four hundred pixels below it on the same screen.
+
+So "layers 1, 2 and 3 stitched on one object" needed **no new read**. It needed the page to draw
+what it had already bought.
+
+### Shipped
+
+| commit | what |
+| --- | --- |
+| `33640f683` | `[data-work]` / `-main` / `-wide` / `-ctx` beside the four `sp-` layout classes |
+| `289bf5122` | the entry leads with one piece of work, told whole |
+| `778ff455e` | laws 31 and 32, with the censuses behind them |
+| `d1f3d2bf1` | ten addresses that only existed to send you somewhere else |
+| `2a174097a` | the composer stops asking a person to classify their own sentence |
+| `ac63223f0` | the generated route tree catches up |
+
+**The lead.** The oldest call waiting on a person, drawn with its evidence, its cost, its forecast,
+both consequences, and the road of the run it is holding, Approve/Decline in place. `gatesLiveWork`
+is drawn because **22 of 29 pending tool-call gates hold a run that has already finished** — so
+answering releases nothing, and no surface said so before a person pressed. Three states, three
+sentences, and the third is silence: `null` is never collapsed into `false`.
+
+**The layout.** The home was the ONE surface outside `.sp-inner`, and `shell.css` names it by name.
+Measured on the served build at 1920px: **330px of dead field on each side WHILE the page scrolled**
+(content 1168px against 880px of pane). It now has a context column for the first time, so layer 3
+stands beside the work instead of stacked under it below the fold.
+
+**What was cut, each for a measured reason.** The seven-station band (it counted the same eight
+tracks the run rows already draw with `journeyOfRun` at `size="row"`, one region higher — the
+repeated-value law at the layout level), and with it `journeyMap`, `withWaiting`, `withTimings`,
+`withPresences`, a **second observer on `runningNowKey`**, and a station filter only it could set.
+The sentence about the product. `max-w-[62rem]`.
+
+### Why the lead is a CALL and not a PROOF, and this is the number to carry
+
+Production, samples excluded, whole database: **33,777 rows describing MOTION against about 14 rows
+describing a RESULT** — 9 forecasts with a hit/miss verdict, 3 shipped things with an outcome, 2
+learnings — against **69,543 credits spent** and 3,205 agent runs. Lane 2 verified it and added the
+worse half: **0 of all 97 resolved forecasts carry `forecast_observations`, `forecast_predicted` or
+`forecast_metric`.** Every graded forecast in this product's history was graded by narrative.
+
+**An entry that leads with proof is empty. An entry that leads with motion confirms the founder's
+own complaint.** The third option is the only honest one and it happens to be the product's own
+wedge: *what is stuck, on whom, and for how long.* 28 items in the realest workspace, oldest 55 days.
+
+Also measured and worth keeping: **80% of all tracks ever created are abandoned** (43 of 54 in
+Helio Labs), **37 of those 43 never left station one**, and the commonest hold reasons —
+`out-of-time` 21, `produced-nothing` 12 — are honest, nameable, and surfaced nowhere.
+
+### Two laws, in `DESIGN-SYSTEM.md`, and they apply to every surface
+
+**31 — a surface's heading is the reader's situation, not the surface's name.** `/evidence` opens
+with FOUR typographic layers before content; `/outcomes` does the same and then five tabs. **Two
+page headings in a row on both.** The name is already in the rail and the tab. Census: **114
+tracked-out ALL-CAPS labels** in the signed-in product (88 `mrd-eyebrow` + 26 hand-rolled + 3 CSS
+classes), up to **17 on `/track/$trackId`** alone; one reads `WHAT THIS RELEASE IS ON THE HOOK FOR`,
+a 36-character sentence in 10px caps at weight 650. **This document already argued the opposite of
+what five surfaces do** — which is the most reliable sign a rule needs a guard, not a paragraph.
+
+**32 — a movement keeps its place when it is empty.** Twelve conditional regions on the home, most
+absent on any visit, so no two visits shared a shape and the sequence existed only in the comments.
+That is the literal mechanism behind *"reads as a dump"*. The one exception: an unread read draws
+nothing, because *"nothing is waiting on you"* and *"we could not find out"* are different sentences.
+
+### The through-line: ten addresses that only existed to bounce you
+
+Every authenticated route was walked for inbound and outbound links. **Ten had ZERO inbound links
+anywhere in `src/`**, and every one was a file whose whole body was `throw redirect(...)`:
+`/brain /learn /ship /decide /design /discover /prds /build /runs/$missionId /traces`. Their own
+headers gave them a one-week window opening 2026-09-02. It closed. `legacy-redirects.ts` already
+carries the ruling P-10 applied to 49 of them: **the 404 with a door is the correct landing.**
+
+- The last real reference was `research.server.ts` pointing a **RAG citation** at `/brain` — the
+  most expensive place in the product to spend a bounce, because it lands mid-thought. It names
+  `/outcomes` now.
+- `/traces` redirected to `/engine-room`, which redirects to `/team?tab=spend`: **two hops**.
+  `/traces/$traceId` is a real page and is untouched.
+- `STATION_ROUTE` named three of the stubs. `decide`/`design`/`build` spell `/start` now.
+- `ShipRecord`'s *"the revert run"* linked to `/studio/<missionId>` and **there has never been a
+  `/studio` route**: a full page load into the not-found page.
+
+### The lesson worth the most: a guard went blind for one commit
+
+`a-grid-does-not-read-flex` scanned `/^\.(sp-[a-z-]+)\s*\{/` — the class must be followed
+*immediately* by the brace. The moment `shell.css` gave the work region an attribute form beside its
+class (`.sp-inner,\n[data-work] {`) **the scanner matched nothing, its map came back empty, and it
+reported a clean tree.**
+
+Its own self-check is the only reason anyone found out: *"the guard is worthless if its input is
+empty, and an empty result would otherwise look exactly like a clean tree."* **That one sentence
+bought this. Every scanner in this repo should carry one.**
+
+It reads selector lists now, **line by line rather than by one regex** — the first rewrite WAS one
+regex and also matched nothing, because the rule bodies here carry long comments. And it now covers
+the attribute hooks, so a `[data-work]` element wearing `flex-wrap` is caught; proved by injecting
+exactly that and watching it fail by name.
+
+**And the same class of blindness, one step further on, found a REAL defect.**
+`today-states-its-wait` listed eight station files and **five were redirect stubs**, which have no
+wait branch — so it read eight files and examined three. Pointed at the surfaces those stations
+actually render on, it caught `plan.spec.$id.tsx` on the first run:
+`{provQ.isLoading ? null : ...}`, a region drawing nothing while its read was in flight. *"Nothing
+here"* and *"still looking"* are the two states a reader must never have to tell apart by waiting to
+see which one it turns into.
+
+Pair this with Lane 2's own note on the same failure mode: their second scoping draft moved the
+resolve into a shared helper, which made a source-reading guard **pass by blinding it**. Three
+instruments in one day. **An instrument that reports a clean world because someone moved the world
+out of its view is the defect class to hunt next.**
+
+### The composer stops interrogating
+
+The native `<select>` drew on **first paint above an empty box**, defaulting to the longest route —
+so the first interaction with an agentic product was a taxonomy question in *our* taxonomy. Now:
+nothing until there is a sentence; then one line saying what was read **and the word that decided
+it** (*"Reads as something broken now, from 'crashes'"*); the picker one press behind *Change*, and
+a hand-made choice is remembered and never overridden.
+
+Naming the word is the design, not a flourish: `the-bar.md`'s Anthropic lens catches *"confident
+output with no way to check it"* exactly. Forty listed words, not a model — inspectable, free per
+keystroke, and falsifiable by the person it is about.
+
+Two things the tests found: **"wrong" was in the incident list** and read *"the buttons are the
+wrong colour"* as an incident, routing a paint job to Build past the station that writes the
+forecast. And whole-word matching is not tidiness — a bare `includes()` reads "download" as "down".
+
+### Open, and none of it half-built
+
+1. **NOTHING IS VERIFIED ON THE SERVED BUILD.** Read these three, all introduced by these commits
+   and by nothing else, so one pass settles it: on `/start`, the work region should measure
+   **two grid tracks** at ≥1120px (`[data-work]`, not `.sp-inner`); the composer with an EMPTY box
+   should show **no shape control at all**; and typing *"the checkout page crashes on submit"*
+   should print **`Reads as something broken now, from "crashes".`** Do not read a deploy as landed
+   from an absence.
+2. **`define: "/plan"` in `STATION_ROUTE` is documented debt.** `AppFrame` builds `START_PATHS` from
+   `Object.values(STATION_ROUTE)`, and `/plan/spec/$id` is lit today only because `"/plan"` is in
+   that map. The honest fix is to split a station's **territory** from its **door** in `AppFrame`;
+   until then the `/plan` index stub stays so the chip lands on something.
+3. **`<Seam label="Second time round" />` is owed to Lane 2's lap seams** and deliberately NOT built:
+   Lane 2 has closed, their local version is marked, nothing is blocked, and a Meridian component
+   with no live consumer is dead code. The spec, when it has one: an eyebrow-free label at
+   `--mrd-t-small` (law 31 — not `mrd-eyebrow`) with a `--mrd-line-soft` rule running to the edge,
+   because a seam inside one column is quieter than a border between two regions.
+4. **Lane 2's 165-row `prd_id` backfill is written and NOT applied** — their Lovable MCP token
+   expired. Statement is in their handoff entry above. Expected count 165.
+5. **`/evidence`'s empty state** — five restatements of "nothing yet" and ~230 words of prose before
+   any control. Law 31 settles the heading (*"Nothing has come in yet."* is already the right one and
+   only needs to be the only one); the prose below it is each-sentence-argued in the file and should
+   not be cut blind.
+
+### Coordination note
+
+Two lanes, both Opus 5, messaging directly throughout. It worked, and the two most useful exchanges
+were both **corrections**: Lane 2 caught that the `/outcomes` heading I proposed was built on a
+cross-workspace leak (nine forecasts that belonged to another workspace) and did not implement it;
+I told them not to fight Chrome's dev-server wall and to walk `supaprod.ai`, which is the better
+instrument anyway. **Ask rather than guess, and say when a teammate's suggestion is wrong.**

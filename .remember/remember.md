@@ -137,3 +137,76 @@ tonight, which makes eleven in this repo. So the comparison finally lives in one
 `src/lib/a-value-on-every-row.ts`. **What to DO about a constant is never general and stays at the
 call site**: on the agent roster it leaves because the heading already says it; on the forecast
 desk it moves UP into the region's sub, because nothing else on the page says it at all.
+
+---
+
+# LANE 1 — 2026-09-10 — THE ENTRY, AND THREE INSTRUMENTS THAT LOOKED CLEAN
+
+**`main` at `ac63223f0`, 0 ahead / 0 behind, tree clean. tsc 0 · 15,857 pass / 0 fail · build 0 ·
+docs clean. NOT verified on the served build — Lovable still held `b4b23f53` at close.**
+
+## The one thing to know before touching the home
+
+**Everything the entry needed was already in the browser and being dropped.** `getApprovalsQueue`
+gives the home the whole Inbox payload; the home rendered ONE INTEGER, ONE NOUN AND ONE TITLE off
+it and discarded `evidence[]`, `impact`, the whole `forecast`, both consequences, `agentSlug`,
+`gatesLiveWork` and **`trackId`** — the join to the run list 400px below on the same screen. So
+"layers 1, 2 and 3 stitched on one object" cost **no new read**.
+
+That is this repo's oldest defect class and this was its largest instance. **Before designing a new
+read on any surface here, list what the surface already fetches and throws away.**
+
+## The founder said the same sentence twice, and that is the signal
+
+*"Shows no journey."* The previous pass answered it by MOVING the seven-station road to the top. It
+shipped; he said it again. **A repeated complaint after a shipped fix means the diagnosis was wrong,
+not the execution.** A journey is one thing moving through time, not a diagram of stages — the band
+draws identically for any workspace with the same counts, which is the machine's self-portrait.
+
+## The number that decides what any surface here may promise
+
+**33,777 rows of MOTION against ~14 rows of RESULT** (9 hit/miss forecasts, 3 outcomes, 2
+learnings), against 69,543 credits. **0 of all 97 resolved forecasts carry `forecast_observations`,
+`forecast_predicted` or `forecast_metric`** — every one graded by narrative. Also: 80% of tracks
+abandoned, 37 of 43 never left station one.
+
+**Lead with proof and the screen is empty; lead with motion and it confirms the complaint. The
+honest lead is what is stuck, on whom, and for how long.**
+
+## THREE INSTRUMENTS IN ONE DAY, AND THE THIRD IS THE ONE TO HUNT
+
+1. `a-grid-does-not-read-flex` scanned `/^\.(sp-[a-z-]+)\s*\{/`. Adding `[data-work]` beside
+   `.sp-inner` made the selector a LIST, the scanner matched nothing, and it **reported a clean
+   tree**. Caught only by its own self-check: *"the guard is worthless if its input is empty, and an
+   empty result would otherwise look exactly like a clean tree."* **Every scanner needs that check.**
+2. `today-states-its-wait` listed eight station files; **five were redirect stubs with no wait
+   branch**, so it read eight and examined three. Repointed at the real surfaces, it found a genuine
+   `isLoading ? null` on `plan.spec.$id` in one run.
+3. Lane 2's: a guard that reads SOURCE TEXT was made to pass by **moving the logic into a helper**
+   it cannot see through.
+
+**The class: an instrument that reports a clean world because the world moved out of its view.**
+Rewriting a guard's INPUT is as dangerous as rewriting its assertion, and neither fails loudly.
+
+## Two laws now in DESIGN-SYSTEM.md
+
+**31 — a surface's heading is the reader's SITUATION, not its name.** The name is in the rail and
+the tab already. 114 ALL-CAPS labels across the signed-in product; `/evidence` and `/outcomes` each
+open with FOUR heading layers. The doc already argued this and five surfaces did the opposite —
+**when a written rule is inverted in code, it needs a guard, not another paragraph.**
+
+**32 — a movement keeps its place when it is empty.** Twelve conditional regions is why no two
+visits of the home shared a shape. Exception: an unread read draws NOTHING, because "nothing is
+waiting on you" and "we could not find out" are different sentences.
+
+## Practical
+
+- **`sp-` is retired and the ratchet counts every one in JSX.** Joining the shell by class ADDS
+  debt. `[data-work]`, `[data-work-main]`, `[data-work-wide]`, `[data-work-ctx]` are the hooks now,
+  listed beside the classes in `shell.css` so surfaces port when next opened.
+- **Ten routes had zero inbound links** and were pure redirects; deleted. `legacy-redirects.ts`'s
+  own ruling: the 404 with a door is the correct landing.
+- **Do not start a dev server** — Chrome cannot reach it from these worktrees. Walk `supaprod.ai`.
+  It is the better instrument anyway: it is the served build.
+- **Lovable's `latest_commit_sha` tracks the SYNC, not your push.** Check it is at or past your tip
+  before deploying, or the build misses your commits.
