@@ -177,7 +177,45 @@ type DueRow = {
   forecast_how_we_will_know: string | null;
   forecast_horizon_date: string | null;
   prd_id: string | null;
+  /*
+   * ── THESE THREE ARE WHAT THE EVIDENCE KIT IS GUARDED ON, AND THEY WERE NOT
+   *    BEING FETCHED (2026-09-10) ─────────────────────────────────────────
+   *
+   * `readKitForForecast` opens its signals read with
+   * `if (decision.workspace_id && decision.created_at)`. The caller below built
+   * that argument with `(raw as { created_at?: string | null }).created_at ??
+   * null` -- a CAST asserting a field the select never asked for -- so
+   * `created_at` was null on every row, the guard was false on every row, and
+   * THE SIGNALS READ NEVER RAN ONCE, for any forecast, ever.
+   *
+   * Measured on production before the fix: fifteen overdue forecasts, every one
+   * drafted daily with `read: []` and the sentence "Nothing dated after this
+   * decision could be read", while thirteen of them had between one and
+   * nineteen eligible signals sitting in the window. The grader was reporting an
+   * empty world it had never looked at.
+   *
+   * `product_id` was null by the same cast, which SILENTLY WIDENED the scope
+   * rather than emptying it -- the opposite direction, equally unintended, and
+   * invisible for as long as the read never ran.
+   *
+   * They are ordinary fields now, with no cast, because a cast is not a check:
+   * it tells the compiler what to believe about a value nobody fetched.
+   */
+  workspace_id: string | null;
+  product_id: string | null;
+  created_at: string | null;
 };
+
+/**
+ * The columns fetched for each due forecast.
+ *
+ * Named as a const so `every-field-the-kit-needs-is-fetched` can compare it
+ * against `DueRow` mechanically. The defect above was a SELECT and a consumer
+ * disagreeing about what a row contains, and nothing could see the disagreement
+ * because a cast stood between them.
+ */
+export const DUE_FORECAST_SELECT =
+  "id,title,forecast_claim,forecast_how_we_will_know,forecast_horizon_date,prd_id,workspace_id,product_id,created_at";
 
 /**
  * Whether anything could produce a number for the spec this forecast is about.
@@ -327,7 +365,7 @@ export async function auditDueForecasts(
   const nowIso = new Date().toISOString();
   const { data: due, error } = await supabase
     .from("decisions")
-    .select("id,title,forecast_claim,forecast_how_we_will_know,forecast_horizon_date,prd_id")
+    .select(DUE_FORECAST_SELECT)
     .eq("workspace_id", workspaceId)
     .not("forecast_claim", "is", null)
     .is("forecast_resolution", null)
@@ -510,10 +548,13 @@ export async function auditDueForecasts(
         supabase,
         {
           id: raw.id,
-          workspace_id: workspaceId ?? null,
-          product_id: (raw as { product_id?: string | null }).product_id ?? null,
+          /* The row's own workspace, with the pass's scope as the fallback it
+             always was. Both are the same value here; reading it from the row
+             is what makes the field real rather than assumed. */
+          workspace_id: raw.workspace_id ?? workspaceId ?? null,
+          product_id: raw.product_id,
           prd_id: raw.prd_id,
-          created_at: (raw as { created_at?: string | null }).created_at ?? null,
+          created_at: raw.created_at,
           horizonDate: raw.forecast_horizon_date ?? null,
         },
         link.evidence,

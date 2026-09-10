@@ -22,17 +22,24 @@ import { readKitForForecast, readKitAsText, citedRows } from "./what-the-grader-
 
 /**
  * A chainable PostgREST stub. Every filter returns `this`, and awaiting the
- * builder yields whatever `rowsFor` gives for the table. `neq` calls are
+ * builder yields whatever `rowsFor` gives for the table. FILTER calls are
  * RECORDED, because one of the properties under test is that the loop's own
  * writing is excluded, and that is a filter rather than a result.
  */
-function stubDb(rowsFor: Record<string, unknown[]>, neqLog: Array<[string, string]> = []) {
+function stubDb(rowsFor: Record<string, unknown[]>, filterLog: string[] = []) {
   const make = (table: string) => {
     const builder: Record<string, unknown> = {};
     const chain = () => builder;
     for (const m of ["select", "eq", "gt", "in", "order", "limit"]) builder[m] = chain;
+    /* `or` and not `neq`: the exclusion has to admit a NULL column, and a bare
+       `neq` drops those rows. Recorded verbatim so the test can assert the
+       NULL-safe shape rather than merely that some filter was applied. */
+    builder.or = (expr: string) => {
+      filterLog.push(expr);
+      return builder;
+    };
     builder.neq = (col: string, val: string) => {
-      neqLog.push([col, val]);
+      filterLog.push(`${col}.neq.${val}`);
       return builder;
     };
     builder.then = (resolve: (v: { data: unknown[]; error: null }) => unknown) =>
@@ -53,7 +60,7 @@ const DECISION = {
 
 describe("a decision with two post-horizon signals and a deployment names all three", () => {
   it("reads them, and gives each an id the verdict can cite", async () => {
-    const neq: Array<[string, string]> = [];
+    const neq: string[] = [];
     const db = stubDb(
       {
         signals: [
@@ -111,11 +118,25 @@ describe("a decision with two post-horizon signals and a deployment names all th
     // P-41's rule, applied here because a grader marking its own homework is
     // that defect with a verdict attached, which ends on the record as a
     // proven call.
-    const neq: Array<[string, string]> = [];
-    const db = stubDb({ signals: [], studio_changesets: [], deployments: [] }, neq);
+    const filters: string[] = [];
+    const db = stubDb({ signals: [], studio_changesets: [], deployments: [] }, filters);
     await readKitForForecast(db, DECISION, "");
-    expect(neq).toContainEqual(["source", "agent"]);
-    expect(neq).toContainEqual(["source_kind", "loop_authored"]);
+
+    /*
+     * AND IT MUST ADMIT A NULL, which is the half a bare `neq` gets wrong.
+     * `NULL <> 'loop_authored'` is NULL rather than TRUE, so PostgREST drops
+     * every row whose column is unset. Measured on production 2026-09-10: 428
+     * of 1,524 signals carry `source_kind` null, and the bare pair was
+     * discarding 69% of the eligible evidence for the overdue forecasts.
+     *
+     * Asserted as the exact expression rather than "some filter was applied",
+     * because the defect produced a filter that looked entirely correct.
+     */
+    expect(filters).toContain("source.is.null,source.neq.agent");
+    expect(filters).toContain("source_kind.is.null,source_kind.neq.loop_authored");
+    // The bare form must be gone, not merely accompanied.
+    expect(filters).not.toContain("source.neq.agent");
+    expect(filters).not.toContain("source_kind.neq.loop_authored");
   });
 
   it("only counts a citation the model was actually shown", async () => {

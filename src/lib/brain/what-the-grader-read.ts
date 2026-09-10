@@ -99,11 +99,40 @@ export async function readKitForForecast(
       .gt("created_at", decision.created_at)
       .order("created_at", { ascending: false })
       .limit(PER_KIND);
-    /* Applied as data rather than through `excludeLoopAuthored`, whose generic
-       hits TS2589 on this builder. Same rule, same single source. */
-    for (const [col, val] of LOOP_AUTHORED_EXCLUSIONS) q = q.neq(col, val);
+    /*
+     * ── THE EXCLUSION HAS TO SURVIVE A NULL, AND `neq` DOES NOT ────────────
+     *
+     * Applied as data rather than through `excludeLoopAuthored`, whose generic
+     * hits TS2589 on this builder. Same rule, same single source -- but written
+     * NULL-safely, which the plain `.neq` pair was not.
+     *
+     * `NULL <> 'loop_authored'` is NULL and not TRUE, so PostgREST drops every
+     * row whose column is null. Measured on production 2026-09-10: **428 of the
+     * 1,524 signals carry `source_kind` null**, and across the fifteen overdue
+     * forecasts the bare pair admitted 56 rows where the null-safe form admits
+     * 181. Sixty-nine per cent of the eligible evidence was being discarded by a
+     * filter written to exclude the loop's own writing.
+     *
+     * This repo has already paid for this exact SQL fact once, one module over:
+     * `listDueForecastsImpl` uses `.or(dueCheckFilter(nowIso))` and its comment
+     * reads "a bare comparison drops NULLs in SQL ... the loudest possible way
+     * to get this wrong and still look like it works."
+     */
+    for (const [col, val] of LOOP_AUTHORED_EXCLUSIONS) q = q.or(`${col}.is.null,${col}.neq.${val}`);
     if (decision.product_id) q = q.eq("product_id", decision.product_id);
-    const { data } = await q;
+    /*
+     * ── AND A READ THAT FAILED IS NOT A WORLD WITH NOTHING IN IT ───────────
+     *
+     * `const { data } = await q` discarded the error, so an unreadable signals
+     * table produced `rows: []`, which the grader reports as "Nothing dated
+     * after this decision could be read" -- a confident statement about the
+     * world, made without looking at it. The sibling read in this feature
+     * already throws for exactly this reason (`auditDueForecasts`: "A FAILED
+     * READ IS NOT AN EMPTY QUEUE"), and the caller catches per row, so throwing
+     * costs one forecast's draft instead of every forecast's honesty.
+     */
+    const { data, error } = await q;
+    if (error) throw new Error(`the grader could not read signals: ${error.message}`);
     for (const r of (data ?? []) as Array<Record<string, unknown>>) {
       const title = String(r.title ?? "").trim() || String(r.content ?? "").slice(0, 120);
       rows.push({
