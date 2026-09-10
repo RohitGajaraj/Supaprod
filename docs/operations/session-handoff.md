@@ -3262,10 +3262,18 @@ a hand-written list would have been a third source and drifted like the two abov
 shape. An incomplete grep is an inference.*
 
 **THE ONE OPEN MEASUREMENT, and it is the whole point of the fix.** Deploy `f24558d1` (triggered
-02:26 UTC 2026-09-10) carries the grader fix. **Fourteen of the fifteen carry
-`forecast_next_check_at = 2026-09-10 00:00:32`** — written by the 09-09 run, and today's tick fired
-at 00:00:03, *twenty-nine seconds before they were due*. So they were not re-drafted this morning.
-**The 06:00 UTC run re-drafts those fourteen in one batch, with the fix live.**
+02:26 UTC 2026-09-10) carries the grader fix. **Fourteen of the fifteen are due and were
+not re-drafted this morning**, because today's tick fired at 00:00:03 — *before* their check time:
+
+| `forecast_next_check_at` | rows | missed today's run by |
+| --- | --- | --- |
+| 2026-09-10 00:00:10.910 | **9** | ~8 seconds |
+| 2026-09-10 00:00:32.168 | **5** | ~29 seconds |
+| 2026-09-11 00:00:03.502 | 1 | not due — drafted today |
+
+**The 06:00 UTC run re-drafts those fourteen in one batch, with the fix live.** (An earlier version
+of this paragraph said "fourteen by twenty-nine seconds"; the split is 9 and 5, corrected by Lane 3.
+The conclusion survives, but a wrong number offered as corroboration is still wrong.)
 
 Read it with:
 
@@ -3281,6 +3289,20 @@ where forecast_claim is not null and forecast_resolved_at is null
 
 **Non-empty `read`/`cited` on those fourteen is the answer. Still empty and the fix is wrong** — and
 Lane 3 asked to learn that from the data rather than from the tests, which is the right instinct.
+
+**AND THE BUILD MUST BE CONFIRMED TO CONTAIN THE FIX BEFORE THAT READ IS TRUSTED.** `99b232325`
+landed **51 seconds** before deploy `f24558d1` was triggered, and Lovable builds whatever it holds
+when the build *starts* — twice tonight a deploy missed a commit pushed a minute earlier
+(`b0a6e0ae` missed law 30; `1d935fe1` missed the rhythm commit). **The grader fix has no served
+probe**: everything it changed is reachable only through a draft, so a build that missed it reads at
+06:00 exactly like a fix that failed, and the obvious conclusion would be the wrong one drawn from
+the strongest-looking evidence available. Redeployed for this reason; confirm the serving deployment
+id and that `max(wallet_checked_at)` keeps moving.
+
+**The cheapest deploy probe in the product:** `resume-runs` is cron `* * * * *`, and
+`spine_tracks.wallet_checked_at` moves on *consideration*, so `max(wallet_checked_at)` goes current
+within sixty seconds of any build serving. It proves the code RAN, which the `x-deployment-id`
+header does not.
 
 **Do not move `canAutoSettle`'s gate before that read.** It exists because eight rows once drafted at
 confidence 1.0 about nothing: a model asked to judge with no evidence still answers. Moving it now
