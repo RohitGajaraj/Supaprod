@@ -12199,3 +12199,61 @@ I do not have. **A lane with a working browser can settle it in one look.**
 `class:sp-` -- legacy CSS classes defined in stylesheets A1 owns. A components pass over the JSX
 cannot move that number; it moves when the stylesheet does. That packet was scoped on a wrong
 assumption about what the 18 was made of, and it is not mine to close.
+
+### A3 · 2026-09-10 · VERIFICATION PASS. Acceptance 5 is met in substance and the probe I named for it is now useless.
+
+Idle protocol (a), over the three packets from earlier tonight. Two results, and the second is a
+correction to my own instrument.
+
+**ACCEPTANCE 5 -- "PROVED BY A TRACK THAT MOVES" -- IS MET, AND NOT AMBIGUOUSLY.** The two tracks a
+wallet had stopped are both `open`, both at **build**, and both driving on the ten-minute tick.
+Between 00:30 and 01:20 they produced **thirteen runs and not one halt**:
+
+    6cc7a010  ux-architect completed 00:30  ·  design-critic completed 00:31
+              builder + qa at 00:50, 01:00, 01:10
+    0c0db8e6  ux-architect completed 00:40  ·  design-critic completed 00:41
+              builder + qa at 00:50, 01:00  ·  builder RUNNING at 01:20
+
+`6cc7a010` is the track from the original measurement: twelve consecutive runs, every one halted
+`out_of_credit`, then six days of nothing. It has run **eight times tonight** and walked design into
+build. `halted_reason` is null on all thirteen.
+
+**PACKET 2 IS CONFIRMED DEPLOYED BY THE THING IT INTRODUCES.** `backed_off_at` is non-null on three
+tracks, stamped `23:00:04.982` -- written by production, not by me -- and both repaired tracks carry
+it with `deferred_until` now null. One history earned one deferral, the deferral lapsed, and nothing
+re-priced it on the same history. That is the fix working on the wire.
+
+**BUT PACKET 1'S RELEASE CODE HAS STILL NEVER RUN, AND MY PROBE FOR IT CANNOT TELL ME WHY.**
+
+I wrote, last night: *"The probe for whether the deployed build carries this is
+`select count(*) from spine_tracks where wallet_released_at is not null`."* **That probe is now
+unfalsifiable and I am retiring it.** The count is 0. It is 0 for a reason I created: **the two
+tracks the code was written to release were released BY HAND, by the two manual writes A1 approved,
+before the code ever served.** `wallet_released_at` is null on both, because a manual write does not
+stamp it.
+
+So the population is empty. Re-running `mayRelease` as SQL over production right now returns
+**39 open tracks on a terminal hold and ZERO releasable** -- every one refusing with *"newest run is
+not a wallet halt."* That is the rule behaving correctly. It is also indistinguishable, from the
+outside, from the rule not being deployed at all, because **the only thing this repair introduces is
+a write that correctly does not happen.**
+
+**A repair whose sole evidence is a write that fires only for a population that no longer exists
+cannot be proved in production until that population recurs.** The next genuine `out_of_credit` halt
+on a terminal-held track is the first honest test, and nobody should read the standing 0 as either
+confirmation or refutation before then.
+
+**Ranked, and none of it started without a packet:**
+
+1. **Make the sweep's wallet result observable.** `releaseWalletStoppedTracks` already returns
+   `released` / `leftAlone` / `failed` with a sentence per refusal, and `resume-runs` already puts
+   them in its response body -- which goes to a cron and nowhere else. Somewhere durable would turn
+   an unfalsifiable silence into "ran, considered 39, released 0, here is why." Small, and it is the
+   difference between a guard we can see and one we are trusting.
+2. **The two repaired tracks are moving but not converging.** Thirteen runs, all
+   `completed_with_failures`, now holding `produced-nothing` and `self-check-failed`. That is agent
+   quality rather than dispatch, so it is not mine, but it is what the loop is actually doing
+   tonight and it should not be read as a clean success.
+3. `hooks/use-confirm.tsx` onto Meridian's Dialog: 32 surfaces, A2-shaped, named in the RepoGateDialog
+   commit and open.
+4. `ScopeMenu.tsx`'s 18 is `class:sp-`, so it moves when the stylesheet does, not from a JSX pass.
