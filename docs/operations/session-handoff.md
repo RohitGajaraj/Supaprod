@@ -3376,3 +3376,40 @@ run is not a wallet halt, so the hold is about the work."*
 **A write that fires only on the positive case cannot do this**, because its population is empty
 exactly when the rule is working — which is what made `wallet_released_at` useless as a probe and
 cost tonight's first measurement. Any future repair of this shape should stamp the consideration.
+
+### LANE 1 addendum — 2026-09-10 ~03:05 UTC — the migration gate has never run
+
+**`scripts/check-migrations.sh` exits 0 without checking when `PGHOST` is unset, and `PGHOST`
+appears nowhere in `.github/workflows/ci.yml` — nor do `check-migrations` or `db:check`.** So the
+gate that exists to catch a genuinely unapplied migration **has never run, locally or in CI**. A
+fifth instrument reporting a clean world it never looked at, and this one guards the thing that
+would actually break the product.
+
+**Measured 2026-09-10:** 621 distinct file versions, 734 ledger rows, **54 files with no ledger
+row** — and only ~16 of those are real:
+
+- **38 UUID-named (2026-07-12 → 2026-08-11), Lovable's own.** Several match a ledger row a few
+  *seconds* later (file `20260712203617` ↔ ledger `20260712203623`). Lovable stamps the apply time,
+  not the file's version, so a naive set-difference calls them missing when they are not.
+- **16 hand-written named files (2026-08-26 → 2026-09-04)** with no ledger row on their day at all.
+  **All are applied** — checked by object, not by record: `strip_ai_dashes`,
+  `agent_runs_strip_dashes`, `track_hold_notices`, `decisions.forecast_band_missed_at` all present.
+  This is the known Lovable failure: the ledger falls behind while the schema is correct. A previous
+  session recorded seven lost at once; it is 54 now.
+
+**If the gate were switched on tomorrow it would fail on all 54 and be switched straight back off.**
+A guard that cries 54 and means 16 gets ignored exactly like a census that cries fifteen and means
+three. **Fixing the gate means teaching it Lovable's seconds-later stamping first**, otherwise
+enabling it makes things worse.
+
+**One was stamped, properly.** `20260909100800_mission_marks` (mine, `212153b00`). Lane 3 found it
+and correctly refused to stamp without byte-equality — stamping freezes "applied and correct" for a
+body nobody compared. It is comparable: normalise BOTH sides the same way and diff the strings,
+rather than comparing md5s across two different normalisations.
+
+```sql
+select btrim(regexp_replace(lower(prosrc), '\s+', ' ', 'g')) from pg_proc where proname='mission_marks';
+```
+
+Identical to the file's `$$` body under the same collapse. **The other 16 are deliberately NOT
+stamped** — that comparison run per migration is a packet, not a press.
