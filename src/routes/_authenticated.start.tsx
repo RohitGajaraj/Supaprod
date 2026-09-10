@@ -910,7 +910,7 @@ function StartLanding() {
             the person's own words. Every sentence used to be filed as new work
             and walk all seven stations, so "fix the broken login" opened a
             Discover run (fifth review, 2026-09-09). */}
-          <ComposerRoutePicker shape={pickedShape} onSelect={setPickedShape} />
+          <ComposerRoutePicker shape={pickedShape} onSelect={setPickedShape} sentence={sentence} />
           {/* WHAT THE WORKSPACE ALREADY HOLDS ABOUT THE SENTENCE BEING TYPED.
             Anticipation: the evidence read happens while the person types,
             settled and debounced, so the first thing they learn about their
