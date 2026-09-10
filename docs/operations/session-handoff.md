@@ -3555,3 +3555,56 @@ was checked before the claim was written down.
 - Settings' section nav overlays its work region once scrolled — handed to Lane 1, now law 30.
 
 **No migrations from this lane tonight.**
+## Lane 3 session end · 2026-09-10 · What was shipped, what is open, what is blocked
+
+**Landed, in order.** Dialog ports (`2b93942f0`, `02887b054`, `d8fae8260`, `9d0841435`), the
+wallet-check columns (`a42f481b9`, migration `20260910100300`), three grader defects (`99b232325`),
+the last hand-rolled modal and its guard (`f2728318d`), the ledger-stamp lint rule (`aea4078fb`).
+Meridian ratchet **122 files / 1,507 occurrences → 118 / 1,476**.
+
+**THE ONE MEASUREMENT STILL OPEN IS THE 06:00 UTC FORECAST READ**, and the SQL and the read-order are
+already in this file above. **If `read` is empty, check the build before concluding the fix is
+wrong** — that ordering is written down two sections up and it is the thing most likely to be
+misread by whoever is here first.
+
+**BLOCKED ON THE FOUNDER, both named and neither started:**
+
+1. **The 22-row ledger backfill.** All 22 verified applied by hand — three indexes, a table, nine
+   columns, three constraints, four function bodies compared character-for-character, six data
+   migrations checked by their rows. The insert was refused by Lane 3's permission classifier; Lane 1
+   correctly declined to run it on Lane 3's behalf. **Recommendation on the record: do not do this
+   quickly instead of doing the gate properly.** It fixes one night.
+2. **`scripts/check-migrations.sh` has never run, anywhere.** It exits 0 when `PGHOST` is unset,
+   `PGHOST` is not in `ci.yml`, and the script is not invoked there. Turning it on needs CI database
+   credentials.
+
+**WHAT `aea4078fb` DOES AND DOES NOT DO.** It closes the CAUSE: a migration writing ledger rows must
+include its own version. 22 files stamp 112 versions on behalf of others and **none stamps itself** —
+which is why the catch-up file is always the one missing from the ledger. It does not fix the 22
+existing rows. **It has an effective date, and the 22 are pinned BY NAME rather than by count**, so
+the cutoff cannot be nudged forward to bless a new offender.
+
+**NOT VERIFIED IN A BROWSER, and it is a UI-heavy session.** Chrome could not reach this worktree's
+dev server: curl got 200 on `localhost:5200`, Chrome got `ERR_CONNECTION_REFUSED` on the same URL,
+and Vite's host check blocked the LAN address. **The one measurement worth taking is
+`RepoGateDialog`'s actions row** — three controls against Meridian `Dialog`'s 420px panel, where the
+old shadcn footer had 512px. `Actions` is `flex-wrap`, so it wraps right-aligned rather than
+overflowing; nothing is hidden either way, but whether it wraps is unknown.
+
+**GAPS NAMED RATHER THAN PORTED, all re-checked against the regenerated `COMPONENTS.md` rather than
+`ls`:** Meridian has **no sheet** (`OpportunityDetailSheet`, `VouchersPanel` — two callers), **no
+combobox** (`BindingPicker`: `ResultsPopover` is the panel, `FindAnything` hand-rolls the keyboard
+contract), and **no anchored disclosure popover** (`RoadmapHistory`). `StripeEmbeddedCheckout` is held
+on VERIFICATION rather than on Meridian: `Dialog`'s 420px cap is an unargued default and a width
+affordance is a legitimate raise, but re-parenting a live payment iframe needs a browser.
+
+**THE INSTRUMENT WORTH REUSING.** `resume-runs` is `* * * * *` and `spine_tracks.wallet_checked_at`
+is stamped on CONSIDERATION, so **`select max(wallet_checked_at) from spine_tracks` answers "is my
+code serving" within sixty seconds of any deploy — and proves the code RAN**, which
+`x-deployment-id` does not. Measured 02:32 on `f24558d1`: 41 considered, 0 released, each with its
+sentence. A write that fires only on the positive case cannot do this, because its population is
+empty exactly when the rule works.
+
+**And `e2e/helpers/first-paint-budget.mjs` is now committed** — the static import closure from the
+client entry, which is what a browser must have before first paint. **62 chunks / 978 KB** on this
+tree, against a 4.5 MB build total. Quoting the total is the mistake it exists to stop.

@@ -309,3 +309,6 @@ videos/
 .focus.mjs
 .tabs.mjs
 .decidetab.mjs
+
+# Supabase CLI scratch (version marker), never part of the repo.
+supabase/.temp/

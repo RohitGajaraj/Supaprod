@@ -485,3 +485,63 @@ the RESULT rather than the args, read it from a **named field**, never by classi
 **Do not add a second reader of `halted_reason`** — `wallsByTrack` in
 `src/lib/spine/the-wall-the-platform-put-up.ts` is the one reader (Lane 1). A cleared hold ends a
 wall's claim; the discriminator is the hold, not the wall's standing.
+---
+
+## Lane 3 · 2026-09-10 · Six instruments reported a clean world they had never looked at
+
+The night's one lesson, in the form it kept taking: **an instrument's DOMAIN is the part nothing
+tests.** Six separate cases, and only the Meridian ratchet — which derives its domain from the tree —
+never lied.
+
+**A directory listing answers "what files are here", never "what parts exist."** I filed a gap saying
+Meridian had no text input. It has had `Input` in `forms.tsx` all along, imported by 37 files. I had
+run `ls` on `components/meridian/` looking for a file named after the control. **A false gap is worse
+than a missing port**: the port is one import, the note tells the next reader that building it is
+open work.
+
+**A guard's `DIRS` answers "where did someone think to look."** A placeholder-only input shipped in
+`components/settings` because that guard named eleven directories by hand out of forty. Widening it
+found fifteen more — of which **four were comments, seven were the guard being too narrow, and three
+were real.** Report that difference: a census that cries fifteen and means three gets ignored.
+
+**A ratchet marker names a LINEAGE, so it is blind to a third way.** `prds/RewindButton.tsx`
+hand-rolled a modal on raw Radix ten days before Meridian shipped a Dialog. It carried no
+`components/ui` count, so every guard read it as fully migrated. **The diagnostic: port the file and
+re-freeze. If no count moves, the marker set cannot see that shape of debt.** It moved zero.
+
+**A write that fires only on the POSITIVE case is unfalsifiable**, because its population is empty
+exactly when the rule works. `wallet_released_at` read 0, and "the rule works" and "the rule is not
+deployed" were the same reading. Stamp the CONSIDERATION instead: `wallet_checked_at` now moves every
+minute and answers "is my code serving" in sixty seconds — and proves the code RAN, which a
+deployment header does not.
+
+**A cast is not a check, and the seam between a SELECT and its consumer is where that hides.** The
+forecast grader ran daily for three weeks, never failed, and wrote "nothing could be read" for every
+overdue forecast — because its caller selected six columns and then built the evidence-kit argument
+with `(raw as { created_at?: string | null }).created_at ?? null`. The kit's read was guarded on that
+field, so it never executed once. Every test passed: the kit is driven directly with a hand-built row
+that HAS the field. **Fix the shape, not the instance** — name the select as a const and assert that
+every field the consumer reads off the row appears in it.
+
+**And the comment trap, which cost the two lanes six findings in one night.** Five were scans reading
+prose AS code (I failed a guard by writing the words "a native select element"). The sixth was the
+mirror and the best one: a SQL function body compared 697 characters against 270 and 1,057, matching
+neither file that defines it, which reads exactly like a function edited by hand in production. It is
+the same function — the stored `prosrc` carries none of the eight `--` comments the migration body
+has. **Strip them, carefully, because those bodies are full of quoted regex literals a naive stripper
+eats,** and the hashes are identical. Same root every time: **the instrument read text where it meant
+to read meaning.**
+
+**The cause underneath the ledger drift, since it generalises:** 22 migrations write
+`supabase_migrations.schema_migrations` on behalf of others, stamping 112 versions, and **none stamps
+itself** — so the catch-up file is always the one missing. Fixed at the cause with an offline lint
+rule, which **nearly repeated the mistake it fixes**: with no cutoff it fails the build on 22 applied
+files, and a guard that cries 22 and means zero is one somebody switches off. It has an effective
+date, and the 22 are pinned BY NAME rather than by count, because a cutoff is exactly the thing that
+gets nudged forward to bless a new offender.
+
+**On working with the other lane:** three of my numbers were wrong tonight (16 not 22, "daily" not
+every six hours, "fourteen drafted this morning" when it was one) and each was caught by stating it
+precisely enough to be checked. **Run the check the way the CHECKER runs it** rather than
+reimplementing it alongside and comparing your own answer to the world. And when a peer's ruling
+contradicts you, look for the counter-evidence in your own message first — mine was there both times.
