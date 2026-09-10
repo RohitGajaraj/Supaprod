@@ -4779,6 +4779,11 @@ export async function releaseWalletStoppedTracks(
           /* And the wait the same refusals bought. */
           deferred_until: null,
           wallet_released_at: new Date().toISOString(),
+          /* Stamped by the write that releases, so a release costs no extra
+             hop and a released track carries the same record as a refused one:
+             when it was considered, and what was decided. */
+          wallet_checked_at: new Date().toISOString(),
+          wallet_check_verdict: `released: ${verdict.because}`,
         } as never)
         .eq("id", t.id);
       if (writeErr) {
@@ -4788,6 +4793,55 @@ export async function releaseWalletStoppedTracks(
       done += 1;
       released.push({ trackId: t.id, because: verdict.because });
     }
+
+    /*
+     * ── AND WHAT IT DECIDED ABOUT THE ONES IT DID NOT TOUCH ──────────────────
+     *
+     * Every track above got a verdict with a sentence. Until 2026-09-10 the
+     * refusals went into this function's return value, into the sweep's response
+     * body, and into a cron that discards it -- so from outside, a rule that
+     * considered 39 tracks and correctly released none was INDISTINGUISHABLE
+     * from a rule that was not deployed at all. That is not a quirk of this
+     * repair: a write that fires only on the positive case has an empty
+     * population exactly when the rule is working.
+     *
+     * So the stamp goes on CONSIDERATION. `wallet_checked_at` moves on every
+     * sweep tick while this code serves, which is the probe `wallet_released_at`
+     * could never be, and `wallet_check_verdict` carries the sentence rather
+     * than a code, because the sentence is the evidence.
+     *
+     * ── ONE ROUND TRIP, NOT ONE PER TRACK ────────────────────────────────────
+     *
+     * The obvious shape is an update inside the loop, and on this deployment
+     * that is 39 sequential Worker-to-PostgREST hops at ~275ms warm: eleven
+     * seconds added to a tick, to write a note. Tracks are grouped by their
+     * verdict SENTENCE instead -- a handful of distinct strings across any
+     * population -- and the groups are issued together, so the wire sees ONE
+     * round regardless of how many tracks were considered. The released tracks
+     * are already stamped by the update that released them and are not here.
+     */
+    const byVerdict = new Map<string, string[]>();
+    for (const { trackId, why } of leftAlone) {
+      const group = byVerdict.get(why);
+      if (group) group.push(trackId);
+      else byVerdict.set(why, [trackId]);
+    }
+    if (byVerdict.size > 0) {
+      const at = new Date().toISOString();
+      const writes = await Promise.all(
+        [...byVerdict].map(([why, ids]) =>
+          supabase
+            .from("spine_tracks" as never)
+            .update({ wallet_checked_at: at, wallet_check_verdict: why } as never)
+            .in("id", ids),
+        ),
+      );
+      /* A note that could not be written is reported and changes nothing else:
+         the releases above already landed, and losing the record of a REFUSAL
+         must never turn into losing the refusal. */
+      for (const w of writes) if (w.error) failed.push(`verdict: ${w.error.message}`);
+    }
+
     return { released, leftAlone, failed };
   } catch (e) {
     failed.push(e instanceof Error ? e.message : String(e));

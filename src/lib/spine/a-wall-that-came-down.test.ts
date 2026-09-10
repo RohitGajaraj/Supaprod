@@ -13,6 +13,8 @@
  */
 import { describe, expect, it } from "bun:test";
 import { readFileSync } from "node:fs";
+import { drive, eqValue, FakeWire, inList } from "@/__tests__/a-wire-that-counts-rounds";
+import { releaseWalletStoppedTracks } from "./driver.server";
 import {
   mayRelease,
   newestRunIsAWalletHalt,
@@ -212,5 +214,136 @@ describe("a track whose hold was cleared without the rest is not releasable", ()
     expect(mayRelease(at({ lastHold: "going-in-circles", holdIsTerminal: true })).release).toBe(
       true,
     );
+  });
+});
+
+/**
+ * ── THE SWEEP HAS TO SAY WHAT IT DECIDED, OR A WORKING RULE AND AN ABSENT ONE
+ *    READ THE SAME FROM OUTSIDE (2026-09-10) ──────────────────────────────────
+ *
+ * The whole of this repair's evidence used to be `wallet_released_at`, and it
+ * read 0. It read 0 because the two tracks the rule was written for had been
+ * repaired BY HAND hours earlier and a manual write does not stamp the column --
+ * so the population was empty, the rule correctly released nothing, and the rule
+ * WORKING produced the identical reading to the rule NOT BEING DEPLOYED.
+ *
+ * That is what every guard looks like from outside: a write that fires only on
+ * the positive case has an empty population exactly when the rule is doing its
+ * job. So the stamp goes on CONSIDERATION.
+ *
+ * These drive the real function over a fake wire rather than reading its source,
+ * because the two things that can go wrong here are both invisible in source: a
+ * refused track silently not being stamped, and the stamps costing one round
+ * trip per track.
+ */
+describe("what the sweep decided is written down, for the refusals too", () => {
+  const HALT = { status: "halted", halted_reason: "out_of_credit" };
+  const RAN = { status: "completed", halted_reason: null };
+
+  /** Two tracks: one the wall stopped, one that ran after its halt and gave up. */
+  const wireFor = (rows: Array<{ id: string; run: typeof HALT | typeof RAN }>, credits = 15238) =>
+    new FakeWire((table) => {
+      if (table === "spine_tracks")
+        return rows.map((r) => ({
+          id: r.id,
+          status: "open",
+          last_hold: "going-in-circles",
+          workspace_id: "ws-1",
+          wallet_released_at: null,
+        }));
+      if (table === "agent_runs")
+        return rows.map((r) => ({
+          track_id: r.id,
+          status: r.run.status,
+          halted_reason: r.run.halted_reason,
+          created_at: "2026-09-04T05:30:05.472Z",
+        }));
+      if (table === "workspaces") return [{ id: "ws-1", account_id: "acc-1" }];
+      if (table === "account_credits")
+        return [{ account_id: "acc-1", balance_credits: credits, topup_credits: 0 }];
+      return [];
+    });
+
+  it("stamps a track it REFUSED with the sentence, not only the ones it released", async () => {
+    const wire = wireFor([{ id: "kept", run: RAN }]);
+    const { result } = await drive(wire, releaseWalletStoppedTracks(wire as unknown as never, 10));
+
+    expect(result.released).toEqual([]);
+    expect(result.leftAlone).toHaveLength(1);
+
+    const write = wire.writes.find((w) => w.patch.wallet_check_verdict != null);
+    expect(write).toBeDefined();
+    // The SENTENCE, not a code. A reader must not have to look anything up.
+    expect(write!.patch.wallet_check_verdict).toBe(
+      "the newest run is not a wallet halt, so the hold is about the work",
+    );
+    expect(typeof write!.patch.wallet_checked_at).toBe("string");
+    expect(inList(write!.filters, "id")).toEqual(["kept"]);
+    // And it refused: nothing that belongs to a release was touched.
+    expect(write!.patch).not.toHaveProperty("last_hold");
+    expect(write!.patch).not.toHaveProperty("station_drives");
+    expect(write!.patch).not.toHaveProperty("wallet_released_at");
+  });
+
+  it("stamps a track it RELEASED in the same write that releases it", async () => {
+    const wire = wireFor([{ id: "freed", run: HALT }]);
+    const { result } = await drive(wire, releaseWalletStoppedTracks(wire as unknown as never, 10));
+
+    expect(result.released).toHaveLength(1);
+    const write = wire.writes.find((w) => w.patch.wallet_released_at != null);
+    expect(write).toBeDefined();
+    expect(String(write!.patch.wallet_check_verdict)).toStartWith("released: ");
+    expect(typeof write!.patch.wallet_checked_at).toBe("string");
+    // One write, so a release costs no extra hop.
+    expect(wire.writes).toHaveLength(1);
+  });
+
+  /*
+   * THE MIRROR, and it is the half that would have been skipped. Asserting only
+   * "a refused track is stamped" passes on an implementation that stamps
+   * EVERYTHING, which would erase the distinction the column exists to record.
+   * So both populations are claimed, by name, in one run.
+   */
+  it("tells the two populations apart in one pass, by name", async () => {
+    const wire = wireFor([
+      { id: "freed", run: HALT },
+      { id: "kept", run: RAN },
+    ]);
+    await drive(wire, releaseWalletStoppedTracks(wire as unknown as never, 10));
+
+    const verdicts = new Map<string, string>();
+    for (const w of wire.writes)
+      for (const id of (inList(w.filters, "id") ?? []) as string[])
+        verdicts.set(id, String(w.patch.wallet_check_verdict));
+    // Released tracks are named by `.eq("id", …)` rather than `.in`.
+    for (const w of wire.writes) {
+      const one = eqValue(w.filters, "id");
+      if (typeof one === "string") verdicts.set(one, String(w.patch.wallet_check_verdict));
+    }
+
+    expect([...verdicts.keys()].sort()).toEqual(["freed", "kept"]);
+    expect(verdicts.get("freed")).toStartWith("released: ");
+    expect(verdicts.get("kept")).toBe(
+      "the newest run is not a wallet halt, so the hold is about the work",
+    );
+  });
+
+  /*
+   * ── AND IT COSTS ONE ROUND, NOT ONE PER TRACK ────────────────────────────
+   *
+   * The obvious shape is an update inside the loop. On this deployment that is
+   * one Worker-to-PostgREST hop per considered track at ~275ms warm, so a
+   * population of forty adds eleven seconds to a tick to write a note. The
+   * stamps are grouped by their verdict sentence and issued together.
+   *
+   * Six refused tracks sharing one sentence must therefore produce ONE write.
+   */
+  it("groups the refusals by sentence, so forty tracks do not cost forty hops", async () => {
+    const many = Array.from({ length: 6 }, (_, i) => ({ id: `kept-${i}`, run: RAN }));
+    const wire = wireFor(many);
+    await drive(wire, releaseWalletStoppedTracks(wire as unknown as never, 10));
+
+    expect(wire.writes).toHaveLength(1);
+    expect(inList(wire.writes[0].filters, "id")).toHaveLength(6);
   });
 });

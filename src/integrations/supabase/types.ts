@@ -7566,6 +7566,8 @@ export type Database = {
           updated_at: string
           user_id: string
           waived: Json
+          wallet_check_verdict: string | null
+          wallet_checked_at: string | null
           wallet_released_at: string | null
           workspace_id: string
         }
@@ -7601,6 +7603,8 @@ export type Database = {
           updated_at?: string
           user_id: string
           waived?: Json
+          wallet_check_verdict?: string | null
+          wallet_checked_at?: string | null
           wallet_released_at?: string | null
           workspace_id?: string
         }
@@ -7636,6 +7640,8 @@ export type Database = {
           updated_at?: string
           user_id?: string
           waived?: Json
+          wallet_check_verdict?: string | null
+          wallet_checked_at?: string | null
           wallet_released_at?: string | null
           workspace_id?: string
         }

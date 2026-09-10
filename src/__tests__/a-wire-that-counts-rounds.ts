@@ -92,6 +92,20 @@ export class FakeBuilder {
   limit() {
     return this;
   }
+  /**
+   * The patch of a write, or null on a read.
+   *
+   * A WRITE IS A ROUND TRIP TOO, which is the reason this is here: the hop
+   * guards were counting reads only, so a handler that read in one fan-out and
+   * then wrote once per row looked as cheap as one that wrote once. Recorded on
+   * the client as well as the builder, so a guard can say WHAT was written and
+   * to WHICH rows, not merely that something was.
+   */
+  patch: Record<string, unknown> | null = null;
+  update(patch: Record<string, unknown>) {
+    this.patch = patch;
+    return this;
+  }
   one = false;
   /** `.maybeSingle()` / `.single()`: the wire answers the first row, or null. */
   maybeSingle() {
@@ -103,6 +117,10 @@ export class FakeBuilder {
     return this;
   }
   private answer(): unknown {
+    if (this.patch) {
+      this.client.writes.push({ table: this.table, patch: this.patch, filters: this.filters });
+      return null;
+    }
     const rows = this.client.rowsFor(this.table, this.cols, this.filters);
     if (this.one && Array.isArray(rows)) return rows[0] ?? null;
     return rows;
@@ -136,6 +154,8 @@ export class FakeWire {
   rounds = 0;
   /** Every table read, in the order the wire answered them. */
   reads: string[] = [];
+  /** Every write the wire answered, with its patch and the rows it named. */
+  writes: Array<{ table: string; patch: Record<string, unknown>; filters: Filter[] }> = [];
   constructor(private readonly fixture: Fixture) {}
   from(table: string) {
     return new FakeBuilder(this, table);
