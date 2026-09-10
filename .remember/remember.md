@@ -545,3 +545,32 @@ every six hours, "fourteen drafted this morning" when it was one) and each was c
 precisely enough to be checked. **Run the check the way the CHECKER runs it** rather than
 reimplementing it alongside and comparing your own answer to the world. And when a peer's ruling
 contradicts you, look for the counter-evidence in your own message first — mine was there both times.
+
+## LANE 1 SESSION END — 2026-09-10 ~04:00 UTC — five instruments that lied
+
+**Ten commits, laws 28–30, every one verified on the served build.** Closed at ahead 0 / behind 0,
+with all three lanes verified by me before close.
+
+**The one thing to carry.** Five separate instruments reported a clean world they had never looked
+at: `COMPONENTS.md` went stale and cost a lane a wrong "Meridian has no text input" while `Input`
+sat in `forms.tsx` with 37 importers; `every-field-announces-itself` walked 11 hand-written
+directories out of 40; my own route guards passed because my sweep had rewritten their literals; the
+grading tick logged 276 runs and zero failures while never once reading the evidence; and
+`check-migrations.sh` has never run at all. **The Meridian ratchet derives its domain from the tree
+and is the only one that never lied.** Derive a domain, never list it.
+
+**And subtract the guard's own blind spots before reporting a census.** Lane 3's "fifteen findings"
+was 4 comments, 7 blind spots and 3 real. My "54 migrations" was 22; their "16" was also 22. A census
+that cries fifteen and means three is how a guard gets switched off — which is exactly what happened
+to the migration gate.
+
+**My worst error was an inference wearing a measurement's clothes.** I grepped callers of
+`settleForecast` and `listDueForecasts`, found only UI components, and told a peer and the handoff
+that grading never runs. I never searched `auditDueForecasts`. There was a tick, every six hours, for
+months. An incomplete grep is an inference, and I had "a recorded cause outranks an inferred shape"
+already written down.
+
+**What worked:** making every guard fail before trusting it; reading the accessibility tree instead
+of the pixels; and Lane 2's line, which I am keeping — every control either of us lost time to
+tonight shared an assumption with the thing it was checking, and **the served page was the only one
+that did not**.

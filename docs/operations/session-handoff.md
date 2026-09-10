@@ -3608,3 +3608,71 @@ empty exactly when the rule works.
 **And `e2e/helpers/first-paint-budget.mjs` is now committed** — the static import closure from the
 client entry, which is what a browser must have before first paint. **62 chunks / 978 KB** on this
 tree, against a 4.5 MB build total. Quoting the total is the mistake it exists to stop.
+
+## LANE 1 SESSION END — 2026-09-10 ~04:00 UTC — the entry, the address, and five instruments that lied
+
+**Closed by the founder. All three lanes verified at ahead 0 / behind 0 by Lane 1 before close.**
+
+### What shipped, and it is all verified on the served build
+
+| law | what it was |
+| --- | --- |
+| **28 — the address is part of the name** | `/approvals`→`/inbox`, `/arriving`→`/evidence`, `/crew`→`/team`, `/sync`→`/sources`. 147 files. No redirect stubs, per `legacy-redirects.ts`'s own ruling, checked not assumed: all four `_authenticated`, and **0 of 234 message rows** held one in a persisted href. |
+| **29 — two units never share a mark** | The road drew **Design blank** while the headline counted four design gates standing there. `count` is `spine_tracks.station`; the gates are `prds.design_gate_status`; the road never joined the queue, though `APPROVAL_KIND_STATION` already mapped `design_gate → design`. Now *"Design: needs you, 4 waiting on you"*, and 2+4=6 matches headline and rail. |
+| **30 — a class that sets `display` owns the layout** | `.sp-inner` is grid, `/settings` wrote flex, so `flex: 0 1 240px`, `flex-wrap` and `items-start` were **all inert** — the two-column layout its own comment describes had **never once rendered**. Live: `240px 854px`, both columns at y 86. |
+
+Also: the composer's picker and placeholder contradicted each other **on the default**, so on the
+first frame of every arrival; the home's rhythm was stated in two places that disagreed once;
+*"Draft is revising the spec the spec"*; the entry drew a promise while ten earlier bets had lapsed
+unmentioned; `aria-modal="true"` on a modal with no focus trap.
+
+### The finding that outranks all of them
+
+**Grading looked like it never ran. It ran every six hours and had never looked.** My claim — "every
+caller of `settleForecast` is a UI component, so there is no tick" — was **wrong**: I never searched
+`auditDueForecasts`. Lane 3 found `calibrate-tick`, cron `0 */6 * * *`, **276 runs, zero failures**,
+writing `verdict inconclusive · confidence 0 · read [] · cited []` on every forecast for months while
+**13 of 15 had between one and nineteen eligible signals in their window**. An incomplete grep is an
+inference.
+
+### The pattern, and it is the thing to carry
+
+**Five instruments reported a clean world they had never looked at:**
+
+1. `COMPONENTS.md` stale → a lane recorded "Meridian has no text input" while `Input` sat in
+   `forms.tsx` with **37 importers**.
+2. `every-field-announces-itself` walked **11 hand-written directories of 40** → an unnamed field
+   shipped.
+3. My route guards passed after the rename because **my own sweep rewrote their literals**.
+4. The grading tick: 276 successes, zero failures, zero evidence ever read.
+5. `check-migrations.sh` **has never run** — exits 0 on unset `PGHOST`, absent from `ci.yml`.
+
+**The Meridian ratchet derives its domain from the tree and is the only one that never lied.**
+Derive domains; never list them. And **subtract the guard's own blind spots before reporting a
+census** — Lane 3's "fifteen" was 4 comments, 7 blind spots and **3 real**; my "54" was 22; their
+"16" was 22. A census that cries fifteen and means three is how a guard gets switched off.
+
+Every guard written tonight was **made to fail first**.
+
+### Open, and none of it is mine to close
+
+- **The 06:00 UTC forecast read.** SQL and read-order in Lane 3's entry. **Read the order:** if
+  `read` is empty, check the build before concluding the fix is wrong.
+- **The 22-row ledger backfill** — refused by Lane 3's classifier, with the founder. All 22 verified
+  applied. Lane 3's recommendation, which I endorse: **turn the gate on properly rather than do the
+  backfill quickly** — the backfill fixes one night, their lint rule fixes the cause.
+- **CI database credentials** and removing the gate's silent `PGHOST` pass.
+
+### Verified at close by Lane 1
+
+All four of tonight's migrations applied **and** ledgered, each checked by **effect** not by record:
+`20260910002900` (2 slugs), `100100` (`wallet_released_at`), `100200` (`backed_off_at`), `100300`
+(both `wallet_check` columns). `20260909100800_mission_marks` was missing its row; byte-compared
+against production and stamped. **Nothing outstanding to apply.**
+
+Two stale worktrees from 2026-09-01 hold a housekeeping commit each and uncommitted **deletions of
+film masters** — nothing of tonight's, and not committed.
+
+**The append-never-overwrite rule was tested for real:** Lane 3 hit a rebase conflict in both handoff
+files and kept both sides in file order. Zero conflict markers, nothing truncated, all three lanes
+present in both files.
