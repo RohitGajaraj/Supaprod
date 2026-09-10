@@ -208,5 +208,11 @@ waiting on you" and "we could not find out" are different sentences.
   own ruling: the 404 with a door is the correct landing.
 - **Do not start a dev server** — Chrome cannot reach it from these worktrees. Walk `supaprod.ai`.
   It is the better instrument anyway: it is the served build.
-- **Lovable's `latest_commit_sha` tracks the SYNC, not your push.** Check it is at or past your tip
-  before deploying, or the build misses your commits.
+- **Lovable's `latest_commit_sha` tracks the SYNC, not your push.** Measured today: the push landed
+  on GitHub at once and Lovable still reported the previous tip **six minutes later**. A publish
+  builds the commit Lovable holds AT THAT MOMENT, so a deploy issued during that window silently
+  builds somebody else's tree. Poll `get_project` until the sha is yours, THEN deploy, then confirm
+  the screenshot url carries your short sha.
+- **The signed-in browser session expires.** It went from signed-in to `/login` inside one session,
+  and signing back in is not something this agent does. So plan live verification EARLY, while the
+  session is warm, rather than as the last step before close.

@@ -3895,9 +3895,19 @@ desk it moves UP into the region's sub, because nothing else on the page says it
 working tree clean. Rebased cleanly twice; nothing of Lane 2's touched.**
 `bunx tsc` 0 · `bun test` **15,857 pass / 0 fail** · `bun run build` exit 0 · `docs:check` clean.
 
-**NOT YET VERIFIED ON THE SERVED BUILD.** At close, Lovable's `latest_commit_sha` was still
-`b4b23f53` — Lane 2's tip, not mine. Deploying at that moment would have built a tree without any of
-this. See the last section for exactly what to read on the served page to settle it in one pass.
+**DEPLOYED, AND NOT WALKED. Both halves of that matter and they are different claims.**
+
+*Deployed:* Lovable synced ~6 minutes after the push and now reports
+`latest_commit_sha: a2099daef87ea96a21467d59b19a2e27e49348e2`, with its own screenshot taken against
+`id-preview-a2099dae`. So the built tree **is** this tip. Note the trap that nearly caught this: the
+first `deploy_project` was issued while Lovable still held `b4b23f53`, and a publish builds the
+commit Lovable holds **at that moment**, not the one on GitHub. It was re-deployed after the sync.
+
+*Not walked:* the browser session expired mid-verification and `/start` now redirects to `/login`.
+Signing in is not something this agent does, so **no signed-in surface in this session's work has
+been seen rendering.** Everything below rests on `tsc`, 15,857 tests, a clean production build, and
+guards proved by failing — which is a good position and is not the same thing as having looked. The
+last section names the three reads that settle it in one pass.
 
 ### What the founder said, and what the last answer got wrong
 
