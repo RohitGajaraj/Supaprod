@@ -141,7 +141,92 @@ const REGEX_RULES: RegexRule[] = [
  * no clock. `error`-severity findings are apply-fatal (the migration would not apply);
  * `warn`-severity are advisory risks a human should confirm.
  */
-export function lintMigrationSql(sql: string): MigrationLintFinding[] {
+/**
+ * ── A MIGRATION THAT STAMPS THE LEDGER MUST STAMP ITSELF ─────────────────────
+ *
+ * Measured 2026-09-10. **22 migrations in this repo write rows into
+ * `supabase_migrations.schema_migrations` on behalf of OTHER migrations** --
+ * catch-up files, written after a lane applies a batch by hand -- and they stamp
+ * 112 distinct versions between them. **NOT ONE OF THE 22 STAMPS ITS OWN
+ * VERSION.** Zero for twenty-two is not a tendency, it is a property.
+ *
+ * The consequence is the drift itself. Lovable records the catch-up file under
+ * its own apply-time version, so the catch-up's FILE version is the one that
+ * goes missing from the ledger, and `check-migrations.sh` -- which compares
+ * filenames against that ledger -- would report those files as PENDING when they
+ * are applied. On 2026-09-10 that was 22 files, all 22 verified applied by hand:
+ * **a gate that cries 22 and means zero is a gate somebody switches off.**
+ *
+ * ── WHY THIS RULE RATHER THAN A SCHEMA ORACLE ────────────────────────────────
+ *
+ * The tempting fix is to stop trusting the ledger and assert the OBJECTS each
+ * migration creates. It does not survive contact: six of those 22 are DATA
+ * migrations -- seeding 2,225 lineage rows, setting a flag on 283, reserving a
+ * slug, tightening a constraint, writing ledger rows -- and **you cannot derive
+ * from arbitrary SQL which object to assert.** An object oracle needs a
+ * hand-written expectation per migration, which is one more hand-maintained
+ * second source, and this repo retired four of those in a single night for
+ * exactly that failure.
+ *
+ * The ledger is not unreliable in principle. It is unreliable because 22 files
+ * write it by hand and none writes its own row. **Close the cause and the drift
+ * has no source**, which is what this does: it is derivable (the file's own name
+ * against the versions it inserts), it needs no database, it maintains nothing,
+ * and it would have caught all 22 historically.
+ *
+ * ── AND IT HAS AN EFFECTIVE DATE, WHICH IS THE POINT OF THE WHOLE EXERCISE ───
+ *
+ * Run over the repo with no cutoff it flags all 22 and FAILS THE BUILD, on files
+ * that are already applied and cannot be usefully fixed: editing an applied
+ * migration changes nothing in the database, and the versions they omitted are a
+ * closed, verified set awaiting one backfill.
+ *
+ * **A guard that fires 22 times and means zero is a guard somebody switches
+ * off** -- which is the exact sentence this repo used about `check-migrations.sh`
+ * an hour before this rule was written. Repeating that mistake inside the fix for
+ * it would be the funniest possible outcome and the least useful.
+ *
+ * So the rule governs migrations written FROM `LEDGER_STAMP_RULE_FROM` onward. It
+ * cannot be quietly widened backwards to bless a new offender, because
+ * `a-catch-up-migration-stamps-itself.test.ts` pins the pre-cutoff set at exactly
+ * 22 by name.
+ */
+
+/**
+ * The rule's effective date: migrations from this version onward must stamp
+ * themselves. Everything before it is the 22 catch-up files measured on
+ * 2026-09-10, which are pinned by name in the guard rather than trusted to a
+ * count.
+ */
+export const LEDGER_STAMP_RULE_FROM = "20260910000000";
+function ledgerStampMissesItself(
+  clean: string,
+  filename: string,
+): { line: number; stamped: string[] } | null {
+  const own = /^([0-9]+)/.exec(filename)?.[1];
+  if (!own) return null;
+  /* Lexicographic, which is correct here: both sides are zero-padded
+     `YYYYMMDDHHMMSS`, so string order IS chronological order. */
+  if (own < LEDGER_STAMP_RULE_FROM) return null;
+  const at = clean.search(/insert\s+into\s+supabase_migrations\.schema_migrations/i);
+  if (at === -1) return null;
+  /* The whole statement, so a multi-row VALUES list is read in full. A file may
+     carry more than one such insert; the union of everything they stamp is what
+     matters, because stamping yourself anywhere in the file is enough. */
+  const stamped = new Set<string>();
+  const re = /insert\s+into\s+supabase_migrations\.schema_migrations/gi;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(clean)) !== null) {
+    const end = clean.indexOf(";", m.index);
+    const stmt = clean.slice(m.index, end === -1 ? undefined : end);
+    for (const v of stmt.matchAll(/'([0-9]{8,20})'/g)) stamped.add(v[1]);
+  }
+  if (stamped.size === 0) return null;
+  if (stamped.has(own)) return null;
+  return { line: lineOf(clean, at), stamped: [...stamped].sort() };
+}
+
+export function lintMigrationSql(sql: string, filename?: string): MigrationLintFinding[] {
   const findings: MigrationLintFinding[] = [];
   if (!sql) return findings;
   const clean = blankComments(sql);
@@ -201,6 +286,23 @@ export function lintMigrationSql(sql: string): MigrationLintFinding[] {
         line: lineOf(clean, stmt.index),
         message:
           "ADD COLUMN ... NOT NULL without a DEFAULT fails on a table that already has rows. Add a DEFAULT, or backfill then SET NOT NULL.",
+      });
+    }
+  }
+
+  // 4. A catch-up migration that records other versions and not its own.
+  if (filename) {
+    const miss = ledgerStampMissesItself(clean, filename);
+    if (miss) {
+      findings.push({
+        severity: "error",
+        rule: "ledger-stamp-omits-self",
+        line: miss.line,
+        message:
+          `This migration writes supabase_migrations.schema_migrations for ${miss.stamped.length} ` +
+          `other version(s) and not for its own. Add its own version to the VALUES list. ` +
+          `A catch-up file that stamps everything but itself is the reason check-migrations ` +
+          `reports applied migrations as pending.`,
       });
     }
   }

@@ -28,7 +28,7 @@ let warnCount = 0;
 for (const f of files) {
   let findings: MigrationLintFinding[];
   try {
-    findings = lintMigrationSql(readFileSync(join(DIR, f), "utf8"));
+    findings = lintMigrationSql(readFileSync(join(DIR, f), "utf8"), f);
   } catch (e) {
     console.error(`[mig-lint] could not read ${f}: ${e instanceof Error ? e.message : e}`);
     continue;
