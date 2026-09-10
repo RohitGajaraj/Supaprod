@@ -3236,11 +3236,30 @@ feel the value"* has a measurable cause. Measured 2026-09-10 01:56 UTC, samples 
 **Fourteen of the fifteen carry a `forecast_next_check_at` that is ALSO in the past** — scheduled,
 came due, nothing ran. Not one of the 51 (samples included) has ever been deferred.
 
-The machinery is complete — `listDueForecasts`, `settleForecast`, `deferForecastCheck`,
-`reopenForecast` — and **every caller is a UI component** (`ForecastDeskPanel`, `ArtifactPane`,
-`use-spine-strip`). No cron, no edge function, no agent. **Grading only happens if a person opens
-the Forecast Desk and does it by hand.** That is the founder's own question turned on us: *what am I
-asking a human to do that an agent should do in the background?* Dispatched to Lane 3 as the tick.
+~~The machinery is complete and every caller is a UI component. No cron, no agent. Grading only
+happens if a person opens the Forecast Desk by hand.~~
+
+**WRONG, corrected by Lane 3 the same night (`99b232325`), and the truth is worse.** I grepped
+callers of `settleForecast` and `listDueForecasts`, found only UI components, and concluded there
+was no tick. **I never searched for `auditDueForecasts`.** There is a tick:
+`src/routes/api/public/hooks/calibrate-tick.ts`, cron `0 */6 * * *`, active, 276 runs, **zero
+failures**. It has run every six hours for months.
+
+**It has been reporting an empty world it never looked at.** Every draft on all 15:
+`verdict "inconclusive" · confidence 0 · read [] · cited []`, with rationales reading *"[WHAT YOU
+CAN READ:NOTHING]"* and *"No evidence dated after this decision could be read"* — while **13 of the
+15 had between one and nineteen eligible signals in their window**. Three causes, all Lane 3's:
+`readKitForForecast` is guarded on `decision.created_at`, the caller selected six columns that did
+not include it and *cast* rather than checked, so the signals read never ran once for any forecast
+ever; a bare `.neq` pair discarded 69% of eligible evidence because `NULL <> 'x'` is NULL; and a
+dropped error reported an unreadable table as an empty one.
+
+**A cast is not a check.** It tells the compiler what to believe about a value the query never asked
+for. The guard now derives the expected columns from the kit's own reads rather than listing them —
+a hand-written list would have been a third source and drifted like the two above.
+
+*The lesson for me is the one I already had written down: a recorded cause outranks an inferred
+shape. An incomplete grep is an inference.*
 
 Lane 1's half shipped (`7ccd28bf6`): the entry drew *"you will know in N days"* in two workspaces
 where ten and five earlier bets had lapsed unmentioned, which told the reader the grading works. It
