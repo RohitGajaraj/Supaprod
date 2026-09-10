@@ -12,16 +12,20 @@ import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Github, Lock, Unlock } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { Dialog } from "@/components/meridian/Dialog";
+import { Action, Actions } from "@/components/meridian/surface-parts";
+/*
+ * ── THE INPUT IS STILL SHADCN'S, AND THAT IS THE HONEST STATE ───────────────
+ *
+ * Meridian has a Dialog, an Action and a Picker, and NO text input. So this
+ * dialog ports to Meridian everywhere Meridian has an answer and keeps
+ * `ui/input` where it does not, rather than either inventing a control here --
+ * which would be a design-system addition wearing a component pass's clothes --
+ * or leaving the whole dialog on the retired module because one part of it has
+ * nowhere to go. The remaining import is the open question, in one line, where
+ * the next reader meets it.
+ */
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { toast } from "@/lib/notify";
 import { createRepoForProduct } from "@/lib/connectors/product-binding.functions";
 import { humanWriteError } from "@/lib/roles.functions";
@@ -82,96 +86,104 @@ export function CreateRepoModal({
   });
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      {/* See the note in VouchersPanel: without `data-mrd`, this dialog's
-          focus ring resolves to the retired --ds-focus-color. */}
-      <DialogContent data-mrd="" className="max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Github className="h-4 w-4" />
-            Create a GitHub repo
-          </DialogTitle>
-          <DialogDescription>
-            Creates a new repo in your GitHub account and binds it to this product automatically.
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="space-y-4 mt-2">
-          <div>
-            <Label htmlFor="repo-name" className="text-xs font-medium">
-              Repo name
-            </Label>
-            <Input
-              id="repo-name"
-              value={name}
-              onChange={(e) => setName(slugify(e.target.value))}
-              placeholder="my-product"
-              className="mt-1 font-mono text-sm"
-              autoFocus
-            />
-            <p className="text-mrd-tiny text-muted-foreground mt-1">
-              Letters, numbers, hyphens, dots, and underscores only.
-            </p>
-          </div>
-
-          <div>
-            <Label htmlFor="repo-org" className="text-xs font-medium">
-              Organization <span className="text-muted-foreground font-normal">(optional)</span>
-            </Label>
-            <Input
-              id="repo-org"
-              value={org}
-              onChange={(e) => setOrg(e.target.value)}
-              placeholder="your-org"
-              className="mt-1 font-mono text-sm"
-            />
-            <p className="text-mrd-tiny text-muted-foreground mt-1">
-              Leave blank to create in your personal account.
-            </p>
-          </div>
-
-          <div>
-            <Label htmlFor="repo-desc" className="text-xs font-medium">
-              Description <span className="text-muted-foreground font-normal">(optional)</span>
-            </Label>
-            <Input
-              id="repo-desc"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Short description"
-              className="mt-1 text-sm"
-            />
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setIsPrivate((p) => !p)}
-            aria-pressed={isPrivate}
-            className="flex w-full items-center gap-2 rounded-md text-left text-sm text-muted-foreground outline-none hover:text-foreground"
-          >
-            {isPrivate ? (
-              <Lock className="h-3.5 w-3.5 shrink-0 text-amber-500" />
-            ) : (
-              <Unlock className="h-3.5 w-3.5 shrink-0" />
-            )}
-            {isPrivate ? "Private repo" : "Public repo"}
-            <span className="text-mrd-tiny ml-auto text-muted-foreground/50">click to toggle</span>
-          </button>
-        </div>
-
-        <div className="flex items-center justify-end gap-3 mt-4 pt-3 border-t border-border/40">
-          <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)}>
+    <Dialog
+      open={open}
+      /* Meridian's Dialog reports a DISMISSAL; the caller owns what that means.
+         Every call site here drives `onOpenChange` with a setter. */
+      onClose={() => onOpenChange(false)}
+      title={
+        <span className="flex items-center gap-mrd-3">
+          <Github className="h-4 w-4" />
+          Create a GitHub repo
+        </span>
+      }
+      actions={
+        <Actions>
+          <Action variant="quiet" onClick={() => onOpenChange(false)}>
             Cancel
-          </Button>
-          <Button
-            size="sm"
+          </Action>
+          <Action
+            variant="primary"
             onClick={() => mutation.mutate()}
             disabled={!name || mutation.isPending}
           >
             {mutation.isPending ? "Creating..." : "Create repo"}
-          </Button>
+          </Action>
+        </Actions>
+      }
+    >
+      <p className="text-mrd-base text-mrd-mute">
+        Creates a new repo in your GitHub account and binds it to this product automatically.
+      </p>
+
+      <div className="mt-mrd-4 flex flex-col gap-mrd-5">
+        <div>
+          <label htmlFor="repo-name" className="text-mrd-label text-mrd-ink">
+            Repo name
+          </label>
+          <Input
+            id="repo-name"
+            value={name}
+            onChange={(e) => setName(slugify(e.target.value))}
+            placeholder="my-product"
+            className="font-mrd-mono mt-mrd-2 text-mrd-base"
+            autoFocus
+          />
+          <p className="text-mrd-tiny text-mrd-mute mt-mrd-2">
+            Letters, numbers, hyphens, dots, and underscores only.
+          </p>
         </div>
-      </DialogContent>
+
+        <div>
+          <label htmlFor="repo-org" className="text-mrd-label text-mrd-ink">
+            Organization <span className="text-mrd-mute">(optional)</span>
+          </label>
+          <Input
+            id="repo-org"
+            value={org}
+            onChange={(e) => setOrg(e.target.value)}
+            placeholder="your-org"
+            className="font-mrd-mono mt-mrd-2 text-mrd-base"
+          />
+          <p className="text-mrd-tiny text-mrd-mute mt-mrd-2">
+            Leave blank to create in your personal account.
+          </p>
+        </div>
+
+        <div>
+          <label htmlFor="repo-desc" className="text-mrd-label text-mrd-ink">
+            Description <span className="text-mrd-mute">(optional)</span>
+          </label>
+          <Input
+            id="repo-desc"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Short description"
+            className="mt-mrd-2 text-mrd-base"
+          />
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setIsPrivate((p) => !p)}
+          aria-pressed={isPrivate}
+          className="text-mrd-base text-mrd-mute hover:text-mrd-ink flex w-full items-center gap-mrd-3 rounded-mrd-ctl text-left outline-none"
+        >
+          {/* NO HUE ON THE GLYPH. It was `text-amber-500`, a raw palette colour,
+              and the replacement is not another colour: the lock and the open
+              lock are already two different SHAPES, which is the distinction
+              Meridian asks a label to carry. A colour here would say a second
+              time what the shape says once, in a token that would have to be
+              invented to say it. */}
+          {isPrivate ? (
+            <Lock className="h-3.5 w-3.5 shrink-0" />
+          ) : (
+            <Unlock className="h-3.5 w-3.5 shrink-0" />
+          )}
+          {isPrivate ? "Private repo" : "Public repo"}
+          <span className="text-mrd-tiny text-mrd-faint ml-auto">click to toggle</span>
+        </button>
+      </div>
     </Dialog>
   );
 }
