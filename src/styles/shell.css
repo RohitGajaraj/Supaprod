@@ -111,6 +111,10 @@
   --shell-ctl-sm: 34px; /* icon button, Ask, the settings door */
   --shell-work-max: 1400px;
   --shell-ctx-w: 316px;
+  /* The index column's width, the mirror of --shell-ctx-w. 240px is the
+     figure /settings already asked for in the flex basis that never
+     applied, so this ships the width that surface was written for. */
+  --shell-index-w: 240px;
 
   --shell-z-dock: 30; /* the composer dock, above the work region */
   --shell-z-tip: 50; /* the rail's label, over the row it names */
@@ -2412,6 +2416,63 @@ body:has([data-page-composer]) .sp-work {
   border-top: 1px solid var(--mrd-line-soft);
   position: relative;
 }
+/* ── THE INDEX COLUMN, WHICH IS `.sp-ctx` MIRRORED ────────────────────────
+ *
+ * A surface whose nav belongs on the LEFT rather than its context on the
+ * right. /settings is the only one today, on the founder's own ruling for
+ * that surface.
+ *
+ * MEASURED ON THE SERVED BUILD, 2026-09-10, /settings?section=connections at
+ * a 1512px viewport, computed styles off the live element:
+ *
+ *   parent class  "sp-inner flex flex-wrap items-start gap-y-mrd-6"
+ *   display       grid                <- Tailwind's `.flex` LOST
+ *   columns       1146.24px           <- one track
+ *   child 1  x 258  w 1146  y  86   position: sticky     (the nav)
+ *   child 2  x 258  w 1146  y 757   position: static     (the pane)
+ *
+ * `.sp-inner { display: grid }` and Tailwind's `.flex { display: flex }` are
+ * both one class of specificity, so source order decided it and this sheet
+ * won. Everything the surface said in flex terms was therefore inert: the
+ * nav's `flex: 0 1 240px`, the container's `flex-wrap`, `items-start`. The
+ * two-column layout that route's own comment describes has never rendered.
+ * The nav was a full-width row ABOVE the pane -- and because it also carried
+ * `position: sticky; top: 0`, it rode down over the pane on scroll, hiding
+ * the left of every row behind it. Found by Lane 2 walking the served
+ * surface; nothing errored, nothing logged, and the nav highlighted
+ * correctly. The page succeeded at being unreadable.
+ *
+ * SO IT IS SAID IN GRID, which is what the container actually is, rather
+ * than fought with utilities that silently do nothing. Same shape as
+ * `.sp-ctx` below, same split, same promise: on a narrow region it STACKS
+ * rather than hides, because a nav that disappears is a door that
+ * disappears.
+ *
+ * AND `position: sticky` BELONGS TO THE TWO-COLUMN CASE ONLY. Pinning a
+ * 240px column beside the work is the point of it; pinning a full-width row
+ * on top of the work is the defect above. It is granted here and nowhere
+ * else, so the stacked layout cannot regrow it. */
+/* A DATA ATTRIBUTE RATHER THAN AN `sp-` CLASS, deliberately. `sp-` is a
+ * RETIRED namespace -- the Meridian ratchet counts every one left in JSX as
+ * debt awaiting a port, and `.sp-ctx` above is on that list rather than being
+ * live API to extend. Minting `.sp-index` beside it would have moved debt and
+ * called it a feature, and the ratchet caught exactly that (settings 2 -> 3).
+ * `data-shell-index` is the same hook with no lineage, and it matches
+ * Meridian's own `data-mrd` idiom. */
+[data-shell-index] {
+  min-width: 0;
+}
+@container (min-width: 1120px) {
+  .sp-inner:has(> [data-shell-index]) {
+    grid-template-columns: var(--shell-index-w) minmax(0, 1fr);
+  }
+  [data-shell-index] {
+    position: sticky;
+    top: 0;
+    align-self: start;
+  }
+}
+
 /* 1120px is --sp-ctx-split. A @container condition cannot read a custom
  * property, so the number is written literally here and recorded there. */
 @container (min-width: 1120px) {

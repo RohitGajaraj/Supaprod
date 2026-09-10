@@ -511,11 +511,19 @@ function SettingsIndex({ active, onSet }: { active: SectionId; onSet: (id: Secti
 
   return (
     <div
+      /*
+       * `data-shell-index` IS THE WHOLE LAYOUT NOW, and what it replaced never ran.
+       * `.sp-inner` is `display: grid`, so the `flex: 0 1 240px` that stood
+       * here was inert and this nav rendered as a full-width row above the
+       * pane -- with `position: sticky` on it, which is what dragged it down
+       * over the pane on scroll. Measured on the served build 2026-09-10;
+       * the reasoning and the numbers are in shell.css beside the class.
+       *
+       * The 240px it asked for is now `--shell-index-w`, and sticky is
+       * granted only where two columns exist.
+       */
+      data-shell-index=""
       style={{
-        flex: "0 1 240px",
-        minWidth: 200,
-        position: "sticky",
-        top: 0,
         display: "flex",
         flexDirection: "column",
         gap: "var(--mrd-s3)",
@@ -609,7 +617,12 @@ function SettingsPage() {
     // rather than hides when the work region is narrow, because a nav that
     // disappears is a door that disappears.
     <div
-      className="sp-inner flex flex-wrap items-start gap-y-mrd-6"
+      /* NO `flex flex-wrap items-start` HERE ANY MORE: `.sp-inner` is a grid
+         and every one of those was inert (measured on the served build,
+         2026-09-10). The two columns come from
+         `.sp-inner:has(> [data-shell-index])`,
+         which is the same idiom `.sp-ctx` uses for a column on the right. */
+      className="sp-inner gap-y-mrd-6"
       /*
        * `rowGap` ALONE, and the column gap is deliberately not restated. It was
        * `gap: var(--sp-space-6) var(--sp-ctx-gap)`, and `--sp-ctx-gap` (52px) has

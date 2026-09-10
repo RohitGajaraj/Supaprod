@@ -1390,6 +1390,61 @@ fail first — stubbing `withWaiting` to return its input failed six of its asse
 
 ---
 
+### 30. A class that sets `display` owns the layout, and the utilities beside it are inert
+
+**Never write flex utilities on an element whose class makes it a grid, or the reverse.** They do
+not merge and they do not warn: one wins on source order and the other silently does nothing.
+
+**Measured on the served build, 2026-09-10, `/settings?section=connections`, 1512px viewport,
+computed off the live elements:**
+
+```
+parent class  "sp-inner flex flex-wrap items-start gap-y-mrd-6"
+display       grid            <- Tailwind's .flex LOST
+columns       1146.24px       <- one track
+child 1  x 258  w 1146  y  86   position: sticky   (the section nav)
+child 2  x 258  w 1146  y 757   position: static   (the work pane)
+```
+
+`.sp-inner { display: grid }` and `.flex { display: flex }` are both one class of specificity, so
+source order decided it and `shell.css` won. Everything that surface said in flex terms was
+therefore inert: the nav's `flex: 0 1 240px`, the container's `flex-wrap`, its `items-start`. **The
+two-column layout that route's own comment describes had never once rendered.** The nav was a
+full-width row *above* the pane — and it also carried `position: sticky; top: 0`, so it rode down
+over the pane on scroll and hid the left ~250px of every row.
+
+**Nothing could catch it.** No error, no console output, the nav highlighted correctly, the content
+was all present in the DOM. `tsc` sees a string; CSS has no opinion about a property that loses. The
+page succeeded at being unreadable, which is the worst failure mode there is — a surface that fails
+loudly gets fixed.
+
+**The fix is to say it in the layout the container actually is.** `.sp-inner` already had the idiom:
+`.sp-inner:has(.sp-ctx)` opens a second track inside a container query, and the context column
+*stacks* below the split rather than hiding. The index column is that mirrored —
+`.sp-inner:has(> [data-shell-index])` → `grid-template-columns: var(--shell-index-w) minmax(0, 1fr)`
+— and it keeps the same promise, because a nav that disappears is a door that disappears. Verified
+on the served page: `240px 854.242px`, nav at x 258 w 240, pane at x 550 w 854, **both at y 86**.
+
+**`position: sticky` belongs to the two-column case only,** so it is granted inside the container
+query and nowhere else. Pinning a 240px column beside the work is the point of it; pinning a
+full-width row on top of the work is the defect. The stacked layout cannot regrow it.
+
+**A data attribute, not a new `sp-` class** — and the ratchet is what forced that. `sp-` is a
+*retired* namespace: `.sp-ctx` is on the debt list awaiting a port, not live API to extend. Minting
+`.sp-index` beside it moved debt and called it a feature, and the ratchet failed on exactly that
+(settings 2 → 3) before it shipped. `data-shell-index` is the same hook with no lineage, and it
+matches Meridian's own `data-mrd`.
+
+`a-grid-does-not-read-flex.test.ts` reads the display-setting classes out of `shell.css` — so a
+class that changes its own display cannot leave the guard describing the old one — and fails on any
+element carrying utilities its layout class makes inert. Restoring the original className fails it
+by name: *"settings.tsx:624 `.sp-inner` is display:grid, so flex, flex-wrap does nothing"*.
+
+Found by Lane 2 walking the served surface. It is the strongest argument in this document for the
+founder's own rule: **wear the user's hat at every step, not at the review.**
+
+---
+
 ## Working with the founder
 
 **He refines by seeing, not by specifying.** Ship a faithful attempt fast, then expect two or three taste passes. He reviews element by element and expects every item in a feedback batch closed or explicitly declined. He invites pushback but wants **a recommendation, not a survey**.
