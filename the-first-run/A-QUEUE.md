@@ -12140,3 +12140,62 @@ than three. The code was right and my arithmetic was under-informed — and stat
 advance is the only reason 90 minutes read as a rung I did not know about rather than as the fix
 failing.
 
+
+### A3 · 2026-09-10 · COMPONENTS PACKET CLOSED. Two dialogs onto Meridian, one of them by reversing a written refusal.
+
+**`CreateRepoModal` (`2b93942f0`) and `RepoGateDialog` (`02887b054`), the packet A1 scoped as one
+because they are the same moment in the same flow.** Between them: `import:components/ui` 6 to 1,
+`usage:components/ui` 23 to 3, and the ratchet down from 122 files / 1,507 occurrences to **121 /
+1,493**. RepoGateDialog leaves the ratchet entirely; CreateRepoModal keeps exactly one import.
+
+**THE ONE REMAINING IMPORT IS THE HONEST STATE AND IT IS NAMED IN ONE LINE IN THE FILE.** Meridian
+has a Dialog, an Action, a Picker and a Toggle, and **no text input**. Inventing one inside a
+components pass would be a design-system addition wearing a port's clothes; leaving the whole modal
+on the retired module because one part of it has nowhere to go would keep three ported things
+unported. So the gap is written where the next reader meets it.
+
+**AND THE LOCK GLYPH LOST ITS COLOUR RATHER THAN GAINING A TOKEN.** It was `text-amber-500`. My
+first replacement was `text-mrd-gate`, a class I invented, which **emitted zero CSS rules** and was
+caught by the emitted-CSS check rather than by review, because a class that resolves to nothing
+looks identical in a diff to one that works. The right answer was not another colour: a lock and an
+open lock are already two different SHAPES, and a hue would say a second time what the shape says
+once.
+
+**REPOGATEDIALOG CARRIED A WRITTEN REFUSAL TO PORT AND I REVERSED IT. Flagging that deliberately,
+because reversing a house ruling is not a volume-lane call to make silently.**
+
+The 2026-08-18 block said, in capitals, "MERIDIAN HAS NO DIALOG", and refused on that basis. It was
+right when written. **Meridian shipped a Dialog two days later and nobody came back to the file.**
+The refusal's argument was never "shadcn is fine here" -- it was that a hand-rolled `<dialog>` would
+have focus behaviour matching nothing else in the product, and Meridian's Dialog ships exactly the
+contract that argument was protecting: focus in on open, trapped, and returned to the opener on
+close. The refusal is **quoted in the header rather than deleted**, because what expired is a fact.
+
+**Two of its assertions were already false when I got there.** It said three surfaces mount this
+dialog; **one does** -- and the spec page's own note records why ("P-29 removed the dispatch this
+branched against"). And its exit condition paired this file with `hooks/use-confirm.tsx` in one
+commit. **THAT HALF IS NOT DONE AND I AM NOT CLAIMING IT** -- use-confirm is the confirm 32 surfaces
+share, and swapping the drawing under 32 live surfaces is not a components pass. **It is open, and
+it is A2-shaped rather than A3-shaped.**
+
+**The busy guard fired on this port and was right to.** `a-working-control-says-so` failed the two
+non-provisioning controls for `disabled={provision.isPending}`. They earned an entry in its
+exemption register with the true reason -- bystanders during a sibling's write, synchronous
+handlers, so `busy` would be the inverse lie the guard exists to prevent -- and Connect additionally
+must stay disabled because `provisionThenRetry` re-runs the interrupted act on the surface that
+mounted this, so navigating away mid-flight fires the retry at an unmounted caller. **The entry was
+proved narrow by firing it:** a different bare pending expression in the same exempted file still
+fails, on that line, while the exempted one stays silent.
+
+**WHAT I COULD NOT VERIFY, and it is a UI change so it is worth saying plainly.** Chrome cannot
+reach this worktree's dev server: **curl gets 200 on `localhost:5200` and Chrome gets
+ERR_CONNECTION_REFUSED on the same URL**, and Vite's host check blocks the LAN address. The
+measurement I want is the actions row -- three controls against Dialog's 420px panel, where the old
+shadcn footer had 512px. `Actions` is `flex-wrap`, so it wraps right-aligned rather than
+overflowing, which is the system's own answer and not a defect; whether it wraps at all is a number
+I do not have. **A lane with a working browser can settle it in one look.**
+
+**A CORRECTION TO THE DISPATCH ITSELF: `ScopeMenu.tsx`'s 18 is not inline styles.** It is
+`class:sp-` -- legacy CSS classes defined in stylesheets A1 owns. A components pass over the JSX
+cannot move that number; it moves when the stylesheet does. That packet was scoped on a wrong
+assumption about what the 18 was made of, and it is not mine to close.
