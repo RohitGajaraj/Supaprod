@@ -12310,3 +12310,54 @@ measurement by doing the manual releases A1 approved, and a manual write correct
 `wallet_released_at` is what destroyed it. A1 hit the same shape tonight from the other side: route
 guards that passed after a rename only because their own sweep had rewritten the literals, trustable
 only by injecting a dead path and watching them fail.
+
+### A3 · 2026-09-10 · A false gap, its cause, and a guard whose domain is eleven hand-written directories.
+
+**I FILED A GAP THAT DID NOT EXIST.** `CreateRepoModal` shipped with a note saying *"Meridian has a
+Dialog, an Action and a Picker, and NO text input"*. Meridian has had `Input` the whole time, in
+`forms.tsx`, with `Textarea` and the labelled `Field` beside it, and **37 files already import it by
+name**. Corrected in `9d0841435`; both that file and `RedeemCodeCard` now leave `components/ui`
+entirely.
+
+**THE CAUSE OUTLIVES THE FILE.** I listed `components/meridian/`, looked for something called an
+input, found no `Input.tsx`, and concluded there was none. **A directory listing answers "what files
+are here" and never "what parts exist"**, and a component in a file named for its FAMILY is invisible
+to the first question and obvious to the second. `COMPONENTS.md` answers the second and I did not
+open it. A1 has since made it trustworthy (`32ae00481`) with a guard that fails when the published
+inventory drifts from the tree.
+
+**AND A FALSE GAP IS WORSE THAN A MISSING PORT.** The port was one import. The note would have told
+the next reader that building a text input was open work, in a file they had every reason to trust.
+Two of my other three gap notes were re-checked against the regenerated table and hold: **there is
+no Sheet and no combobox in Meridian** -- `ResultsPopover` is the panel and `FindAnything` hand-rolls
+the keyboard contract on top of it.
+
+**OPEN, MEASURED, AND NOT MINE TO START: `every-field-announces-itself` HAS A HAND-WRITTEN DOMAIN.**
+
+`RedeemCodeCard`'s promo field carried a placeholder and no name. **A placeholder is not a label: it
+is gone the moment a character is typed**, so a screen reader arriving mid-edit hears an unnamed box.
+The guard that catches exactly this had never looked, because **its `DIRS` is eleven directories
+written by hand beside a tree that has forty**, and `components/settings` was not one of them.
+
+`components/settings` is now in the list, proved by firing. **But widening `DIRS` to
+`src/components` and `src/routes` finds FIFTEEN MORE:**
+
+    track/TheCallIsYours:80          discover/DiscoverSurface:4269
+    plan/BetCard:29, :94             admin/VouchersPanel:303
+    brief/BriefFormationFlow:389, :285, :395
+    billing/WorkspaceClaimCard:320   routes/_authenticated.inbox:786
+    start/ComposerProductPicker:8    cockpit/AgentInspector:5
+    meridian/surface-parts:1059      meridian/onramp-parts:26
+    routes/_authenticated.plan.spec.$id:56
+
+**Some are false positives of a kind that bit me twice tonight**: the scan reads SOURCE TEXT, not
+JSX, so a comment describing a control reads as one -- I failed this guard earlier today by writing
+the words "a native select element" in prose. The low line numbers above (`:5`, `:8`, `:26`) are
+almost certainly that. Separating them needs a reader that skips comments, which is the same fix the
+`the-bar-counts-gates-on-open-tracks` slice needed last night.
+
+**This is the third instance tonight of one shape: A CHECK WHOSE DOMAIN IS A LIST BESIDE THE THING IT
+CHECKS.** The ratchet derives its domain from the tree and works. `COMPONENTS.md` was a second source
+and went stale, and it cost me a wrong gap. This guard's `DIRS` is a second source and is currently
+hiding fifteen findings. **A guard is only as wide as its domain, and a hand-written domain is the
+one part of a guard nothing tests.**
