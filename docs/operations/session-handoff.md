@@ -3397,10 +3397,26 @@ row** — and only ~16 of those are real:
   This is the known Lovable failure: the ledger falls behind while the schema is correct. A previous
   session recorded seven lost at once; it is 54 now.
 
-**If the gate were switched on tomorrow it would fail on all 54 and be switched straight back off.**
-A guard that cries 54 and means 16 gets ignored exactly like a census that cries fifteen and means
-three. **Fixing the gate means teaching it Lovable's seconds-later stamping first**, otherwise
-enabling it makes things worse.
+**CORRECTED — the gate would cry 22, and I had claimed 54.** `check-migrations.sh` does not compare
+against `version` alone: it unions it with `substring(name from '^([0-9]+)')`, and **its own comment
+twenty lines below the `PGHOST` skip already documents Lovable's seconds-later stamping** — *"Lovable
+Cloud may record the apply timestamp in `version` a few seconds after the filename timestamp, while
+preserving the Git filename prefix in `name`. Treat either as applied."* I read the top of the file,
+stopped, and wrote up as a new finding a behaviour the script had handled all along. Lane 3 caught it.
+
+Measured against the union the gate actually uses:
+
+| group | files | covered by the union |
+| --- | --- | --- |
+| UUID-named, 2026-07-12 → 07-23 | 32 | **yes** |
+| UUID-named, 2026-08-11 | 6 | **no** |
+| hand-written named, 2026-08-26 → 09-04 | 16 | **no** |
+| **would fail the gate** | **22** | |
+
+Lane 3 said 16 and I said 54; the answer is 22 — they missed the six from 2026-08-11, I counted the
+thirty-two the union already handles. **Both numbers were offered as corroboration and both were
+wrong in opposite directions**, which is the argument for running the check the way the checker runs
+it rather than reimplementing it alongside.
 
 **One was stamped, properly.** `20260909100800_mission_marks` (mine, `212153b00`). Lane 3 found it
 and correctly refused to stamp without byte-equality — stamping freezes "applied and correct" for a
