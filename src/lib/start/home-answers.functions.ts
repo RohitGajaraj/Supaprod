@@ -105,6 +105,33 @@ export type OpenBet = {
   horizon: string;
   /** Seed rows say so in words, on the same rule as `ClosedLoop`. */
   isSample: boolean;
+  /**
+   * HOW MANY EARLIER BETS CAME DUE AND WERE NEVER GRADED, in this workspace.
+   *
+   * MEASURED 2026-09-10 01:56 UTC across the live database: **15 real
+   * (non-sample) forecasts are past their horizon and unresolved**, in two
+   * workspaces, the oldest since 2026-08-18. Fourteen of the fifteen carry a
+   * `forecast_next_check_at` that is ALSO in the past -- they were scheduled,
+   * the check came due, and nothing ran -- and not one has ever been deferred
+   * (`forecast_deferred_at` null on all 51 including samples,
+   * `forecast_deferred_count` max 0).
+   *
+   *   Helio Labs     10 overdue, 28 pending
+   *   My workspace    5 overdue, 10 pending
+   *   A1 delete probe 0 overdue,  6 pending
+   *
+   * WHY IT BELONGS BESIDE THE PENDING BET RATHER THAN ONLY ON `/outcomes`.
+   * This region shows one promise and says when you will know. In two of the
+   * three real workspaces it was showing that promise while ten earlier ones
+   * had quietly lapsed -- so the entry implied the grading works. That is not
+   * a missing count, it is the surface giving a false impression of the
+   * product's central claim, and the founder's *"I cannot feel the value"* is
+   * the reasonable response to it.
+   *
+   * A RESULT OUTRANKS A LAPSE OUTRANKS A PROMISE. `WhetherItWorked` still
+   * wins outright; this only qualifies the promise when there is no result.
+   */
+  lapsed: number;
 };
 
 /**
@@ -262,8 +289,8 @@ export async function readAnswers(
       .limit(40);
     if (lastLookedAt) movedQ = movedQ.gt("at", lastLookedAt);
 
-    const [arriving, learned, rescored, closedQ, openBetQ, released, movedRows] = await Promise.all(
-      [
+    const [arriving, learned, rescored, closedQ, openBetQ, lapsedQ, released, movedRows] =
+      await Promise.all([
         arrivingQ,
         supabase
           .from("decisions")
@@ -341,10 +368,25 @@ export async function readAnswers(
           .gt("forecast_horizon_date", new Date().toISOString())
           .order("forecast_horizon_date", { ascending: true })
           .limit(1),
+        /*
+         * THE SAME PREDICATE WITH THE DATE THE OTHER WAY. A head count, so it
+         * costs a row count and no payload, and it rides the batch above.
+         * Deliberately the same scope as the bet beside it -- samples included,
+         * because the region already says in words when it is showing one, and
+         * a count that silently excluded them would disagree with the bet it
+         * qualifies.
+         */
+        supabase
+          .from("decisions")
+          .select("id", head)
+          .eq("workspace_id", wid)
+          .not("forecast_claim", "is", null)
+          .not("forecast_horizon_date", "is", null)
+          .is("forecast_resolved_at", null)
+          .lt("forecast_horizon_date", new Date().toISOString()),
         releasedQ,
         movedQ,
-      ],
-    );
+      ]);
 
     /*
      * WHAT WENT LIVE SINCE YOU LAST LOOKED (P-126). `changelog_entries` HAS NO
@@ -475,6 +517,9 @@ export async function readAnswers(
           howWeWillKnow: row.forecast_how_we_will_know?.trim() || null,
           horizon: row.forecast_horizon_date,
           isSample: Boolean(row.is_sample),
+          /* A refused count is zero rather than a wrong number: the promise is
+             still true and worth drawing without its qualifier. */
+          lapsed: lapsedQ.error ? 0 : (lapsedQ.count ?? 0),
         };
       })(),
       /*

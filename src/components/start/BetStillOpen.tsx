@@ -23,7 +23,7 @@
  */
 import { Link } from "@tanstack/react-router";
 import { Eyebrow } from "@/components/meridian/surface-parts";
-import type { BetStillOpen as Shape } from "@/components/start/the-bet-still-open";
+import { lapsedLine, type BetStillOpen as Shape } from "@/components/start/the-bet-still-open";
 
 export function BetStillOpen({ it, className = "" }: { it: Shape | null; className?: string }) {
   if (!it) return null;
@@ -84,6 +84,27 @@ export function BetStillOpen({ it, className = "" }: { it: Shape | null; classNa
             not know the convention. */}
         {it.isSample ? <span className="mrd-meta">From the sample workspace</span> : null}
       </div>
+
+      {/*
+       * WHAT LAPSED, WHEN ANYTHING HAS. Drawn under the date because it is
+       * about the same idea -- when you find out -- and a reader who has just
+       * been told "you will know in 2 days" needs to know in the same breath
+       * that ten earlier answers never arrived.
+       *
+       * NO SECOND DOOR. The subject at the top of this region already opens
+       * `/outcomes`, which is where a lapsed forecast is listed and settled.
+       * A link here would be two doors onto one question on one screen, which
+       * `one-door-per-sentence.test.ts` exists to catch.
+       *
+       * NO STATUS COLOUR, on this region's own standing rule: a lapse is not a
+       * verdict, and painting it would be the product inventing a state the
+       * record does not hold.
+       */}
+      {lapsedLine(it.lapsed) ? (
+        <p className="mrd-meta mt-mrd-2 max-w-[var(--mrd-measure-region)]">
+          {lapsedLine(it.lapsed)}
+        </p>
+      ) : null}
     </section>
   );
 }

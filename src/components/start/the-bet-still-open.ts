@@ -54,7 +54,30 @@ export type BetStillOpen = {
   /** How long from now, as a plain phrase, or null when it cannot be told. */
   inWords: string | null;
   isSample: boolean;
+  /**
+   * EARLIER BETS THAT CAME DUE AND WERE NEVER GRADED. Zero draws nothing.
+   *
+   * Measured 2026-09-10: two of the three real workspaces were showing this
+   * region's promise while ten and five earlier bets had quietly lapsed. A
+   * promise shown alone, in that state, tells a reader the grading works.
+   * See `home-answers.functions.ts` for the counts and the query.
+   */
+  lapsed: number;
 };
+
+/**
+ * The lapsed line, or null. Said as a fact and never as a cause: "nothing has
+ * graded them" is true and stays true, whereas naming WHY (grading is a manual
+ * action today, with no agent behind it) is a sentence that becomes false the
+ * moment that is automated -- the exact defect of a qualifier outliving the
+ * read it was written for.
+ */
+export function lapsedLine(lapsed: number): string | null {
+  if (lapsed <= 0) return null;
+  return lapsed === 1
+    ? "One earlier bet came due and nothing has graded it."
+    : `${lapsed} earlier bets came due and nothing has graded them.`;
+}
 
 /**
  * The date as the entry says it, and how far off it is.
@@ -125,5 +148,6 @@ export function theBetStillOpen(input: {
     due,
     inWords,
     isSample: b.isSample,
+    lapsed: Math.max(0, b.lapsed ?? 0),
   };
 }
