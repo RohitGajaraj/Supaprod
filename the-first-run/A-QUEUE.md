@@ -12533,3 +12533,57 @@ Low blast radius either way: the file opens with `drop function if exists`, so a
 revoking PUBLIC does not remove a direct role grant. The function is `security invoker` and RLS on
 `missions` returns nothing to an anonymous caller, so nothing leaks. **A number that made a single
 row look alarming stopped being alarming the moment it had a denominator.**
+
+### A3 · 2026-09-10 · The 16 are verified applied. The stamp is blocked on a permission and is with the founder.
+
+A1 handed me the packet and set the bar: **stamping freezes "applied and correct", so verify each
+body rather than each presence.** Done for all sixteen. **The write itself was refused by this
+session's permission classifier, so the rows are NOT inserted** and the decision is with the founder
+rather than routed around.
+
+**THE SIXTEEN, verified by the SCHEMA rather than by the record**, which is the only oracle that
+cannot drift from what is actually running:
+
+    3 indexes      agent_runs_trace_id_idx · spine_track_members_standing_idx
+                   spine_tracks_one_return_per_learning          all present
+    1 table        track_hold_notices                            present
+    9 columns      email_verdict · email_stopped · agent_runs.trace_id
+                   superseded_at · last_hold_because · from_learning_id
+                   forecast_band_drifting_at · forecast_band_missed_at
+                   track_drives.self_check                       all present
+    3 constraints  agent_messages_belongs_to_work · _addressed_to_something
+                   · _seat_addressed_kinds_name_a_recipient      all present
+                   with mission_id and to_agent_slug both nullable
+    4 functions    strip_ai_dashes · agent_runs_strip_dashes
+                   decisions_strip_dashes · signals_strip_dashes  bodies compared
+
+**AND THE COMMENT TRAP BIT FOR THE SIXTH TIME TONIGHT, IN A PLACE NEITHER OF US HAD LOOKED: INSIDE A
+SQL FUNCTION BODY.**
+
+`strip_ai_dashes` came back **697 characters normalised against 270 in one file and 1,057 in the
+other** -- matching NEITHER, which reads exactly like a function somebody changed by hand. Both
+migrations that define it were in front of me and neither agreed with production.
+
+It is the same function. `20260827030000`'s body carries eight `--` comments numbering the rules it
+applies (*"-- 6 - the aside, the one case a comma is right for"*), and **the stored `prosrc` has
+none**. Strip `--` comments -- taking care not to strip inside a quoted literal, since these bodies
+are full of `'[ \t]*[...]'` patterns -- and the two md5s are **identical**, character for character.
+
+**A comparison that counts comments as body reports drift that does not exist**, and the failure
+lands on exactly the well-documented migrations, because those are the ones with comments in them.
+The five earlier instances tonight were all a scan reading prose as code; this one is the mirror --
+a scan reading code as MORE code than was ever stored. Same root: **the instrument read text where
+it meant to read meaning.**
+
+**WHAT IS NOT DONE AND WHY.** The sixteen `insert ... on conflict do nothing` rows were refused by
+this session's permission classifier. I am not asking another lane to run them: a peer executing what
+this session was denied is the permission being bypassed rather than granted. **It is with the
+founder.** The verification above is the whole of the work; the write is one statement whenever it is
+approved.
+
+**AND THE GATE IS STILL THE BIGGER HALF, UNTOUCHED.** `scripts/check-migrations.sh` exits 0 when
+`PGHOST` is unset, `PGHOST` appears nowhere in `.github/workflows/ci.yml`, and neither
+`check-migrations` nor `db:check` is invoked there. **It has never run, anywhere.** A sixth
+instrument reporting a clean world it never looked at, and the only one of the six that guards
+something which would actually break the product. Naming it, not starting it: it needs CI database
+credentials, which is a founder decision and not a lane's.
