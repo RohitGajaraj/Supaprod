@@ -2352,8 +2352,41 @@ body:has([data-page-composer]) .sp-work {
   container-type: inline-size;
 }
 
+/*
+ * ── THE WORK REGION'S LAYOUT, IN MERIDIAN'S OWN IDIOM ────────────────────
+ * Added 2026-09-10 by Lane 1, and it is a gap closed rather than a rename.
+ *
+ * `sp-` is a RETIRED namespace. The Meridian ratchet counts every one left in
+ * JSX as debt awaiting a port — and it caught this the moment `/start` joined
+ * the shell's layout: three new `class:sp-` on a file the baseline had frozen
+ * clean. The guard was right. Widening it is the one move the founder's
+ * standing ruling forbids by name.
+ *
+ * `.sp-ctx`'s own note, a few hundred lines down, already worked this out for
+ * the index column: *"Minting `.sp-index` beside it would have moved debt and
+ * called it a feature… `data-shell-index` is the same hook with no lineage, and
+ * it matches Meridian's own `data-mrd` idiom."* That reasoning is not specific
+ * to the index column; it is the answer for the whole four-part API.
+ *
+ * So each of the four gets an attribute form with no lineage, listed BESIDE the
+ * class rather than replacing it. Both work, so a surface ports when it is next
+ * opened rather than in one sweep that touches thirty files and verifies none of
+ * them; the classes go when the last caller does. New surfaces use the
+ * attributes and are born clean.
+ *
+ *   .sp-inner  ->  [data-work]        the region: a grid, centred, capped
+ *   .sp-main   ->  [data-work-main]   the reading column, at a 74ch measure
+ *   .sp-wide   ->  [data-work-wide]   the same column with no measure
+ *   .sp-ctx    ->  [data-work-ctx]    the context column beside it
+ *
+ * THEY ARE LISTED, NOT ALIASED. `[data-work] { @extend }` does not exist, and a
+ * second block repeating the declarations would be two rules to keep in step —
+ * which is how `.sp-inner` and `/settings` ended up describing two different
+ * layouts, one of which had never rendered (law 30).
+ */
 /* Ported surfaces opt in. See the TRANSITION RULE at the top. */
-.sp-inner {
+.sp-inner,
+[data-work] {
   max-width: var(--shell-work-max);
   /*
    * ── IT IS CENTRED NOW, AND IT WAS NOT, 2026-09-01 ──────────────────────
@@ -2386,13 +2419,15 @@ body:has([data-page-composer]) .sp-work {
   align-items: start;
 }
 
-.sp-main {
+.sp-main,
+[data-work-main] {
   min-width: 0;
   max-width: var(--mrd-shell-main-max);
 }
 /* Same column, no measure. For grids, tables and canvases, which lay
  * themselves out in columns and are not read line by line. */
-.sp-wide {
+.sp-wide,
+[data-work-wide] {
   min-width: 0;
 }
 /* DELIBERATELY ABSENT: a region that spans the work column AND the context
@@ -2409,7 +2444,8 @@ body:has([data-page-composer]) .sp-work {
 /* The context column NEVER disappears. On a narrow region it stacks under
  * the main column instead of hiding, because hiding it loses information
  * that a 14 inch laptop needs just as much as a 32 inch one. */
-.sp-ctx {
+.sp-ctx,
+[data-work-ctx] {
   min-width: 0;
   margin-top: 38px;
   padding-top: 26px;
@@ -2476,12 +2512,14 @@ body:has([data-page-composer]) .sp-work {
 /* 1120px is --sp-ctx-split. A @container condition cannot read a custom
  * property, so the number is written literally here and recorded there. */
 @container (min-width: 1120px) {
-  .sp-inner:has(.sp-ctx) {
+  .sp-inner:has(.sp-ctx),
+  [data-work]:has([data-work-ctx]) {
     grid-template-columns: minmax(0, 1fr) var(--shell-ctx-w);
   }
   /* A rule between the two regions, so the side column reads as its own
    * place rather than as loose text floating beside the work. */
-  .sp-ctx {
+  .sp-ctx,
+  [data-work-ctx] {
     margin-top: 6px;
     padding-top: 0;
     padding-left: 30px;
@@ -2506,7 +2544,8 @@ body:has([data-page-composer]) .sp-work {
    * the light theme this rendered as eight faint specks of dirt. */
 }
 @media (max-width: 900px) {
-  .sp-inner {
+  .sp-inner,
+  [data-work] {
     padding: 24px 22px 60px;
   }
 }
