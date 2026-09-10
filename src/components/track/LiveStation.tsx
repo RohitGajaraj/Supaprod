@@ -133,7 +133,20 @@ export function LiveStation({
 
   return (
     <div className="flex flex-col gap-mrd-4">
-      <ul aria-label="Working here now" className="flex flex-col gap-mrd-1">
+      {/*
+        "at this STOP", which is the word this pane already uses -- its own
+        caption reads "Press a stop on the road above, or a row below, for
+        another". The Now card lists the run's seats under "Working on this
+        run"; this list is scoped to the one stop being shown, and "here" was
+        the only word carrying that difference, which it carried to nobody who
+        could not see where the list sat.
+
+        NOT "station", which was my first draft and which
+        `a-user-never-reads-the-org-chart` correctly refused: that is the
+        machine's word for the thing, and a person reads a road with stops on
+        it. The guard caught a label I had written to fix a labelling defect.
+      */}
+      <ul aria-label="Working on this stop" className="flex flex-col gap-mrd-1">
         {seats.map((t) => {
           const running = liveAgents.working.find((a) => a.id === t.runId);
           const mine = own.filter((c) => c.runId === t.runId);

@@ -1502,8 +1502,13 @@ export function TrackRunLeft({
           refrainStillSaysSomething(showBlocker ? blocker : null, track?.station) ? (
             <HoldFact>{refrainLead(refrain)}</HoldFact>
           ) : null}
+          {/* "on this RUN", because `LiveStation` in the pane beside this one
+              lists the same seats under "Working at this station". Two lists of
+              who is working, announced a moment apart to a screen-reader user,
+              and the only thing that differs between them is scope -- so the
+              scope is the word that has to be in both labels. */}
           {now.register === "working" && presences.length > 0 ? (
-            <ul aria-label="Working on this now" className="flex flex-col gap-mrd-2">
+            <ul aria-label="Working on this run" className="flex flex-col gap-mrd-2">
               {presences.map((a) => {
                 const newest = newestCallByRun.get(a.id) ?? null;
                 return (

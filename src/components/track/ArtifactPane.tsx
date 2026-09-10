@@ -1613,7 +1613,21 @@ function SettleControls({ decisionId, due }: { decisionId: string; due: boolean 
 
   return (
     <div className="flex flex-col gap-mrd-3">
-      <div role="group" aria-label="What actually happened" className="flex flex-wrap gap-mrd-3">
+      {/*
+        ── IT IS A QUESTION, AND IT SAT ON THE SAME SCREEN AS THE ANSWER ─────
+        This read "What actually happened", a hand's breadth from `ThroughLine`
+        whose region is "What happened on this run". One is a REPORT of what the
+        stations filed; this is a CONTROL asking a person to grade a forecast --
+        the component's own docstring calls it "Grade the forecast, or push its
+        check back", which is what it should have been announced as.
+
+        A region's `aria-label` is read out BEFORE its contents, so it is the
+        one label a screen-reader user cannot skim past to disambiguate: they
+        hear two near-identical names and have to enter both to find out which
+        is the thing that acts. Sighted readers never meet the collision at all,
+        which is why it survived. Lane 1 met the same shape on the entry.
+      */}
+      <div role="group" aria-label="Grade the forecast" className="flex flex-wrap gap-mrd-3">
         {(["hit", "miss", "inconclusive"] as const).map((r) => (
           <button
             key={r}
