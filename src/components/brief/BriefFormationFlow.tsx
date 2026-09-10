@@ -289,6 +289,11 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
               onChange={(e) => setDraftBody(e.target.value)}
               rows={4}
               placeholder={step.placeholder}
+              /* THE STEP'S OWN QUESTION IS THE NAME. A placeholder is not a
+                 label: it is gone the moment a character is typed, so a screen
+                 reader arriving mid-edit heard an unnamed box. `step.question`
+                 is already the words on screen above this. */
+              aria-label={step.question}
               style={{ resize: "vertical", width: "100%" }}
             />
             {singleton ? (
@@ -391,6 +396,7 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
                 value={betTitle}
                 onChange={(e) => setBetTitle(e.target.value)}
                 placeholder="Bet title"
+                aria-label="Bet title"
               />
               <textarea
                 className="input"
@@ -398,6 +404,7 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
                 onChange={(e) => setDraftBody(e.target.value)}
                 rows={2}
                 placeholder="What is the bet, and why now?"
+                aria-label="What is the bet, and why now?"
                 style={{ resize: "vertical" }}
               />
               <div>
