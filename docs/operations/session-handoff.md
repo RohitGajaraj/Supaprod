@@ -10,6 +10,10 @@ Validation on the current tree: `bun test` passes with 15,812 passing, 22 skippe
 
 The full suite was re-run on the current tip after the approval-card fallback fix: 15,812 passing, 22 skipped, 37 todo, 0 failures. A prior run under contention timed out one unrelated boundary-rule guard; its isolated rerun passed, and the clean rerun is the authoritative result.
 
+## Browser verification path
+
+The Codex in-app browser is available even though the browser inventory call reported no Codex auth token. Opening `https://supaprod.ai/` directly with the in-app browser succeeded and returned a complete accessibility tree; the tab is marked for handoff. The limitation is specific to the connected browser inventory / computer-use auth bridge, not to the built-in in-app browser or the SupaProd site.
+
 During this continuation, `TrackActivity`, `StageTimeline`, `AskRunCard`, `AskGateCard`, and `ApprovalCard` were moved from browser-local date/time formatters to the shared profile-zone helpers, and all five debt-ratchet entries were removed. Focused timezone tests pass. The changes landed in commits `cb339d046`, `5f8d93840`, `6fc87ab0e`, and `d4664dd1f`; `ApprovalCard` now accepts a host-supplied timezone with a browser-zone fallback so isolated consumers remain safe.
 
 ## Product standard reaffirmed by the founder
