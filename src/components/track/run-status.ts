@@ -11,7 +11,7 @@
  * cost a screen: no hold ever returns a second sentence, because the reason is
  * already on the map's stop and in "Why it stopped".
  */
-import { holdTone } from "@/lib/spine/driver";
+import { holdTone, STOPPED_BY_YOU } from "@/lib/spine/driver";
 import { waitingOnTime } from "@/components/track/a-calendar-wait-is-not-a-stoppage";
 import { nothingIsComing } from "@/components/track/nothing-is-coming";
 import type { Track } from "@/lib/spine/track.functions";
@@ -57,6 +57,13 @@ export function runStatus(
   }
   if (track.status === "abandoned") {
     return { status: "hold", word: "Abandoned", pulse: false, second: undefined };
+  }
+  /* A stop may arrive while the dispatched seat is still finishing. Keep the
+     header aligned with the footer's person-owned stop during that window. */
+  if (track.holdReason === "paused" && track.holdBecause === STOPPED_BY_YOU) {
+    return liveNow
+      ? { status: "you", word: "Stopping", pulse: false, second: undefined }
+      : { status: "you", word: "Stopped", pulse: false, second: undefined };
   }
   /*
    * ── A CALENDAR WAIT GETS THE BOARD'S OWN WORD (P-37) ────────────────────

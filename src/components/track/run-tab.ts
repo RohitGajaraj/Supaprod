@@ -42,13 +42,17 @@ import { nothingIsComing } from "@/components/track/nothing-is-coming";
 export function runTabState(input: {
   status: string | null;
   holdReason: string | null;
+  holdBecause?: string | null;
   /** A drive mutation is in flight from this tab. */
   walking: boolean;
   /** The record says a crew is here right now (queue 71's live fact). */
   crewLive: boolean;
-}): "Working" | "Waiting on you" | "Stopped" | null {
+}): "Working" | "Waiting on you" | "Stopping" | "Stopped" | null {
   // A closed track is not news: both endings are said once, on the page.
   if (input.status === "done" || input.status === "abandoned") return null;
+  if (input.holdReason === "paused" && input.holdBecause === "Stopped by you.") {
+    return input.walking || input.crewLive ? "Stopping" : "Stopped";
+  }
   const tone = input.holdReason ? holdTone(input.holdReason) : null;
   if (tone === "you") {
     return nothingIsComing(input.holdReason) ? "Stopped" : "Waiting on you";

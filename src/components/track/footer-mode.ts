@@ -181,6 +181,14 @@ export function footerMode(input: {
    * disagreeing, which is the defect this file was written to end.
    */
   if (stoppedByYou(input.hold, input.because)) {
+    if (input.walking || input.crewLive) {
+      return {
+        line: "Stopping this run. The current step will finish, then it will stay stopped.",
+        canStop: false,
+        canRun: false,
+        leave: null,
+      };
+    }
     return {
       line: "You stopped this. It will not start another step until you run it.",
       canStop: false,

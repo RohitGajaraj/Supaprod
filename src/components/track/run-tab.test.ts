@@ -32,6 +32,18 @@ describe("runTabState", () => {
     ).toBe("Waiting on you");
   });
 
+  it("shows a person-owned stop as stopping, even while the last seat finishes", () => {
+    expect(
+      runTabState({
+        ...base,
+        holdReason: "paused",
+        holdBecause: "Stopped by you.",
+        walking: true,
+        crewLive: true,
+      }),
+    ).toBe("Stopping");
+  });
+
   it("tells the tab a stopped run needs restarting, not that it is waiting", () => {
     /*
      * The four terminal reasons all live inside `HOLD_NEEDS_PERSON`, so they

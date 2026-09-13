@@ -1121,6 +1121,7 @@ export function TrackRunLeft({
   const tabWord = runTabState({
     status: track?.status ?? null,
     holdReason: track?.holdReason ?? null,
+    holdBecause: track?.holdBecause ?? null,
     walking: run.isPending,
     crewLive,
   });

@@ -73,6 +73,15 @@ describe("what the run header claims", () => {
     expect(s?.word).toBe("Waiting on you");
   });
 
+  it("keeps a person-owned stop truthful while the last seat finishes", () => {
+    const s = runStatus(at({ holdReason: "paused", holdBecause: "Stopped by you." }), true);
+    expect(s?.word).toBe("Stopping");
+    expect(s?.pulse).toBe(false);
+    expect(runStatus(at({ holdReason: "paused", holdBecause: "Stopped by you." }))?.word).toBe(
+      "Stopped",
+    );
+  });
+
   it("does not tell 36 of 37 people a question is waiting when none is", () => {
     /*
      * `holdTone` sends all six of `HOLD_NEEDS_PERSON` here, and four of them

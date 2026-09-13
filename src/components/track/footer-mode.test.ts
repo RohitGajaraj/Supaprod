@@ -122,6 +122,16 @@ describe("the footer", () => {
     // The kill switch is a different fact and keeps its own sentence.
     const killed = at({ tone: "hold", hold: "paused", because: null });
     expect(killed.line).toBe("Stopped, and not on you.");
+
+    const finishing = at({
+      tone: "hold",
+      hold: "paused",
+      because: "Stopped by you.",
+      crewLive: true,
+    });
+    expect(finishing.line).toContain("Stopping this run");
+    expect(finishing.canStop).toBe(false);
+    expect(finishing.canRun).toBe(false);
   });
 
   it("tells the truth about work it cannot stop, rather than going quiet", () => {
