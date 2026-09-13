@@ -8,6 +8,8 @@ The active Codex rebuild goal was grounded against the shared Claude conversatio
 
 Validation on the current tree: `bun test` passes with 15,812 passing, 22 skipped, 37 todo, and 0 failures; `bunx tsc --noEmit` passes; `bun run build` passes. Migration lint reports four existing warnings and no apply-fatal errors. The build emits existing deprecation warnings for `inputValidator()` and the Cloudflare wrapper.
 
+The full suite was re-run on the current tip after the approval-card fallback fix: 15,812 passing, 22 skipped, 37 todo, 0 failures. A prior run under contention timed out one unrelated boundary-rule guard; its isolated rerun passed, and the clean rerun is the authoritative result.
+
 During this continuation, `TrackActivity`, `StageTimeline`, `AskRunCard`, `AskGateCard`, and `ApprovalCard` were moved from browser-local date/time formatters to the shared profile-zone helpers, and all five debt-ratchet entries were removed. Focused timezone tests pass. The changes landed in commits `cb339d046`, `5f8d93840`, `6fc87ab0e`, and `d4664dd1f`; `ApprovalCard` now accepts a host-supplied timezone with a browser-zone fallback so isolated consumers remain safe.
 
 ## Product standard reaffirmed by the founder
