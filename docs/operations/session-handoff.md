@@ -8,7 +8,7 @@ The active Codex rebuild goal was grounded against the shared Claude conversatio
 
 Validation on the current tree: `bun test` passes with 15,812 passing, 22 skipped, 37 todo, and 0 failures; `bunx tsc --noEmit` passes; `bun run build` passes. Migration lint reports four existing warnings and no apply-fatal errors. The build emits existing deprecation warnings for `inputValidator()` and the Cloudflare wrapper.
 
-During this continuation, `TrackActivity` was moved from the browser-local `toLocaleTimeString` to the shared `clockInZone` formatter and its debt-ratchet entry was removed. Focused timezone tests pass. This landed in commit `fcee6ef11`.
+During this continuation, `TrackActivity` and `StageTimeline` were moved from browser-local date/time formatters to the shared profile-zone helpers, and both debt-ratchet entries were removed. Focused timezone tests pass. The changes landed in commit `cb339d046`.
 
 The product work remains incomplete by the repository's own acceptance: one sentence must carry a run from the first station to the last without mid-run human navigation, with at most one in-place consent question, and show the result. The next session must choose an unblocked item from `the-first-run/A-QUEUE.md`, verify its path ownership, and record the work before editing.
 
