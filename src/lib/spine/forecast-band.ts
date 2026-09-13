@@ -32,8 +32,10 @@ export interface ForecastBand {
   driftingAt: number | null;
   /** The boundary between drifting and missed. */
   missedAt: number | null;
-  /** How many readings the baseline was derived from. Null means nobody counted. */
+  /** Legacy seat-declared population. Never use this to decide whether to act. */
   observations: number | null;
+  /** Number of attributable readings actually present in the connected record. */
+  recordedReadings?: number | null;
 }
 
 /**
@@ -86,7 +88,10 @@ export function bandFor(reading: number | null | undefined, band: ForecastBand):
  * differently from "missed, from a single observation".
  */
 export function bandIsWellFounded(band: ForecastBand): boolean {
-  return typeof band.observations === "number" && band.observations >= MIN_OBSERVATIONS_FOR_A_BAND;
+  return (
+    typeof band.recordedReadings === "number" &&
+    band.recordedReadings >= MIN_OBSERVATIONS_FOR_A_BAND
+  );
 }
 
 /**
@@ -99,9 +104,9 @@ export function bandIsWellFounded(band: ForecastBand): boolean {
  */
 export function thinBandNote(band: ForecastBand): string | null {
   if (bandIsWellFounded(band)) return null;
-  const n = typeof band.observations === "number" ? band.observations : null;
+  const n = typeof band.recordedReadings === "number" ? band.recordedReadings : null;
   if (n === null) {
-    return "Nobody recorded how many readings this band came from, so treat it as a guess rather than a measurement.";
+    return "The record has no readings behind this band, so treat it as a guess rather than a measurement.";
   }
   return n === 1
     ? "This band comes from a single reading, so it can tell you the direction and not the size."

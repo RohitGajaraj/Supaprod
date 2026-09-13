@@ -135,6 +135,33 @@ export function theLatestReadingOnTheOneClause(contract: unknown): number | null
   return readings.length === 1 ? readings[0] : null;
 }
 
+/** Count attributable readings on the one unambiguous metric clause. */
+export function recordedReadingCountOnTheOneClause(contract: unknown): number {
+  const raw = (contract as { success_metrics?: unknown } | null)?.success_metrics;
+  if (!Array.isArray(raw)) return 0;
+  const clauses = raw.filter(
+    (c): c is MetricClause => typeof c === "object" && c !== null && isStanding(c as MetricClause),
+  );
+  const withReadings = clauses.filter(
+    (c) => whatWouldMeasure(c, new Set<string>()).kind === "hand",
+  );
+  if (withReadings.length !== 1) return 0;
+  const readings = withReadings[0]?.readings;
+  if (!Array.isArray(readings)) return 0;
+  return readings.filter((r) => {
+    if (typeof r !== "object" || r === null) return false;
+    const c = r as Record<string, unknown>;
+    return (
+      typeof c.value === "number" &&
+      Number.isFinite(c.value) &&
+      typeof c.at === "string" &&
+      c.at.trim().length > 0 &&
+      typeof c.by === "string" &&
+      c.by.trim().length > 0
+    );
+  }).length;
+}
+
 /**
  * Whether this reading settles this forecast early.
  *
@@ -156,13 +183,15 @@ export function aReadingCanBringLearnForward(
     );
   }
 
-  const verdict = bandFor(reading, band);
+  const recordedReadings = recordedReadingCountOnTheOneClause(contract);
+  const recordFoundedBand = { ...band, recordedReadings };
+  const verdict = bandFor(reading, recordFoundedBand);
   if (verdict === "unknown") {
     return KEEPS_THE_DATE(
       "the band cannot answer this reading, and a band that guesses is worse than no band",
     );
   }
-  if (!bandIsWellFounded(band)) {
+  if (!bandIsWellFounded(recordFoundedBand)) {
     return KEEPS_THE_DATE(
       "the band rests on too few observations to open work, so the reading is recorded and the date still governs",
     );

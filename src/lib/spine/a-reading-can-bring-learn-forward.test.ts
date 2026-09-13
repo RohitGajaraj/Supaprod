@@ -4,6 +4,7 @@ import { describe, test, expect } from "bun:test";
 import {
   aReadingCanBringLearnForward,
   theLatestReadingOnTheOneClause,
+  recordedReadingCountOnTheOneClause,
 } from "./a-reading-can-bring-learn-forward";
 import { MIN_OBSERVATIONS_FOR_A_BAND, type ForecastBand } from "./forecast-band";
 
@@ -13,6 +14,7 @@ const BAND: ForecastBand = {
   driftingAt: 70,
   missedAt: 64,
   observations: MIN_OBSERVATIONS_FOR_A_BAND,
+  recordedReadings: MIN_OBSERVATIONS_FOR_A_BAND,
 };
 
 const clause = (over: Record<string, unknown> = {}) => ({
@@ -23,6 +25,13 @@ const clause = (over: Record<string, unknown> = {}) => ({
 
 const reading = (value: number) => ({
   readings: [{ value, at: "2026-09-08T10:00:00Z", by: "founder" }],
+});
+const threeReadings = (value: number) => ({
+  readings: [
+    { value, at: "2026-09-06T10:00:00Z", by: "founder" },
+    { value, at: "2026-09-07T10:00:00Z", by: "founder" },
+    { value, at: "2026-09-08T10:00:00Z", by: "founder" },
+  ],
 });
 
 const contractWith = (...clauses: Record<string, unknown>[]) => ({ success_metrics: clauses });
@@ -67,9 +76,20 @@ describe("theLatestReadingOnTheOneClause", () => {
   });
 });
 
+describe("recordedReadingCountOnTheOneClause", () => {
+  test("counts only attributable readings on the one standing clause", () => {
+    expect(recordedReadingCountOnTheOneClause(contractWith(clause(threeReadings(71))))).toBe(3);
+    expect(
+      recordedReadingCountOnTheOneClause(
+        contractWith(clause(threeReadings(71)), clause(reading(40))),
+      ),
+    ).toBe(0);
+  });
+});
+
 describe("aReadingCanBringLearnForward", () => {
   test("a settled, well-founded band with one reading LIFTS", () => {
-    const d = aReadingCanBringLearnForward(contractWith(clause(reading(71))), BAND);
+    const d = aReadingCanBringLearnForward(contractWith(clause(threeReadings(71))), BAND);
     expect(d.lift).toBe(true);
     expect(d.lift === true && d.reading).toBe(71);
     expect(d.lift === true && d.verdict).toBe("on-track");
@@ -77,7 +97,7 @@ describe("aReadingCanBringLearnForward", () => {
 
   test("a missed reading lifts too: early is early either way", () => {
     // The point is that the band SETTLED, not that the news was good.
-    const d = aReadingCanBringLearnForward(contractWith(clause(reading(50))), BAND);
+    const d = aReadingCanBringLearnForward(contractWith(clause(threeReadings(50))), BAND);
     expect(d.lift === true && d.verdict).toBe("missed");
   });
 
@@ -93,7 +113,7 @@ describe("aReadingCanBringLearnForward", () => {
    * band answered.
    */
   test("a THIN band does not lift, even though it answers cleanly", () => {
-    const thin: ForecastBand = { ...BAND, observations: MIN_OBSERVATIONS_FOR_A_BAND - 1 };
+    const thin: ForecastBand = { ...BAND, recordedReadings: MIN_OBSERVATIONS_FOR_A_BAND - 1 };
     const d = aReadingCanBringLearnForward(contractWith(clause(reading(71))), thin);
     expect(d.lift).toBe(false);
     expect(d.lift === false && d.because).toContain("too few observations");
@@ -106,6 +126,7 @@ describe("aReadingCanBringLearnForward", () => {
     const d = aReadingCanBringLearnForward(contractWith(clause(reading(71))), {
       ...BAND,
       observations: null,
+      recordedReadings: null,
     });
     expect(d.lift).toBe(false);
   });
@@ -152,6 +173,7 @@ describe("aReadingCanBringLearnForward", () => {
       aReadingCanBringLearnForward(contractWith(clause(reading(71))), {
         ...BAND,
         observations: 1,
+        recordedReadings: 1,
       }),
     ];
     for (const r of refusals) {
@@ -201,11 +223,11 @@ describe("what this predicate does against the record as it actually stands", ()
    *
    * P-150 fixes the field. This test should CHANGE when it does.
    */
-  test("a band declaring 41200 observations passes the floor, because the field is not a count", () => {
-    const asWritten: ForecastBand = { ...BAND, observations: 41200 };
-    expect(aReadingCanBringLearnForward(contractWith(clause(reading(71))), asWritten).lift).toBe(
-      true,
-    );
+  test("a band declaring 41200 observations does not override the record-founded count", () => {
+    const asWritten: ForecastBand = { ...BAND, observations: 41200, recordedReadings: 3 };
+    expect(
+      aReadingCanBringLearnForward(contractWith(clause(threeReadings(71))), asWritten).lift,
+    ).toBe(true);
   });
 });
 

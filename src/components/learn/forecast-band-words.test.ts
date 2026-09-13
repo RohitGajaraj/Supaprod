@@ -7,6 +7,7 @@ const lower = (over: Partial<ForecastBand> = {}): ForecastBand => ({
   driftingAt: 22,
   missedAt: 26,
   observations: MIN_OBSERVATIONS_FOR_A_BAND,
+  recordedReadings: MIN_OBSERVATIONS_FOR_A_BAND,
   ...over,
 });
 
@@ -39,7 +40,7 @@ describe("what the band says, and what the system did about it", () => {
     // The same miss, on one reading instead of three. tierActionFor downgrades
     // it to log, and the standing line explains the downgrade rather than
     // leaving a person to wonder why nothing happened.
-    const thin = bandReading(30, lower({ observations: 1 }));
+    const thin = bandReading(30, lower({ recordedReadings: 1 }));
     expect(thin.verdict).toBe("missed");
     expect(thin.action).toBe("log");
     expect(thin.did).toBe("Recorded, and nothing was raised.");
@@ -84,6 +85,7 @@ describe("what the band says, and what the system did about it", () => {
       driftingAt: null,
       missedAt: null,
       observations: null,
+      recordedReadings: null,
     });
     expect(asRecordedToday.verdict).toBe("unknown");
     expect(asRecordedToday.did).toBeNull();

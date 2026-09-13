@@ -26,6 +26,7 @@ const lower: ForecastBand = {
   driftingAt: 5,
   missedAt: 8,
   observations: 12,
+  recordedReadings: 12,
 };
 /** Conversion: 12% is on-track, 9% is drifting, worse is missed. */
 const higher: ForecastBand = {
@@ -33,6 +34,7 @@ const higher: ForecastBand = {
   driftingAt: 12,
   missedAt: 9,
   observations: 12,
+  recordedReadings: 12,
 };
 
 describe("where a reading lands", () => {
@@ -90,16 +92,18 @@ describe("UNKNOWN is a real answer and is never on-track", () => {
 
 describe("a band has to say how well founded it is", () => {
   it("is well founded at the threshold and above", () => {
-    expect(bandIsWellFounded({ ...lower, observations: MIN_OBSERVATIONS_FOR_A_BAND })).toBe(true);
-    expect(bandIsWellFounded({ ...lower, observations: MIN_OBSERVATIONS_FOR_A_BAND - 1 })).toBe(
+    expect(bandIsWellFounded({ ...lower, recordedReadings: MIN_OBSERVATIONS_FOR_A_BAND })).toBe(
+      true,
+    );
+    expect(bandIsWellFounded({ ...lower, recordedReadings: MIN_OBSERVATIONS_FOR_A_BAND - 1 })).toBe(
       false,
     );
   });
 
   it("NOBODY COUNTED is different from COUNTED AND THIN, and says so", () => {
-    expect(thinBandNote({ ...lower, observations: null })).toContain("Nobody recorded");
-    expect(thinBandNote({ ...lower, observations: 1 })).toContain("single reading");
-    expect(thinBandNote({ ...lower, observations: 2 })).toContain("fewer than");
+    expect(thinBandNote({ ...lower, recordedReadings: null })).toContain("record has no readings");
+    expect(thinBandNote({ ...lower, recordedReadings: 1 })).toContain("single reading");
+    expect(thinBandNote({ ...lower, recordedReadings: 2 })).toContain("fewer than");
   });
 
   it("says nothing when it is well founded, rather than reassuring", () => {
@@ -120,7 +124,7 @@ describe("what the system DOES, which is the half we never had", () => {
   });
 
   it("A THIN BAND NEVER OPENS WORK — the tier firing on noise is what deletes the feature", () => {
-    const thin = { ...lower, observations: 1 };
+    const thin = { ...lower, recordedReadings: 1 };
     expect(tierActionFor("missed", thin)).toBe("log");
     expect(tierActionFor("drifting", thin)).toBe("log");
     // It still logs, because recording that something moved costs nothing and
