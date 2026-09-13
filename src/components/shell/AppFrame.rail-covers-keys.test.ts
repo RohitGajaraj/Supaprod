@@ -185,7 +185,16 @@ describe("the rail's ownership is derived, and unambiguous", () => {
     // And a station's own sub-surface stays under the same row: /plan/spec/<id>
     // is where a spec is written and it is still Start's.
     expect(railOwnerOf("/plan/spec/abc")).toBe(SIGNED_IN_HOME);
-    expect(railOwnerOf("/build/mission-1")).toBe(SIGNED_IN_HOME);
+    /*
+     * `/build/<missionId>` LEFT THIS TEST BECAUSE IT LEFT THE PRODUCT
+     * (2026-09-10). It was asserted as Start's territory, and it was, through
+     * "/build" being in `STATION_ROUTE` -- but `_authenticated.build.index.tsx`
+     * was the only file that segment ever had, and it was a redirect stub, so
+     * no `/build/<anything>` has resolved to a page for as long as this line
+     * has existed. The stub is deleted and the Build station now names
+     * `/start` directly, which is where its stub was sending everyone anyway.
+     * Asserting Start owns a 404 was the rail claiming a room with no floor.
+     */
     // /runs/:missionId is a run screen and stays Start's; a live /track/:id
     // page is Run's own, resolved through Run's identity, not through this
     // list — see the ownership test above.
@@ -211,10 +220,32 @@ describe("the rail's ownership is derived, and unambiguous", () => {
      * the door is not named for the station, which the label check below
      * still holds.
      */
-    const stationOnly = new Set<string>(
-      Object.values(STATION_ROUTE).filter((r) => r !== "/evidence" && r !== "/outcomes"),
-    );
+    /*
+     * DERIVED FROM THE RAIL, NOT A HAND-LIST OF TWO (2026-09-10). This read
+     * `r !== "/evidence" && r !== "/outcomes"`, naming the two station routes
+     * that were also rail doors. On 2026-09-10 `decide`, `design` and `build`
+     * stopped naming redirect stubs and started naming `/start`, which is the
+     * FIRST rail row -- and the hand-list did not know it, so `/start` counted
+     * as "station-only" and the assertion passed only because the Home row
+     * spells `SIGNED_IN_HOME` rather than the literal this scan reads. A pass
+     * bought by the derivation in AppFrame is exactly the accidental green
+     * this file exists to refuse, so the carve-out reads the rail.
+     *
+     * The rule is unchanged: a row may not be a door that exists only because
+     * a station does. A station whose surface is also a person's question is
+     * not that, which is what P-60 settled for `/evidence` and P-14b for
+     * `/outcomes`.
+     */
+    const railDoors = new Set(RAIL_DOORS.map((d) => d.to));
+    const stationOnlyIn = (paths: readonly string[]) => paths.filter((p) => !railDoors.has(p));
+    const stationOnly = new Set<string>(stationOnlyIn(Object.values(STATION_ROUTE)));
     expect(rows.filter((r) => stationOnly.has(r))).toEqual([]);
+    /*
+     * THE MIRROR, because every station route being a rail door would make the
+     * line above pass by finding nothing. `/decide` is a station address that
+     * is not a person's door, and the filter still catches one.
+     */
+    expect(stationOnlyIn(["/decide", "/evidence"])).toEqual(["/decide"]);
     expect(rows).not.toContain("/runs");
     // And no row is LABELLED for a station, which is the other half of R-01.
     const labels = [...railBlock().matchAll(/label:\s*"([^"]+)"/g)].map((m) => m[1]);

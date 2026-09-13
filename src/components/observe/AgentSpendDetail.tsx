@@ -128,7 +128,8 @@ export function AgentSpendDetail({ id }: { id: string }) {
     queryFn: () => fDetail({ data: { agentSlug: id, days: DAYS } }),
   });
 
-  const onBack = () => navigate({ to: "/engine-room", search: { room: "spend", view: "usage" } });
+  const onBack = () =>
+    navigate({ to: "/team", search: { tab: "spend", room: "spend", view: "usage" } });
   // The way back, named for where it actually goes. ?view=usage with no agent
   // renders the whole spend rollup, not the by-agent list, so it does not claim
   // to be "all agents". Carried by the Region's own `goTo`, which is the slot

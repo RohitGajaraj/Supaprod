@@ -262,7 +262,7 @@ function AdminProof() {
           tight
           lead="Engine room, Quality"
           sub="Acceptance, autonomy, ritual retention, outcome accuracy and compounding learning"
-          onClick={() => void navigate({ to: "/engine-room", search: { room: "quality" } })}
+          onClick={() => void navigate({ to: "/team", search: { tab: "spend", room: "quality" } })}
         />
       </Region>
     </>

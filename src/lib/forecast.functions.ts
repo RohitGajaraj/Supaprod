@@ -502,14 +502,17 @@ export type AgentSettledForecast = {
 
 export async function listAgentSettledForecastsImpl(
   db: SupabaseClient<Database>,
+  /** See the note on `getForecastCallRateImpl`. Default is every workspace. */
+  workspaceId?: string | null,
 ): Promise<{ settled: AgentSettledForecast[] }> {
-  const { data, error } = await db
+  const matching = db
     .from("decisions")
     // One literal, not a `+`-joined pair; see the note on FORECAST_COLS.
     .select(
       "id,title,forecast_claim,forecast_resolution,forecast_resolution_rationale,forecast_resolved_at,forecast_resolved_by_agent_slug",
     )
-    .not("forecast_resolved_by_agent_slug", "is", null)
+    .not("forecast_resolved_by_agent_slug", "is", null);
+  const { data, error } = await (workspaceId ? matching.eq("workspace_id", workspaceId) : matching)
     .order("forecast_resolved_at", { ascending: false })
     .limit(8);
   // Same rule: reporting "your crew has settled nothing" over an unreadable
@@ -523,12 +526,32 @@ export async function listAgentSettledForecastsImpl(
 
 export async function getForecastCallRateImpl(
   db: SupabaseClient<Database>,
+  /**
+   * Optional, default every workspace, and `getForecastCallRateHere` is what
+   * the one surface that draws this calls.
+   *
+   * ── THE TWO NUMBERS THAT WERE RIGHT ABOUT DIFFERENT OBJECTS ─────────────
+   * Read signed in on 2026-09-10, on `/outcomes` in workspace `c8ffbbe7`
+   * ("A1 delete probe": 8 decisions, 6 carrying a forecast, 0 resolved):
+   *
+   *   "Your calls -- You called it on 6 of the last 9"
+   *   ...four regions down...
+   *   "No forecast has been graded yet."
+   *
+   * Both true. The first counted `decisions.forecast_resolution` over EVERY
+   * workspace RLS admits; the second counts `insights.resolution` inside this
+   * one. One noun, two populations, two tables, one scroll -- and this file's
+   * own header already named that failure and built `listDueForecastsHere` to
+   * stop it, for a different pair, three months earlier.
+   */
+  workspaceId?: string | null,
 ): Promise<ForecastCallSummary> {
-  const { data, error } = await db
+  const matching = db
     .from("decisions")
     .select("forecast_resolution")
     .not("forecast_resolution", "is", null)
-    .neq("forecast_resolution", "inconclusive")
+    .neq("forecast_resolution", "inconclusive");
+  const { data, error } = await (workspaceId ? matching.eq("workspace_id", workspaceId) : matching)
     .order("forecast_resolved_at", { ascending: false })
     .limit(10);
   /*
@@ -582,16 +605,53 @@ export const listDueForecasts = createServerFn({ method: "GET" })
  * uses, so the two halves of that sentence cannot answer to different
  * workspaces. Passing an id from the client would let them.
  */
+/**
+ * ── THE THREE `Here` READS TAKE THE WORKSPACE YOU ARE STANDING IN ─────────
+ *
+ * Each takes `workspaceId` and resolves the person's default only when the
+ * caller has none, which is the shape P-75 requires and this file did not have.
+ * The original `listDueForecastsHere` resolved `current_user_default_workspace`
+ * and could not be told otherwise, and its own comment argued for that:
+ * *"Passing an id from the client would let them [answer to different
+ * workspaces]"*. That was written against a real failure -- two halves of one
+ * sentence answering to two workspaces -- and it fixes it in the wrong place.
+ *
+ * Since migration `20260907010000` a person can hold two workspaces, and the
+ * DEFAULT is not the one they have open. `a-read-serves-the-workspace-you-are-in`
+ * has the reading A1 took on exactly this surface: *"1 of 2 graded forecasts
+ * came true"* on Outcomes, and it was Helio Labs'. That is the same tenancy
+ * defect as the unscoped read, one layer in, and a caller putting
+ * `activeWorkspaceId` in its query key makes it look correct while it is wrong.
+ *
+ * So the id comes from the caller, and the ORIGINAL argument is honoured by
+ * every read on the desk taking the SAME id from one source rather than by
+ * hiding the resolution: see `ForecastDeskPanel`, which passes
+ * `activeWorkspaceId` to all three and keys all three on it.
+ *
+ * The default remains the fallback, because a caller that genuinely has no
+ * workspace to name must still work; the strip's `useSpineStrip` is one.
+ */
+const AtWorkspace = z.object({ workspaceId: z.string().uuid().nullable().optional() });
+
 export const listDueForecastsHere = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((i: unknown) => AtWorkspace.parse(i ?? {}))
+  .handler(async ({ context, data }) => {
     const db = context.supabase as unknown as SupabaseClient;
-    const { data: ws } = await db.rpc("current_user_default_workspace");
-    const workspaceId = defaultWorkspaceId(ws);
-    /* NO WORKSPACE IS NOT EVERY WORKSPACE. If the RPC cannot name one, falling
-       through to the unscoped read would silently answer a different question
-       than the caller asked - the exact substitution this function exists to
-       stop. An empty answer is the honest one. */
+    /* The caller's id first, the person's default only as the fallback. Written
+       out rather than shared through a helper on purpose: the ratchet in
+       `a-read-serves-the-workspace-you-are-in.test.ts` reads source text and
+       cannot see through a call, so a helper here would have moved this file to
+       zero by blinding the scanner rather than by fixing the read. */
+    let workspaceId = data?.workspaceId ?? null;
+    if (!workspaceId) {
+      const { data: ws } = await db.rpc("current_user_default_workspace");
+      workspaceId = defaultWorkspaceId(ws);
+    }
+    /* NO WORKSPACE IS NOT EVERY WORKSPACE. If neither the caller nor the RPC can
+       name one, falling through to the unscoped read would silently answer a
+       different question than the caller asked - the exact substitution this
+       function exists to stop. An empty answer is the honest one. */
     if (!workspaceId) return { due: [], total: 0 };
     return listDueForecastsImpl(db, new Date().toISOString(), workspaceId);
   });
@@ -673,3 +733,70 @@ export const getForecastCallRate = createServerFn({ method: "GET" })
   .handler(async ({ context }) =>
     getForecastCallRateImpl(context.supabase as unknown as SupabaseClient),
   );
+
+/**
+ * ── THE DESK'S THREE READS, ALL ANSWERING FOR ONE WORKSPACE ───────────────
+ *
+ * `listDueForecastsHere` shipped alone because the pair it was written for was
+ * a strip badge beside a calibration line. The DESK kept all three of its
+ * unscoped reads, and the desk has exactly one caller in the tree:
+ * `/outcomes`, which is a workspace record. It prints "8 decisions" for this
+ * workspace four regions below the nine forecasts it was drawing from other
+ * people's.
+ *
+ * On production, 2026-09-10, in `c8ffbbe7` -- a workspace with SIX forecasts
+ * and NONE of them overdue -- the desk drew nine rows, about crypto wallet
+ * parity, $7.99 pricing and tablet checkout: Helio Labs' work, in a workspace
+ * named "A1 delete probe". The `DueForecast` type has carried a `workspaceId`
+ * field since S1 asked for it twice, expressly because "a verdict shown
+ * without saying whose it is asks them to grade something they cannot place",
+ * and the panel never rendered it.
+ *
+ * Scoped rather than labelled, and the argument for scoping over labelling is
+ * the surface: a cross-workspace queue is a real thing and this product
+ * already has one -- the Inbox, which this same page links to two regions
+ * further down. A record page shows its own record.
+ *
+ * All three, together. A scoped due list beside an unscoped call rate is the
+ * same defect one shelf along, and it is how this one survived.
+ *
+ * The workspace is resolved SERVER-SIDE, and all three resolve it the same
+ * way, so the count in the heading and the denominator in the rate cannot
+ * answer to different workspaces. An id passed from the client could.
+ */
+export const listAgentSettledForecastsHere = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => AtWorkspace.parse(i ?? {}))
+  .handler(async ({ context, data }) => {
+    const db = context.supabase as unknown as SupabaseClient;
+    // Caller's id first, the default only as the fallback. See listDueForecastsHere.
+    let workspaceId = data?.workspaceId ?? null;
+    if (!workspaceId) {
+      const { data: ws } = await db.rpc("current_user_default_workspace");
+      workspaceId = defaultWorkspaceId(ws);
+    }
+    /* NO WORKSPACE IS NOT EVERY WORKSPACE, the same refusal `listDueForecastsHere`
+       makes and for the same reason: falling through to the unscoped read would
+       answer a different question than the caller asked. */
+    if (!workspaceId) return { settled: [] as AgentSettledForecast[] };
+    return listAgentSettledForecastsImpl(db, workspaceId);
+  });
+
+export const getForecastCallRateHere = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => AtWorkspace.parse(i ?? {}))
+  .handler(async ({ context, data }) => {
+    const db = context.supabase as unknown as SupabaseClient;
+    // Caller's id first, the default only as the fallback. See listDueForecastsHere.
+    let workspaceId = data?.workspaceId ?? null;
+    if (!workspaceId) {
+      const { data: ws } = await db.rpc("current_user_default_workspace");
+      workspaceId = defaultWorkspaceId(ws);
+    }
+    /* Summarising an empty array produces a real-looking rate built on no
+       rows, which is the same trap the error path here already refuses. So the
+       honest empty answer goes through `summarizeForecastCalls([])`, which says
+       "no calls yet" rather than a score. */
+    if (!workspaceId) return summarizeForecastCalls([]);
+    return getForecastCallRateImpl(db, workspaceId);
+  });

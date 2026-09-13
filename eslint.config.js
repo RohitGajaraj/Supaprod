@@ -59,6 +59,7 @@ export default tseslint.config(
       "coverage",
       "src/integrations/supabase/types.ts",
       ".claude/workflows/**",
+      ".remember/tmp/**",
       "docs/planning/archive/**",
     ],
   },

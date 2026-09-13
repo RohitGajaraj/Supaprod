@@ -196,8 +196,9 @@ function ScoreView() {
                    coloured dot here would claim a threshold nobody set. */
                 onOpen={() =>
                   navigate({
-                    to: "/engine-room",
+                    to: "/team",
                     search: {
+                      tab: "spend",
                       room: "quality",
                       view: "suites",
                       suite: c.suiteIds.length === 1 ? c.suiteIds[0] : undefined,

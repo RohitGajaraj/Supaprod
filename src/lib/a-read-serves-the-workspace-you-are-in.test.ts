@@ -43,7 +43,11 @@ const BASELINE: Record<string, number> = {
   "src/lib/dashboard.functions.ts": 1,
   "src/lib/design-scaffold.functions.ts": 1,
   "src/lib/evidence.functions.ts": 1,
-  "src/lib/forecast.functions.ts": 1,
+  /* REMOVED 2026-09-10, and the ratchet is meant to move this way. The desk's
+     three `Here` reads now take `workspaceId` and resolve the default only when
+     the caller has none, so this file has no default-only read left. The
+     surface that drew another workspace's forecasts -- Outcomes, the one this
+     guard's header names -- passes `activeWorkspaceId` to all three. */
   "src/lib/guardrails.functions.ts": 1,
   "src/lib/playbooks.functions.ts": 2,
   "src/lib/stakeholder-pack.functions.ts": 1,

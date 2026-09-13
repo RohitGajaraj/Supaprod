@@ -2861,7 +2861,20 @@ function SpecEditorPage() {
               )
             ) : null}
 
-            {provQ.isLoading ? null : provQ.isError ? (
+            {/* A WAIT SAYS IT IS WAITING (Lane 1, 2026-09-10). This read
+                resolved to `null` while it was in flight, so the region drew
+                NOTHING and then a chain appeared -- and "nothing here" and
+                "still looking" are the two states a reader must never have to
+                tell apart by waiting to see which one it turns into.
+
+                Found by widening `today-states-its-wait`: five of its eight
+                entries were redirect stubs with no wait branch to check, so
+                the guard read eight files and examined three. Pointed at the
+                surfaces that actually render, it caught this on the first
+                run. */}
+            {provQ.isLoading ? (
+              <Reading>Reading where this spec came from.</Reading>
+            ) : provQ.isError ? (
               <ReadFailedLine onRetry={() => provQ.refetch()} error={provQ.error}>
                 The chain did not come back.
               </ReadFailedLine>

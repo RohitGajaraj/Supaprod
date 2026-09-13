@@ -324,7 +324,45 @@ const listTasks = def({
 // ── write tools ───────────────────────────────────────────────────────
 const createTask = def({
   name: "tasks.create",
-  description: "Create a task in the workspace.",
+  /*
+   * ── THE TASK COULD NOT SAY WHICH SPEC IT IMPLEMENTS (2026-09-10) ─────────
+   *
+   * `tasks.prd_id` has existed as long as the table. This tool's schema never
+   * offered it and its insert never wrote it, so on the driver's route every
+   * task Plan has ever filed arrived unattached to the spec it was broken out
+   * of. Measured on production:
+   *
+   *   tasks with no prd_id                       264 of 457   (58%)
+   *   task rows filed as a track member          199
+   *   ...of those, on a track that also holds a prd   183      (92%)
+   *
+   * So the link was derivable from the record for nine out of ten of them and
+   * was simply never written. Read on `/plan/spec/5446f8a8`, whose right rail
+   * says **"0 tasks on this spec. No GitHub issue yet."** while the run screen
+   * one click away quotes Plan's own words on the same spec: *"Three
+   * implementation tasks created"*, and again *"The spec 'Let a homeowner
+   * reschedule an installer visit directly from the order page' has been
+   * broken down into the following tasks"* naming five. The seat did the work,
+   * said so, and had no field to say it in.
+   *
+   * That is the founder's *"nothing joins up"* at the level of a column: the
+   * spec is layer 2, the tasks under it are layer 3, and the join between them
+   * was empty.
+   *
+   * ── READ FROM THE TRACK, NEVER FROM THE PROMPT ───────────────────────────
+   * `trackId`'s own doc on `ToolCtx` argued this exact case for
+   * `learning.record`: *"the only remaining link was the driver naming the id
+   * in `stationGoal` and the model choosing to copy it into a tool argument...
+   * Handing the track down lets a tool read it instead of trusting the prompt,
+   * which is the difference between a link and a hope."* `prd.draft` already
+   * resolves the track's newest `decision` member the same way. This is that
+   * pattern for the third time and the argument has not changed.
+   *
+   * An explicit `prd_id` still wins, because a seat splitting a second spec's
+   * work on one track is the case the record cannot infer.
+   */
+  description:
+    "Create a task in the workspace. Pass prd_id when the task implements a specific spec; on a run it is filled in from the spec this piece of work is already carrying.",
   category: "write",
   argsSchema: z.object({
     title: z.string().min(1).max(280),
@@ -332,6 +370,8 @@ const createTask = def({
     estimate_hours: z.number().min(0.25).max(40).optional(),
     is_deep_work: z.boolean().optional(),
     due_date: z.string().optional(),
+    /** The spec this task implements. Optional: on a run it is derived. */
+    prd_id: z.string().uuid().optional(),
   }),
   preview: (a) => `Create task: "${a.title}"${a.priority ? ` (${a.priority})` : ""}`,
   // Same tenancy miss as `signals.log` above, same fix, found in the same sweep:
@@ -339,11 +379,36 @@ const createTask = def({
   // the default resolving NULL. These two were the oldest write tools in the file
   // and the only two the retrofit skipped; research.synthesize, prd.draft,
   // decision.record and learning.record all already stamp it.
-  run: async (a, { supabase, userId, workspaceId }) => {
+  run: async (a, { supabase, userId, workspaceId, trackId }) => {
     if (!workspaceId) {
       throw new Error(
         "No workspace is in context, so there is nowhere to file this task. This is a wiring fault, not something to retry.",
       );
+    }
+    /*
+     * The seat's own id first, then the track's newest spec. NEVER THROWS on
+     * the lookup: the task is a real thing to file whether or not a spec can
+     * be named for it, and failing the whole tool over a missing
+     * cross-reference would tell the seat its task does not exist when it
+     * does. The same three-way guard `prd.draft` uses for the bet it serves.
+     */
+    let prdId: string | null = a.prd_id ?? null;
+    if (!prdId && trackId) {
+      const { data: fromTrack, error: memberErr } = await supabase
+        .from("spine_track_members" as never)
+        .select("artifact_id")
+        .eq("track_id", trackId)
+        .eq("artifact_kind", "prd")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (memberErr) {
+        console.warn(
+          `[tasks.create] could not read the spec on track ${trackId}, so this task is filed without one: ${memberErr.message}`,
+        );
+      } else {
+        prdId = (fromTrack as { artifact_id?: string | null } | null)?.artifact_id ?? null;
+      }
     }
     const { data, error } = await supabase
       .from("tasks")
@@ -355,8 +420,12 @@ const createTask = def({
         estimate_hours: a.estimate_hours ?? null,
         is_deep_work: a.is_deep_work ?? false,
         due_date: a.due_date ?? null,
+        prd_id: prdId,
       })
-      .select("id,title")
+      /* The spec comes back in the result so the seat can SEE what it was
+         attached to. A link written silently is one nobody can check, and this
+         one has been silently absent for the life of the table. */
+      .select("id,title,prd_id")
       .single();
     if (error) throw new Error(error.message);
     return data;

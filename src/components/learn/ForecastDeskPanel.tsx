@@ -12,13 +12,14 @@ import {
 import { Field, Input, Textarea } from "@/components/meridian/forms";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useWorkspace } from "@/hooks/use-workspace";
 
 import {
-  listDueForecasts,
+  listDueForecastsHere,
   settleForecast,
   deferForecastCheck,
-  listAgentSettledForecasts,
-  getForecastCallRate,
+  listAgentSettledForecastsHere,
+  getForecastCallRateHere,
   reopenForecast,
   type DueForecast,
 } from "@/lib/forecast.functions";
@@ -26,6 +27,7 @@ import { toast } from "@/lib/notify";
 import { FORECAST_SAYS } from "@/components/learn/forecast-words";
 import type { ForecastResolution } from "@/lib/brain/forecast-resolution";
 import { forecastGroupLabel, lateness, deferredNote } from "@/components/learn/forecast-desk-words";
+import { everyDraftSays, theDraftEveryRowShares } from "@/components/learn/a-draft-on-every-row";
 
 /**
  * THE OVERSIGHT DOOR, not just the oversight list. "Settle one again by hand
@@ -162,15 +164,50 @@ function AgentSettledRow({
  */
 export function ForecastDeskPanel() {
   const qc = useQueryClient();
-  const fDue = useServerFn(listDueForecasts);
-  const fRate = useServerFn(getForecastCallRate);
-  const fAgent = useServerFn(listAgentSettledForecasts);
+  /*
+   * ── ALL THREE READS ANSWER FOR THE WORKSPACE YOU ARE STANDING IN ────────
+   *
+   * They were `listDueForecasts`, `getForecastCallRate` and
+   * `listAgentSettledForecasts`, none of them scoped at all, on a page that
+   * prints this workspace's decision count four regions below. Read signed in
+   * on 2026-09-10 in `c8ffbbe7` -- a workspace with six forecasts and none
+   * overdue -- the desk drew NINE rows about crypto wallet parity and $7.99
+   * pricing, which are Helio Labs'.
+   *
+   * `activeWorkspaceId` and not the person's DEFAULT, which is the sharper
+   * half and the one `a-read-serves-the-workspace-you-are-in` was written for:
+   * since migration `20260907010000` a person can hold two, and a read that
+   * resolves the default answers with the other desk's rows the moment they
+   * switch. All three take the SAME id from this one source, so the count in
+   * the heading and the denominator in the rate cannot answer to different
+   * workspaces -- which is what the original server-side resolution was
+   * protecting and this keeps.
+   *
+   * IN THE KEY AS WELL AS THE ARGUMENT. A read scoped by an id that is not in
+   * its cache key is the defect one layer in: react-query would serve the
+   * previous workspace's answer under the new workspace's name, and the screen
+   * would look right from every angle except the data.
+   */
+  const { activeWorkspaceId } = useWorkspace();
+  const fDue = useServerFn(listDueForecastsHere);
+  const fRate = useServerFn(getForecastCallRateHere);
+  const fAgent = useServerFn(listAgentSettledForecastsHere);
   const fSettle = useServerFn(settleForecast);
   const fDefer = useServerFn(deferForecastCheck);
 
-  const dueQ = useQuery({ queryKey: ["forecast-due"], queryFn: () => fDue() });
-  const rateQ = useQuery({ queryKey: ["forecast-rate"], queryFn: () => fRate() });
-  const agentQ = useQuery({ queryKey: ["forecast-agent-settled"], queryFn: () => fAgent() });
+  const at = { data: { workspaceId: activeWorkspaceId } };
+  const dueQ = useQuery({
+    queryKey: ["forecast-due", activeWorkspaceId],
+    queryFn: () => fDue(at),
+  });
+  const rateQ = useQuery({
+    queryKey: ["forecast-rate", activeWorkspaceId],
+    queryFn: () => fRate(at),
+  });
+  const agentQ = useQuery({
+    queryKey: ["forecast-agent-settled", activeWorkspaceId],
+    queryFn: () => fAgent(at),
+  });
 
   const [pickedId, setPickedId] = React.useState<string | null>(null);
   const [rationale, setRationale] = React.useState("");
@@ -249,13 +286,33 @@ export function ForecastDeskPanel() {
 
   const picked = due.find((d) => d.id === pickedId) ?? null;
 
+  /* Computed over the RENDERED set, which is the whole point: the same nine
+     forecasts split across two workspaces would discriminate and keep their
+     values. See `a-draft-on-every-row.ts`. */
+  const sharedDraft = theDraftEveryRowShares(
+    due.map((d) => (d.suggestion ? FORECAST_SAYS[d.suggestion.verdict] : null)),
+  );
+
   return (
     <>
       {due.length > 0 ? (
         <Region
           title={forecastGroupLabel(due.length)}
-          // Different information from the title, not a restatement of it.
-          sub="What you expected, now that the date you set has passed."
+          /*
+           * Different information from the title, not a restatement of it --
+           * and, when every row carries the same drafted verdict, the place
+           * that verdict is said. See `a-draft-on-every-row.ts` for the nine
+           * rows this replaced and why the constant moves up here instead of
+           * simply going.
+           */
+          sub={
+            sharedDraft
+              ? `What you expected, now that the date you set has passed. ${everyDraftSays(
+                  due.length,
+                  sharedDraft,
+                )}`
+              : "What you expected, now that the date you set has passed."
+          }
         >
           {due.map((d) => (
             <Row
@@ -265,7 +322,13 @@ export function ForecastDeskPanel() {
                 d.howWeWillKnow,
                 lateness(d.daysLate),
                 deferredNote(d.deferredCount),
-                d.suggestion ? `draft: ${FORECAST_SAYS[d.suggestion.verdict]}` : null,
+                /* Silent only when the sub above is saying it for the whole
+                   column. The moment one row's draft differs, or one row has
+                   none, every row carries its own again -- that difference is
+                   the fastest thing on the desk to read. */
+                d.suggestion && !sharedDraft
+                  ? `draft: ${FORECAST_SAYS[d.suggestion.verdict]}`
+                  : null,
               ]
                 .filter(Boolean)
                 .join(" · ")}

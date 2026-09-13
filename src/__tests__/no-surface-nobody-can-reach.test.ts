@@ -102,18 +102,39 @@ describe("no surface nobody can reach", () => {
     }
   });
 
-  it("keeps the retired stations as redirects rather than as pages", () => {
+  it("keeps the retired stations gone, rather than as redirects nothing follows", () => {
     /*
-     * The seven stations exist as routes and none is linked, which is correct:
-     * a station is a stop on a run's road, reached through `/track/:id`, and
-     * these catch links from before that was true. If one ever grows a page
-     * again, the product has two structures for one idea and the first
-     * assertion fires.
+     * ── WHAT THIS USED TO ASSERT, AND WHY IT INVERTED (Lane 1, 2026-09-10) ──
+     *
+     * It required `discover`, `decide`, `design`, `ship` and `learn` to EXIST
+     * as routes and to be redirects, on the reasoning that "these catch links
+     * from before that was true."
+     *
+     * They caught nothing. Measured across the whole of `src/`, excluding each
+     * stub's own file, its comments and `legacy-redirects`' own list: **zero
+     * inbound links** to `/brain`, `/learn`, `/ship`, `/decide`, `/design`,
+     * `/discover`, `/prds`, `/build` or `/runs/$missionId`. The one real
+     * reference left in the tree was `research.server.ts` pointing a citation
+     * at `/brain`, and a citation is the most expensive place to spend a hop
+     * through an address that exists only to bounce you: it lands mid-thought.
+     * It now names `/outcomes`, which is where `/brain` was sending it.
+     *
+     * The stubs' own headers gave them a one-week inbound-link window opening
+     * 2026-09-02. It closed. And `legacy-redirects.ts` carries this repo's
+     * ruling on the general case, which P-10 already applied to 49 of them:
+     * **the 404 with a door is the correct landing.** A redirect nobody follows
+     * is not a safety net, it is a second address for a surface that has one.
+     *
+     * SO THE CLAIM INVERTS, AND IT IS THE STRONGER OF THE TWO. A station must
+     * not exist as a route AT ALL. A station is a stop on a run's road, reached
+     * through `/track/:id`; the moment one grows an address again the product
+     * has two structures for one idea, and this fires before it grows a page.
      */
-    for (const seg of ["discover", "decide", "design", "ship", "learn"]) {
-      const f = authedRoutes().find((r) => r.seg === `/${seg}`);
-      expect({ seg, found: !!f }).toEqual({ seg, found: true });
-      expect({ seg, redirects: redirects(f!.file) }).toEqual({ seg, redirects: true });
-    }
+    const gone = ["discover", "decide", "design", "ship", "learn", "brain", "prds"];
+    const back = gone.filter((seg) => authedRoutes().some((r) => r.seg === `/${seg}`));
+    expect(
+      back,
+      "a retired station has an address again. A station is a stop on a run's road, reached through /track/:id; a route of its own is a second structure for one idea.",
+    ).toEqual([]);
   });
 });

@@ -1708,8 +1708,13 @@ function MemberRecord({ member }: { member: CrewMember }) {
                 name="What did not finish"
                 sub={
                   <Link
-                    to="/engine-room"
-                    search={{ room: "spend", view: "by-agent", agent: member.slug }}
+                    to="/team"
+                    search={{
+                      tab: "spend",
+                      room: "spend",
+                      view: "by-agent",
+                      roomAgent: member.slug,
+                    }}
                     className="text-mrd-you underline underline-offset-2"
                   >
                     Open the runs for this one

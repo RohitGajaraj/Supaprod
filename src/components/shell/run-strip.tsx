@@ -201,12 +201,41 @@ export type RunStripMode = "tab" | "nav";
  * the run. On the board the scope is the workspace, so it is the station's
  * engine. Same gesture, same promise, different scope.
  */
+/*
+ * ── FOUR OF THE SEVEN NAMED A REDIRECT, NOT AN ENGINE (2026-09-10) ────────
+ *
+ * `decide`, `design` and `build` pointed at `/decide`, `/design` and `/build`,
+ * and none of those three has rendered anything since P-14: each is a route
+ * file whose entire body is `throw redirect({ to: "/start", search: true })`.
+ * So a chip promised "the deep engine of that station" and delivered a bounce
+ * through an address that exists only to send you somewhere else. They spell
+ * `/start` now -- the destination each of those stubs already resolved to, and
+ * the one the stubs' own headers name: the ranked queue is Start's *Or start
+ * one of these*, a build that needs a person is a gated run on Start, and a
+ * brand rule waiting on someone is an approval row there. The three route
+ * files went in the same pass.
+ *
+ * `define` STILL SAYS `/plan`, AND THAT IS THE ONE I COULD NOT FINISH.
+ * `AppFrame.tsx` builds `START_PATHS` out of `Object.values(STATION_ROUTE)`,
+ * and that list is what keeps the Home row lit underneath a station's pages.
+ * `/plan/spec/$id` is a LIVE surface, and it is lit today only because "/plan"
+ * is in this map. Repointing `define` would darken the rail on a page a person
+ * actually stands on, so the honest move -- `define: null`, with AppFrame
+ * carrying the station's TERRITORY separately from its DOOR -- has to be made
+ * in AppFrame, which another lane holds. Until then `/plan`'s index stub stays
+ * so the chip still lands on something, and this comment is the debt.
+ *
+ * WHY NOT `null` FOR THE OTHER THREE EITHER: the type is
+ * `Record<AgentStation, string>` and AppFrame consumes it twice as strings
+ * (`Object.values(...)` into `readonly string[]`, and `doorKey(STATION_ROUTE[
+ * stage.station])`). Widening it to `string | null` is a change in that file.
+ */
 export const STATION_ROUTE: Record<AgentStation, string> = {
   sense: "/evidence",
-  decide: "/decide",
+  decide: "/start",
   define: "/plan",
-  design: "/design",
-  build: "/build",
+  design: "/start",
+  build: "/start",
   // P-14b (A-QUEUE.md, 2026-09-09): /ship is a redirect stub; the station's
   // record is Outcomes' artifacts tab, the same page `learn` points at.
   ship: "/outcomes",

@@ -232,7 +232,11 @@ export function DataSection({ workspaceId }: { workspaceId?: string }) {
               </>
             }
           >
-            <Link to="/engine-room" search={{ room: "record" }} className={ACTION_LINK_FACE.quiet}>
+            <Link
+              to="/team"
+              search={{ tab: "spend", room: "record" }}
+              className={ACTION_LINK_FACE.quiet}
+            >
               Open the record
             </Link>
           </Line>

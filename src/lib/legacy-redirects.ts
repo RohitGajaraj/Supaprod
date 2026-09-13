@@ -47,15 +47,23 @@ export const CANONICAL_PATHS = [
  * one of the primary entries - Settings, Admin, onboarding, and the standing
  * door-links. These are live pages other live pages depend on.
  *
- * `/traces` and `/traces/$traceId` are architectural rather than pending work:
- * the Engine Room's own record room navigates there for trace detail, one level
- * deeper than the room itself.
+ * `/traces/$traceId` is architectural rather than pending work: the record
+ * room navigates there for trace detail, one level deeper than the room
+ * itself.
+ *
+ * THE BARE `/traces` LEFT THIS LIST (2026-09-10). It was never a page: the
+ * index threw `redirect({ to: "/engine-room", ... })`, and `/engine-room` is
+ * itself a redirect onto `/team?tab=spend`, so the one caller -- the Verify
+ * cockpit's "Open the full run record" -- took two hops to reach a surface it
+ * could name directly. The stub is deleted and that caller now spells the
+ * destination. `_authenticated.traces.$traceId.tsx` is untouched and is still
+ * the one trace-detail surface; it simply no longer has a layout parent whose
+ * only job was to bounce its own index.
  */
 export const DOOR_INTERNAL_PATHS = [
   "/settings",
   "/onboarding",
   "/admin",
   "/sources",
-  "/traces",
   "/traces/$traceId",
 ] as const;

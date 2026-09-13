@@ -1445,6 +1445,80 @@ founder's own rule: **wear the user's hat at every step, not at the review.**
 
 ---
 
+### 31. A surface's heading is the reader's situation, not the surface's name
+
+**One heading per surface, and it is a sentence about what is true for this reader right now.**
+
+**Measured across the signed-in product, 2026-09-10.** `/evidence` opens with four typographic
+layers before any content:
+
+```
+DISCOVER                                    <- 10px uppercase, weight 650
+Evidence                                    <- PageHeading title
+What came in, and what it is becoming.      <- PageHeading sub
+Nothing has come in yet.                    <- a SECOND PageHeading, level 2
+```
+
+`/outcomes` does the identical thing — `LEARN` / **Outcomes** / *"Every decision, what it expected,
+and what happened."* / **"The crew has read this record before acting."** — and then five tabs
+before a fact. **Two page headings in a row, on both**, because when each surface was given a fixed
+name the name was bolted on above the computed line rather than folded into it. `outcomes.tsx` says
+so itself: *"the page had no FIXED name at all outside the browser tab."* The fix stacked; it did
+not merge.
+
+**The name is already in two places the reader used to get here** — the rail row, highlighted, and
+the browser tab. Printing it a third time spends the largest type on the page saying the one thing
+they already know.
+
+**And this document already argued the opposite of what five surfaces do:** *"promoting the eyebrow
+would name the page 'Build', which is true of a hundred runs."* The rule was written down and the
+implementation inverted it, which is the most reliable sign that a rule needs a guard rather than a
+paragraph.
+
+**The census that makes it a system problem rather than five bugs: 114 tracked-out ALL-CAPS labels**
+— 88 through `mrd-eyebrow` (37 written inline, 20 `<Eyebrow>`, 25 `<CtxHead>`, 5 `PageHeading
+station=`, 1 the rail's *Setup*) plus 26 hand-rolled `uppercase` labels bypassing the primitive, plus
+three separate uppercase CSS classes. **Up to 17 on `/track/$trackId` alone**, twelve of them inside
+`ArtifactPane.tsx`. One reads `WHAT THIS RELEASE IS ON THE HOOK FOR` — a 36-character sentence set
+in 10px uppercase at weight 650. That is a heading wearing a label's clothes, and the type ramp has
+a stop for a heading.
+
+**What survives.** An eyebrow that names a genuinely repeating category inside a list — a column
+header, a group divider — is doing work structure would otherwise have to do. An eyebrow above the
+first thing a person reads on a surface is not.
+
+**What replaces it.** `PageHeading.title` takes the SITUATION. On `/evidence`, *"Nothing has come in
+yet."* was already the right heading; it only needed to be the only one. The surface's tagline is
+teaching content with a life-cycle — it earns its place on a first visit and stops earning it after
+that — so it is not chrome that runs forever.
+
+### 32. A movement keeps its place when it is empty
+
+**A region that renders only under its own condition cannot be learned.**
+
+**Measured on the home, 2026-09-10:** twelve conditional regions in one column, most of them absent
+on any given workspace. The route's own comments describe a sequence — *"what needs you, hand
+something over, here is what came of the last time, here is what is moving, here is your list"* —
+and that sequence existed **only in the comments**, because no two visits drew the same set. That is
+the mechanism behind the founder's *"it reads as a dump of data and content"*: not that there is too
+much on the page, but that the page has no shape to learn, so every visit is a fresh scan.
+
+Worse, the entry filtered its own answers to `read === "answered"`, which **silently dropped every
+honest empty line the answer machinery had already composed** — *"Nothing new since you last
+looked."*, *"Nothing has shipped yet."*, *"No decision came back this week."* Those sentences were
+written, tested, and never rendered.
+
+**The rule.** Every movement on a surface draws in the same position on every visit. When it has
+nothing, it says what is true — *"Nothing is waiting on you."* — and never a zero it did not measure,
+and never silence, which is indistinguishable from a broken read.
+
+**The one exception, and it is the reason `Answer` has an `unread` variant at all:** a read that did
+not answer draws nothing. An all-clear needs an answered read behind it, because *"nothing is waiting
+on you"* and *"we could not find out what is waiting on you"* are different sentences, and a surface
+that says the first when it means the second makes the person stop looking.
+
+---
+
 ## Working with the founder
 
 **He refines by seeing, not by specifying.** Ship a faithful attempt fast, then expect two or three taste passes. He reviews element by element and expects every item in a feedback batch closed or explicitly declined. He invites pushback but wants **a recommendation, not a survey**.

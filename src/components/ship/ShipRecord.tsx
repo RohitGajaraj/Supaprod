@@ -398,31 +398,23 @@ function Addr({ href, children }: { href: string; children: React.ReactNode }) {
   );
 }
 
-/**
- * AN ADDRESS INSIDE THIS PRODUCT, OPENED IN THIS TAB.
+/*
+ * ── `AppLink` WAS DELETED WITH THE ONE LINK IT EXISTED FOR (2026-09-10) ────
  *
- * Meridian's `Door` is the right paint and the wrong element for exactly one
- * link on this surface: `href` there always carries `target="_blank"`, because
- * the prop was written for OUTBOUND addresses. This one points at a run inside
- * the app, and a receipt that scatters the workspace across tabs is not what
- * "open the revert run" means. Same face, same hover, no new tab.
+ * It wrapped exactly one address, `/studio/${revertMissionId}`, and there has
+ * never been a `/studio` route in this tree -- so the receipt's "the revert
+ * run" was a full page load into the not-found page. `revertMissionId` is
+ * `studio_changesets.mission_id`, a MISSION id, and the only surface that
+ * reports a run is `/track/$trackId`, which needs a TRACK id.
  *
- * It replaces `style={{ color: "var(--sp-ink)" }}`, which is a retired token and
- * was also the whole of the link's affordance: colour and nothing else, with no
- * underline at rest and no hover.
+ * ApprovalsPanel.tsx ruled this exact case on 2026-09-10, measured on
+ * production: a mission id resolves to a track for a small minority of rows,
+ * and "a dead link tells a person it is broken. A link to the home page
+ * silently loses their place and looks like it worked". So the control is cut
+ * and the sentence keeps every fact it carried; VerifyCockpit's own copy of
+ * this defect (`window.location.href = /build/<missionId>`) went in the same
+ * edit.
  */
-function AppLink({ href, children }: { href: string; children: React.ReactNode }) {
-  return (
-    <a
-      data-mrd=""
-      href={href}
-      className={`${DOOR_FACE} hover:text-mrd-ink hover:decoration-mrd-edge hover:decoration-solid`}
-      style={{ transitionDuration: "var(--mrd-d-press)" }}
-    >
-      {children}
-    </a>
-  );
-}
 
 /**
  * THE WAY PAST A CAP, STATED UNDER THE LAST ROW RATHER THAN IN THE HEADING.
@@ -2098,7 +2090,7 @@ export function ShipRecord() {
   const rollback = useMutation({
     mutationFn: (v: { changesetId: string; title: string; reason: string }) =>
       fRollback({ data: { changesetId: v.changesetId, reason: v.reason } }),
-    onSuccess: (res, v) => {
+    onSuccess: (_res, v) => {
       // WHAT THIS SAYS IS WHAT HAS HAPPENED, and no more. `rollbackRelease`
       // stages the inverse changeset and starts a Build run that stops at its
       // first approval gate; it does NOT open the revert PR by itself. A
@@ -2108,11 +2100,7 @@ export function ShipRecord() {
         consequence: (
           <>
             A revert of {v.title} is staged and its run is open. It opens the pull request once you
-            clear that run's gates in{" "}
-            <AppLink href={`/studio/${res.revertMissionId}`}>
-              <Num>the revert run</Num>
-            </AppLink>
-            , and it still passes CI and your review before it merges.
+            clear that run's gates, and it still passes CI and your review before it merges.
           </>
         ),
       });

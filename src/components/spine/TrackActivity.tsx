@@ -69,7 +69,7 @@ import {
   stationRefrainLead,
   type StationRefrain,
 } from "@/components/spine/what-this-station-kept-saying";
-import { agentDisplayName } from "@/lib/agent-vocabulary";
+import { agentDisplayName, AGENT_STATIONS } from "@/lib/agent-vocabulary";
 import { handoffLine, turnsAtStation, whatCameWith } from "@/components/spine/handed-over";
 import { carriedByMission, oncePerId } from "@/components/spine/what-a-mission-carries";
 import { howThisRan } from "@/components/track/how-this-ran";
@@ -87,6 +87,14 @@ import {
   sectionMeta,
   transcriptSections,
 } from "@/components/spine/transcript-sections";
+import {
+  lapOf,
+  lapsThatFiledNothingNew,
+  nothingNewLine,
+  roundLead,
+  roundSeam,
+  theRunWentRound,
+} from "@/components/spine/the-run-went-round";
 import { useTimezone } from "@/hooks/use-timezone";
 import { useTrackActivityPush } from "@/hooks/use-track-activity-push";
 import type { AgentStation } from "@/lib/agent-vocabulary";
@@ -1081,6 +1089,56 @@ export function TrackActivity({
   const sections = React.useMemo(() => transcriptSections(orderedRows), [orderedRows]);
 
   /*
+   * ── THE CIRCLE THE COLUMN COULD NOT SEE (2026-09-10) ────────────────────
+   *
+   * `transcriptSections` opens a new section every time the station changes,
+   * and had no idea it had opened Plan for the third time. Eleven sections in
+   * one flat column, peers of each other, and the fact that the work walked
+   * Plan, Design and Build three times over lived nowhere on the page.
+   *
+   * 27 of 117 tracks with turns revisit a station; 19 visit one three or more
+   * times; 23 of the 27 are a clean repeating cycle. See
+   * `the-run-went-round.ts` for the measurement and the rule.
+   */
+  const round = React.useMemo(() => theRunWentRound(sections.map((s) => s.station)), [sections]);
+
+  /*
+   * WHETHER GOING ROUND WAS WORTH ANYTHING, and the guard that stops it
+   * answering before it can.
+   *
+   * The titles come off the chain query, which is a SEPARATE poll from the
+   * activity read. Until it lands, `titles` is empty and every artifact would
+   * compare as the empty string, so every lap after the first would read as a
+   * lap that filed nothing new -- the most damning sentence on the screen,
+   * asserted from an absence of data. So one unknown title anywhere in the
+   * circle suppresses the whole line: this is a claim about repetition and it
+   * is not entitled to make one over rows it cannot name.
+   */
+  const roundRepeat = React.useMemo(() => {
+    if (!round) return null;
+    let known = true;
+    const lapFilings = round.lapStarts.map((start) => {
+      const filed: Array<{ kind: string; title: string }> = [];
+      for (let i = start; i < start + round.cycle.length; i += 1) {
+        for (const row of sections[i]?.rows ?? []) {
+          if (row.kind !== "turn") continue;
+          for (const m of row.turn.made) {
+            const title = titles.get(m.id)?.title;
+            if (!title) {
+              known = false;
+              continue;
+            }
+            filed.push({ kind: m.kind, title });
+          }
+        }
+      }
+      return filed;
+    });
+    if (!known) return null;
+    return nothingNewLine(round, lapsThatFiledNothingNew(lapFilings));
+  }, [round, sections, titles]);
+
+  /*
    * ── WHAT EACH STATION KEPT SAYING, ONCE PER SECTION ──────────────────────
    *
    * The row fold (`foldRepeats`) collapses CONSECUTIVE turns, and on `6cc7a010`
@@ -1887,6 +1945,31 @@ export function TrackActivity({
        * summary at the top of the column, and a summary of one station is not
        * a summary of a column.
        */}
+      {/*
+       * ── THE RUN WENT ROUND, SAID FIRST BECAUSE IT OUTRANKS THE REST ──────
+       *
+       * The three standing lines under it are provenance (`ranLine`), the read
+       * window (`cappedLine`) and what the tool record cannot see
+       * (`coverageLine`). This one is the answer to the question a person opens
+       * a stuck run to ask, and it is the only one of the four that says
+       * WAITING WILL NOT HELP: a loop ending on the same wall every lap will
+       * end on it again, and every lap is billed.
+       *
+       * Louder than its neighbours for that reason -- `mrd-subtitle` against
+       * their `mrd-meta` -- and drawn as prose rather than as a card. A card is
+       * what this product uses for something that needs answering, and the hold
+       * card three hundred pixels away is already asking. This reports.
+       *
+       * SILENT ON A RUN THAT WALKED A LINE, which is 90 of the 117 tracks that
+       * have ever taken a turn. A line printed on every run distinguishes
+       * nothing, and this file has removed that defect from eight other places.
+       */}
+      {round ? (
+        <div className="flex flex-col gap-0.5">
+          <p className="mrd-subtitle">{roundLead(round, (s) => AGENT_STATIONS[s]?.name ?? s)}</p>
+          {roundRepeat ? <p className="mrd-meta">{roundRepeat}</p> : null}
+        </div>
+      ) : null}
       {ranLine ? <p className="mrd-meta">{ranLine}</p> : null}
       {cappedLine ? <p className="mrd-meta">{cappedLine}</p> : null}
       {/* OUTSIDE the log, for the same reason `ranLine` is: it is a standing
@@ -1920,6 +2003,23 @@ export function TrackActivity({
         {sections.map((section, si) => {
           const isOpen = openSections.has(section.key);
           const isLast = si === sections.length - 1;
+          /*
+           * ── THE SEAM THAT GIVES THE COLUMN ITS FLOW ────────────────────
+           *
+           * Nine sections reading Plan, Design, Build, Plan, Design, Build,
+           * Plan, Design, Build look like nine unrelated stops. Three seams
+           * make them three passes, which is what they are, and it is the
+           * founder's sentence made structural: *the stations do not form a
+           * flow*. In a transcript the flow IS the order the work walked.
+           *
+           * INSIDE the log rather than above it, and announced rather than
+           * hidden. A new lap starting is an ADDITION to the record and the
+           * one addition on this column that changes what a reader should do
+           * about it; `role="log"` announcing it is correct behaviour, not the
+           * re-reading problem that keeps the standing summaries outside.
+           */
+          const lap = lapOf(round, si);
+          const seam = round && lap !== null && si === round.lapStarts[lap - 1] ? lap : null;
 
           const chip =
             section.last === "working" ? (
@@ -1953,222 +2053,231 @@ export function TrackActivity({
           ];
           let lastDay: string | null = null;
           return (
-            <section
-              key={section.key}
-              data-station={section.station ?? undefined}
-              data-open={isOpen ? "true" : "false"}
-              className="flex flex-col"
-            >
-              <button
-                type="button"
-                aria-expanded={isOpen}
-                onClick={() => toggleSection(section.key)}
-                className="mrd-focus-inset flex w-full min-w-0 items-start gap-mrd-3 rounded-mrd-chip px-1 py-mrd-2 text-left transition-colors duration-100 hover:bg-mrd-hover"
+            <React.Fragment key={section.key}>
+              {seam !== null ? (
+                <p data-lap={seam} className="flex items-center gap-mrd-3 pt-mrd-2 mrd-eyebrow">
+                  {roundSeam(seam)}
+                  <span aria-hidden="true" className="h-px flex-1 bg-mrd-line" />
+                </p>
+              ) : null}
+              <section
+                data-station={section.station ?? undefined}
+                data-open={isOpen ? "true" : "false"}
+                className="flex flex-col"
               >
-                <span className="mt-[3px] flex size-[14px] shrink-0 items-center justify-center text-mrd-mute">
-                  {section.station ? (
-                    <StationGlyph kind={GLYPH_FOR_STATION[section.station]} size={14} />
-                  ) : null}
-                </span>
-                <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                  <span className="flex min-w-0 flex-wrap items-center gap-x-mrd-3 gap-y-1">
-                    {/*
-                     * ── A STATION HEADER AND A TURN INSIDE IT WERE 0.5px APART ──
-                     *
-                     * This was `text-mrd-base font-medium text-mrd-ink` -- 13px
-                     * / 500 / ink -- while `RunSubject`, the lead of every turn
-                     * FILED UNDER IT, is 12.5px / 500 / ink. Half a pixel, the
-                     * same weight and the same colour, so the thing that names
-                     * a station and the things that happened at it read as one
-                     * flat list, and a reader scanning the column has to read
-                     * the words to find where a station starts.
-                     *
-                     * `mrd-subtitle` is 14px / 600 / ink: 1.5px and 100 weight
-                     * against the turns, which is the two-axis step Meridian
-                     * requires of two roles a reader must tell apart without
-                     * reading.
-                     */}
-                    <span className="mrd-subtitle">{section.name}</span>
-                    {liveNames.length > 0 ? (
-                      <span className="flex items-center gap-1" aria-hidden="true">
-                        {liveNames.map((name) => (
-                          <PresenceDot key={name} colour={presenceColour(name)} alive size={8} />
-                        ))}
-                      </span>
+                <button
+                  type="button"
+                  aria-expanded={isOpen}
+                  onClick={() => toggleSection(section.key)}
+                  className="mrd-focus-inset flex w-full min-w-0 items-start gap-mrd-3 rounded-mrd-chip px-1 py-mrd-2 text-left transition-colors duration-100 hover:bg-mrd-hover"
+                >
+                  <span className="mt-[3px] flex size-[14px] shrink-0 items-center justify-center text-mrd-mute">
+                    {section.station ? (
+                      <StationGlyph kind={GLYPH_FOR_STATION[section.station]} size={14} />
                     ) : null}
-                    {chip}
-                    {meta ? <span className="mrd-meta">{meta}</span> : null}
                   </span>
-                  {section.via && isOpen ? (
-                    <span className="min-w-0 text-mrd-small text-mrd-mute">{section.via}</span>
-                  ) : null}
-                  {/*
-                   * ── WHAT THE STATION KEPT SAYING, SAID ONCE ───────────────
-                   *
-                   * The sentence the rows below no longer each carry. It reads
-                   * whether the section is open or closed, deliberately: a
-                   * closed Build section that says only "Engineer, Review · 6
-                   * turns · 41.5s" is the stopwatch-over-a-black-box this
-                   * screen was rebuilt to stop, and on the measured run this
-                   * sentence is the only actionable thing on the page.
-                   *
-                   * Two lines rather than three. The row's own `Reveal` opens
-                   * to three because a reader who has opened a turn wants the
-                   * thought; a header is scanned, and the first two lines of
-                   * every one of these sentences carried the whole fact.
-                   *
-                   * QUOTED, because it is the seat's claim and not this
-                   * surface's. The record's verdict is unchanged and the rows
-                   * below still say they filed nothing.
-                   */}
-                  {sectionSaid ? (
-                    <span className="mt-1 flex min-w-0 flex-col gap-0.5">
-                      <span className="text-mrd-small text-mrd-mute">
-                        {/* The lead survives even when the quote goes: the
+                  <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                    <span className="flex min-w-0 flex-wrap items-center gap-x-mrd-3 gap-y-1">
+                      {/*
+                       * ── A STATION HEADER AND A TURN INSIDE IT WERE 0.5px APART ──
+                       *
+                       * This was `text-mrd-base font-medium text-mrd-ink` -- 13px
+                       * / 500 / ink -- while `RunSubject`, the lead of every turn
+                       * FILED UNDER IT, is 12.5px / 500 / ink. Half a pixel, the
+                       * same weight and the same colour, so the thing that names
+                       * a station and the things that happened at it read as one
+                       * flat list, and a reader scanning the column has to read
+                       * the words to find where a station starts.
+                       *
+                       * `mrd-subtitle` is 14px / 600 / ink: 1.5px and 100 weight
+                       * against the turns, which is the two-axis step Meridian
+                       * requires of two roles a reader must tell apart without
+                       * reading.
+                       */}
+                      <span className="mrd-subtitle">{section.name}</span>
+                      {liveNames.length > 0 ? (
+                        <span className="flex items-center gap-1" aria-hidden="true">
+                          {liveNames.map((name) => (
+                            <PresenceDot key={name} colour={presenceColour(name)} alive size={8} />
+                          ))}
+                        </span>
+                      ) : null}
+                      {chip}
+                      {meta ? <span className="mrd-meta">{meta}</span> : null}
+                    </span>
+                    {section.via && isOpen ? (
+                      <span className="min-w-0 text-mrd-small text-mrd-mute">{section.via}</span>
+                    ) : null}
+                    {/*
+                     * ── WHAT THE STATION KEPT SAYING, SAID ONCE ───────────────
+                     *
+                     * The sentence the rows below no longer each carry. It reads
+                     * whether the section is open or closed, deliberately: a
+                     * closed Build section that says only "Engineer, Review · 6
+                     * turns · 41.5s" is the stopwatch-over-a-black-box this
+                     * screen was rebuilt to stop, and on the measured run this
+                     * sentence is the only actionable thing on the page.
+                     *
+                     * Two lines rather than three. The row's own `Reveal` opens
+                     * to three because a reader who has opened a turn wants the
+                     * thought; a header is scanned, and the first two lines of
+                     * every one of these sentences carried the whole fact.
+                     *
+                     * QUOTED, because it is the seat's claim and not this
+                     * surface's. The record's verdict is unchanged and the rows
+                     * below still say they filed nothing.
+                     */}
+                    {sectionSaid ? (
+                      <span className="mt-1 flex min-w-0 flex-col gap-0.5">
+                        <span className="text-mrd-small text-mrd-mute">
+                          {/* The lead survives even when the quote goes: the
                             section still has to say what happened here, and
                             "said this 6 times" without the words is the count,
                             which is what a header is for. */}
-                        {alreadyQuoted
-                          ? stationRefrainLead(sectionSaid, section.turns).replace(
-                              /:$/,
-                              ", and it is quoted above.",
-                            )
-                          : stationRefrainLead(sectionSaid, section.turns)}
-                      </span>
-                      {alreadyQuoted ? null : (
-                        <span className="min-w-0 leading-mrd-prose text-mrd-small text-mrd-body">
-                          <Reveal lines={2}>{`“${sectionSaid.said}”`}</Reveal>
+                          {alreadyQuoted
+                            ? stationRefrainLead(sectionSaid, section.turns).replace(
+                                /:$/,
+                                ", and it is quoted above.",
+                              )
+                            : stationRefrainLead(sectionSaid, section.turns)}
                         </span>
-                      )}
-                    </span>
-                  ) : null}
-                </span>
-                <Chevron open={isOpen} className="mt-[5px] shrink-0 text-mrd-mute" />
-              </button>
-              <div
-                className="grid transition-[grid-template-rows] duration-(--mrd-d-move) ease-(--mrd-ease) motion-reduce:transition-none"
-                style={{ gridTemplateRows: isOpen ? "1fr" : "0fr" }}
-              >
-                <div className="overflow-hidden">
-                  <ol className={`${RUN_STACK} pt-mrd-2`}>
-                    {foldRepeats(section.rows).map((item, ri, items) => {
-                      const row = item.row;
-                      const i = indexOf.get(row.key) ?? 0;
-                      const last = ri === items.length - 1;
-                      const day = dayKey(row.at, zone);
-                      const dayBreak =
-                        lastDay !== null && day !== lastDay ? dayLabel(row.at, zone) : null;
-                      lastDay = day;
-                      if (item.kind === "repeat" && row.kind === "turn") {
-                        /* One entry for a run of identical stopped turns; see
+                        {alreadyQuoted ? null : (
+                          <span className="min-w-0 leading-mrd-prose text-mrd-small text-mrd-body">
+                            <Reveal lines={2}>{`“${sectionSaid.said}”`}</Reveal>
+                          </span>
+                        )}
+                      </span>
+                    ) : null}
+                  </span>
+                  <Chevron open={isOpen} className="mt-[5px] shrink-0 text-mrd-mute" />
+                </button>
+                <div
+                  className="grid transition-[grid-template-rows] duration-(--mrd-d-move) ease-(--mrd-ease) motion-reduce:transition-none"
+                  style={{ gridTemplateRows: isOpen ? "1fr" : "0fr" }}
+                >
+                  <div className="overflow-hidden">
+                    <ol className={`${RUN_STACK} pt-mrd-2`}>
+                      {foldRepeats(section.rows).map((item, ri, items) => {
+                        const row = item.row;
+                        const i = indexOf.get(row.key) ?? 0;
+                        const last = ri === items.length - 1;
+                        const day = dayKey(row.at, zone);
+                        const dayBreak =
+                          lastDay !== null && day !== lastDay ? dayLabel(row.at, zone) : null;
+                        lastDay = day;
+                        if (item.kind === "repeat" && row.kind === "turn") {
+                          /* One entry for a run of identical stopped turns; see
                            `foldRepeats`. The clock is the last one, the span
                            says how long the loop kept trying. */
-                        const t = row.turn;
-                        const fold = foldedLines(
-                          t,
-                          item.seats,
-                          item.count,
-                          clockOf(item.firstAt, zone),
-                          clockOf(item.lastAt, zone),
-                        );
-                        return (
-                          <li key={item.key} className={RUN_ROW}>
-                            <RunClock at={item.lastAt} />
-                            <span className="flex flex-col items-center self-stretch">
-                              <RunGlyph kind="station" station={glyphForStation(t.station)} />
-                              {last ? null : <RunRail />}
-                            </span>
-                            <span className="min-w-0 pb-1">
-                              <span className={RUN_LINE}>
-                                <RunSubject>{fold.lead}</RunSubject>
-                                {chipOf(t)}
-                              </span>
-                              <RunMeta>{fold.meta}</RunMeta>
-                              {t.stopLine ? <RunNote>{t.stopLine}</RunNote> : null}
-                              {saidLine(t.said) ? (
-                                <RunNote>
-                                  <Reveal
-                                    lines={
-                                      saidTheSameThing(
-                                        keptSaying.byRun.get(t.runId) ?? null,
-                                        t.runId,
-                                      )
-                                        ? 1
-                                        : 3
-                                    }
-                                  >
-                                    {saidLine(t.said)}
-                                  </Reveal>
-                                </RunNote>
-                              ) : null}
-                              {/*
-                               * ── THE FOLD KEPT THE COUNT AND DROPPED THE
-                               *    EVIDENCE, ON THE ROWS WHERE THE EVIDENCE IS
-                               *    THE WHOLE QUESTION ──────────────────────────
-                               *
-                               * This row is a run of identical stopped turns,
-                               * which is to say it is the loop -- the turns a
-                               * person opens a stuck run to understand. It
-                               * carried the lead, the span and the prose, and
-                               * unlike the ordinary turn branch below it mounted
-                               * no `SeatCalls` and no trace door. The eleven
-                               * other turns are not behind a disclosure; they
-                               * are not on the screen at all. So the fold
-                               * answered "it did this twelve times" and removed
-                               * every way to ask what "this" was: the searches
-                               * and reads that show what the seat was actually
-                               * doing while it filed nothing.
-                               *
-                               * The REPRESENTATIVE turn's own evidence, not all
-                               * twelve. That is the honest half of the fold's
-                               * argument -- the turns are identical, so one
-                               * stands for them -- and it is the half that was
-                               * missing. The calls are this turn's; the trace
-                               * door is this turn's; the count above says how
-                               * many times it happened.
-                               */}
-                              <SeatCalls
-                                calls={callsBySeat.get(t.runId) ?? []}
-                                working={false}
-                                seat={t.agentName}
-                                spend={
-                                  t.tokens != null ? `${t.tokens.toLocaleString()} tokens` : null
-                                }
-                              />
-                              {t.traceId ? (
-                                <Link
-                                  to="/traces/$traceId"
-                                  params={{ traceId: t.traceId }}
-                                  className="mrd-focus self-start rounded-mrd-ctl text-mrd-small text-mrd-mute underline decoration-mrd-line underline-offset-4 transition-colors hover:text-mrd-ink hover:decoration-mrd-edge"
-                                >
-                                  Open the full trace
-                                </Link>
-                              ) : null}
-                            </span>
-                          </li>
-                        );
-                      }
-                      return (
-                        <React.Fragment key={row.key}>
-                          {dayBreak ? (
-                            <li className={RUN_ROW} aria-label={`From ${dayBreak}`}>
-                              <RunClockEmpty />
+
+                          const t = row.turn;
+                          const fold = foldedLines(
+                            t,
+                            item.seats,
+                            item.count,
+                            clockOf(item.firstAt, zone),
+                            clockOf(item.lastAt, zone),
+                          );
+                          return (
+                            <li key={item.key} className={RUN_ROW}>
+                              <RunClock at={item.lastAt} />
+
                               <span className="flex flex-col items-center self-stretch">
-                                <RunRailBreak />
+                                <RunGlyph kind="station" station={glyphForStation(t.station)} />
+                                {last ? null : <RunRail />}
                               </span>
-                              <span className="py-1 font-mrd-mono text-mrd-data text-mrd-faint">
-                                {dayBreak}
+                              <span className="min-w-0 pb-1">
+                                <span className={RUN_LINE}>
+                                  <RunSubject>{fold.lead}</RunSubject>
+                                  {chipOf(t)}
+                                </span>
+                                <RunMeta>{fold.meta}</RunMeta>
+                                {t.stopLine ? <RunNote>{t.stopLine}</RunNote> : null}
+                                {saidLine(t.said) ? (
+                                  <RunNote>
+                                    <Reveal
+                                      lines={
+                                        saidTheSameThing(
+                                          keptSaying.byRun.get(t.runId) ?? null,
+                                          t.runId,
+                                        )
+                                          ? 1
+                                          : 3
+                                      }
+                                    >
+                                      {saidLine(t.said)}
+                                    </Reveal>
+                                  </RunNote>
+                                ) : null}
+                                {/*
+                                 * ── THE FOLD KEPT THE COUNT AND DROPPED THE
+                                 *    EVIDENCE, ON THE ROWS WHERE THE EVIDENCE IS
+                                 *    THE WHOLE QUESTION ──────────────────────────
+                                 *
+                                 * This row is a run of identical stopped turns,
+                                 * which is to say it is the loop -- the turns a
+                                 * person opens a stuck run to understand. It
+                                 * carried the lead, the span and the prose, and
+                                 * unlike the ordinary turn branch below it mounted
+                                 * no `SeatCalls` and no trace door. The eleven
+                                 * other turns are not behind a disclosure; they
+                                 * are not on the screen at all. So the fold
+                                 * answered "it did this twelve times" and removed
+                                 * every way to ask what "this" was: the searches
+                                 * and reads that show what the seat was actually
+                                 * doing while it filed nothing.
+                                 *
+                                 * The REPRESENTATIVE turn's own evidence, not all
+                                 * twelve. That is the honest half of the fold's
+                                 * argument -- the turns are identical, so one
+                                 * stands for them -- and it is the half that was
+                                 * missing. The calls are this turn's; the trace
+                                 * door is this turn's; the count above says how
+                                 * many times it happened.
+                                 */}
+                                <SeatCalls
+                                  calls={callsBySeat.get(t.runId) ?? []}
+                                  working={false}
+                                  seat={t.agentName}
+                                  spend={
+                                    t.tokens != null ? `${t.tokens.toLocaleString()} tokens` : null
+                                  }
+                                />
+                                {t.traceId ? (
+                                  <Link
+                                    to="/traces/$traceId"
+                                    params={{ traceId: t.traceId }}
+                                    className="mrd-focus self-start rounded-mrd-ctl text-mrd-small text-mrd-mute underline decoration-mrd-line underline-offset-4 transition-colors hover:text-mrd-ink hover:decoration-mrd-edge"
+                                  >
+                                    Open the full trace
+                                  </Link>
+                                ) : null}
                               </span>
                             </li>
-                          ) : null}
-                          {rowFor(row, i, last)}
-                        </React.Fragment>
-                      );
-                    })}
-                  </ol>
+                          );
+                        }
+                        return (
+                          <React.Fragment key={row.key}>
+                            {dayBreak ? (
+                              <li className={RUN_ROW} aria-label={`From ${dayBreak}`}>
+                                <RunClockEmpty />
+                                <span className="flex flex-col items-center self-stretch">
+                                  <RunRailBreak />
+                                </span>
+                                <span className="py-1 font-mrd-mono text-mrd-data text-mrd-faint">
+                                  {dayBreak}
+                                </span>
+                              </li>
+                            ) : null}
+                            {rowFor(row, i, last)}
+                          </React.Fragment>
+                        );
+                      })}
+                    </ol>
+                  </div>
                 </div>
-              </div>
-            </section>
+              </section>
+            </React.Fragment>
           );
         })}
       </div>

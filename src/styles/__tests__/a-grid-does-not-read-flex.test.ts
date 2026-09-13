@@ -46,11 +46,71 @@ const srcRoot = join(repoRoot, "src");
 function displaySettingClasses(): Map<string, string> {
   const css = readFileSync(join(srcRoot, "styles", "shell.css"), "utf8");
   const found = new Map<string, string>();
-  // `.sp-foo {` ... `display: grid;` -- only simple single-class rules, which
-  // is what a className string can carry.
-  for (const m of css.matchAll(/^\.(sp-[a-z-]+)\s*\{([^}]*)\}/gm)) {
-    const display = /(?:^|;|\s)display:\s*([a-z-]+)/.exec(m[2]!)?.[1];
-    if (display === "grid" || display === "flex") found.set(m[1]!, display);
+  /*
+   * ── IT READS A SELECTOR LIST, AND IT DID NOT UNTIL 2026-09-10 ───────────
+   *
+   * The pattern was `/^\.(sp-[a-z-]+)\s*\{/`, which needs the class to be
+   * followed IMMEDIATELY by the brace. The moment `shell.css` gave the work
+   * region an attribute form beside its class --
+   *
+   *     .sp-inner,
+   *     [data-work] {
+   *
+   * -- this scanner matched nothing, `layouts` came back empty, and `offences`
+   * dutifully reported a clean tree. It went blind and looked identical to
+   * green.
+   *
+   * The self-check below is the only reason anyone found out, and it is the
+   * reason it exists: *"the guard is worthless if its input is empty, and an
+   * empty result would otherwise look exactly like a clean tree."* That
+   * sentence bought this. Every scanner in this repo should carry one.
+   *
+   * So: the selector list is read whole, and EVERY hook in it -- class or
+   * attribute -- is registered against the display the rule sets. An attribute
+   * hook is registered under its bare name (`data-work`), which is how the JSX
+   * side below looks it up.
+   */
+  /*
+   * LINE-BASED RATHER THAN ONE REGEX, because the first attempt at reading a
+   * selector list WAS one regex and it matched nothing at all -- the rule
+   * bodies in this sheet carry long comments and the pattern raced past them.
+   * Walking lines is duller and it is checkable by eye, which is what a guard
+   * that has already been blind once should be.
+   */
+  const lines = css.split("\n");
+  let selectors: string[] = [];
+  let inRule = false;
+  let body = "";
+  for (const raw of lines) {
+    const line = raw.trim();
+    if (!inRule) {
+      /* A selector line: one hook, optionally trailing a comma. Anything else
+         (an at-rule, a comment, a nested or compound selector) is not a hook a
+         className or a data attribute can carry on its own, so it resets. */
+      const hook = /^(\.sp-[a-z-]+|\[data-[a-z-]+\])\s*(,|\{)?$/.exec(line);
+      if (hook) {
+        selectors.push(hook[1]!);
+        if (hook[2] === "{") {
+          inRule = true;
+          body = "";
+        }
+        continue;
+      }
+      selectors = [];
+      continue;
+    }
+    if (line.startsWith("}")) {
+      const display = /(?:^|;|\s)display:\s*([a-z-]+)/.exec(body)?.[1];
+      if (display === "grid" || display === "flex") {
+        for (const sel of selectors) {
+          found.set(sel.startsWith(".") ? sel.slice(1) : sel.slice(1, -1), display);
+        }
+      }
+      selectors = [];
+      inRule = false;
+      continue;
+    }
+    body += `${line}\n`;
   }
   return found;
 }
@@ -81,9 +141,16 @@ function offences(): Offence[] {
     lines.forEach((line, i) => {
       // Only a literal className string can be read statically; a computed one
       // is out of reach and says so rather than passing silently.
+      /* THE ATTRIBUTE HOOKS ON THIS LINE, which carry the same layouts the
+         classes do and were invisible here until the work region got them. A
+         `[data-work]` element wearing `flex-wrap` is law 30 exactly, and
+         nothing would have caught it. */
+      const attrs = [...line.matchAll(/\b(data-[a-z-]+)=/g)]
+        .map((a) => a[1]!)
+        .filter((a) => layouts.has(a));
       for (const m of line.matchAll(/className=(?:"([^"]*)"|\{`([^`]*)`\})/g)) {
         const classes = (m[1] ?? m[2] ?? "").split(/\s+/).filter(Boolean);
-        const layout = classes.find((c) => layouts.has(c));
+        const layout = classes.find((c) => layouts.has(c)) ?? attrs[0];
         if (!layout) continue;
         const display = layouts.get(layout)!;
         const wrong = display === "grid" ? FLEX_ONLY : GRID_ONLY;
@@ -102,6 +169,9 @@ describe("a grid does not read flex", () => {
     // otherwise look exactly like a clean tree.
     const layouts = displaySettingClasses();
     expect(layouts.get("sp-inner")).toBe("grid");
+    /* And the attribute form beside it, so a port from one to the other cannot
+       quietly drop a surface out of this guard's sight. */
+    expect(layouts.get("data-work")).toBe("grid");
   });
 
   test("no element carries utilities that its own layout class makes inert", () => {

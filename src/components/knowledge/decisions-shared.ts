@@ -191,7 +191,77 @@ export function forecastChip(d: {
   if (d.forecast_resolution === "inconclusive")
     return { claim, word: FORECAST_SAYS.inconclusive, tone: "" };
   // No resolution yet: the horizon has not come due, or nobody has graded it.
-  return { claim, word: "hold", tone: "" };
+  return { claim, word: HOLD_WORD, tone: "" };
+}
+
+/**
+ * "hold", named once so the list can recognise its own output.
+ *
+ * ── SIX ROWS OUT OF EIGHT ENDED IN THIS WORD ──────────────────────────────
+ * Read signed in on `/outcomes`, 2026-09-10. Every decision in the workspace
+ * that carried a forecast carried an unsettled one, so `forecastChip` fell
+ * through to the same string six times in the last position on the line. The
+ * remaining two rows read "no forecast", which means the column had exactly
+ * two values and one of them was the absence of the other.
+ *
+ * ── AND IT IS NOT A VERDICT, WHICH IS WHY IT IS THE ONE THAT MAY GO ───────
+ * This file's own header says it: *"'hold' is deliberately not in
+ * FORECAST_SAYS: that map holds verdicts, and 'waiting' is a state"*. A
+ * settled hit, miss or inconclusive is the payload of this page and is never
+ * suppressed however uniform the column gets -- suppressing an outcome to
+ * save a repetition would be the trade running backwards. An unsettled state
+ * identical on every row is the PAGE's state, and the coverage line above the
+ * list is where a page states its own.
+ */
+export const HOLD_WORD = "hold";
+
+/**
+ * Whether the forecast word may be dropped from the rows about to be drawn.
+ *
+ * True only when every row that has a forecast at all is on `hold`. One
+ * settled verdict anywhere in the set and every row keeps its word, because
+ * then the word is the fastest way to see which one settled.
+ *
+ * Rows with NO forecast do not count towards it either way: they already say
+ * "no forecast", which is a different fact and stays.
+ */
+export function holdIsTheWholeColumn(
+  rows: readonly { forecast_claim?: string | null; forecast_resolution?: string | null }[],
+): boolean {
+  const words = rows.map((r) => forecastChip(r)?.word).filter((w): w is string => Boolean(w));
+  return words.length >= 2 && words.every((w) => w === HOLD_WORD);
+}
+
+/**
+ * A CLAIM THAT IS THE ROW'S OWN TITLE IS NOT A SECOND FACT.
+ *
+ * Two rows on `/outcomes` read, twenty pixels apart:
+ *
+ *   Warn a homeowner before an installer visit is cancelled
+ *   Kept · You settled it · Forecast: Warn a homeowner before an installer
+ *   visit is cancelled · hold
+ *
+ * Measured across the whole record: 2 of 204 forecast claims are their own
+ * decision's title, and BOTH of them are in the workspace the founder was
+ * looking at. Rare, and it is the repo's oldest defect -- two elements saying
+ * one thing -- on the surface that is meant to prove the product works.
+ *
+ * Compared on a normalised string rather than scored: this is exact
+ * restatement, not similarity, and a threshold here would be a judgement the
+ * check cannot make. Trailing punctuation and case are the only differences a
+ * model reliably introduces when it copies a line.
+ *
+ * The second line still says a forecast EXISTS -- the verdict word draws
+ * whenever `forecastChip` returns -- so nothing is hidden. What goes is the
+ * sentence a reader has already read.
+ */
+export function claimRestatesTitle(claim: string, title: string): boolean {
+  const flat = (v: string) =>
+    v
+      .trim()
+      .toLowerCase()
+      .replace(/[.\s]+$/, "");
+  return flat(claim) === flat(title) && flat(claim).length > 0;
 }
 
 /** The chip's title attribute: the observable and the date, since neither fits

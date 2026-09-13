@@ -1,5 +1,7 @@
 # CODEX RE-ORIENTATION — 2026-09-13
 
+> _Created: 2026-07-28 · Last updated: 2026-09-13_
+
 ## Verified at session start
 
 The founder has reaffirmed full authority for this rebuild: repository guidance and existing design constraints are inputs, not vetoes. The desired outcome is a working product with a simple, easily understood journey and a modern, clean, minimal interface across every depth. Any existing rule that prevents solving the real customer problem should be surfaced and changed deliberately.
@@ -3743,3 +3745,425 @@ The Harbor browser walk exposed a short but visible status race after Stop: the 
 ## RECORD-FOUNDED FORECAST BANDS — 2026-09-13
 
 The forecast guard now distinguishes a seat-declared population from readings SupaProd can actually attribute. ForecastBand.recordedReadings is the only input that can make a band well founded; legacy observations remains informational until its schema migration is complete. Learn counts valid hand readings on the one unambiguous standing metric clause and refuses to bring work forward on a thin or missing record. A band declaring 41,200 observations with no record readings therefore logs rather than opening work. Focused forecast and Learn tests pass (39/39), the full suite passes (15,815 pass, 22 skipped, 37 todo, 0 failures), typecheck and production build pass. The remaining P-150 migration and connector endpoint work still require Lovable MCP and a live database proof.
+## Lane 2 session end · 2026-09-10 · The run went round, and the join between layer 2 and layer 3 was empty
+
+**Pushed to `main`. HEAD `e1d40a890`, 0 ahead / 0 behind. tsc 0 · 15,882 pass / 0 fail / 0 error ·
+`bun run build` exit 0 · eslint 0 errors on every file touched · working tree clean.**
+
+Three commits: `ea8ea51b2` (the laps and four /outcomes fixes), `8f9ce8079` (tasks name their
+spec), `e1d40a890` (the copy defect the served page found).
+
+### 1. A run that goes in circles now says so, and 23% of them do
+
+**Measured before anything was built**, on production, over every track that has ever taken a turn.
+A leg is a station the work arrived at; consecutive turns at one station are one leg:
+
+| | |
+|---|---|
+| tracks with turns | 117 |
+| tracks that visit a station twice | **27 (23%)** |
+| tracks that visit one station 3+ times | 19 (16%) |
+| of the 27, a clean repeating cycle | **23** |
+
+The commonest shapes are `sense, decide` x3 and `define, design, build` x3. **All three
+`given-up` runs in the founder's own workspace are the second**, every lap ending on the
+identical sentence: *"No repository is connected for this workspace."*
+
+`transcriptSections` opens a new section every time the station changes — correctly — and had no
+idea it had opened Plan for the third time. Eleven sections in one flat column, peers of each
+other. That is the founder's *"the stations do not form a flow, the journey is broken"* exactly:
+in a transcript the flow IS the order the work walked.
+
+The column now leads with **"Three times round Plan, Design and Build."**, plus where true *"The
+last lap filed nothing that was not already on the record."*, and carries a seam per lap.
+
+**Matched on kind and TITLE, never on artifact ids.** A re-filed prototype is a new row with a
+new id every lap — the same drawing on `6cc7a010` is prototypes `161e1663`, `aa884e5b` and
+`96b427ed` — so an id comparison would call three copies of one thing three new things. The
+second sentence is suppressed entirely while any title is still loading, because the chain query
+is a separate poll and an empty title book would assert the most damning line on the screen out
+of an absence of data.
+
+`src/components/spine/the-run-went-round.ts`. Silent on the 90 of 117 runs that walked a line.
+Guard proved by failing.
+
+### 2. THE CORRECTION THAT MATTERS MOST, AND THE SERVED PAGE IS WHAT FOUND IT
+
+**My fixture was cleaner than the product.** The SQL collapsed consecutive turns at one station
+into one leg. `transcriptSections` does not — a `move` row opens a new section even when it moves
+to the station the work is already at — so on `6cc7a010` Design's two seats draw as two sections
+and the real sequence is `Plan, Design, Design, Build` x2. The lead would have read **"Twice round
+Plan, Design, Design and Build."**
+
+Collapsed in `roundLead` only. The cycle IS four sections long and the seams have to land on all
+four; deduping before detection would move `lapStarts` and put "Second time round" in the wrong
+place.
+
+**This is the fourth session running in which the served page, and only the served page, found
+the defect.** It cost one read.
+
+### 3. 58% of every task in the database has no link to the spec it implements
+
+| | |
+|---|---|
+| tasks with no `prd_id` | **264 of 457 (58%)** |
+| task rows filed as a track member | 199 |
+| ...on a track that also holds a prd | **183 (92%)** |
+| tasks in the founder's workspace | 43 |
+| ...linked to a spec | **0** |
+
+`tasks.prd_id` has existed as long as the table. `tasks.create` — the only tool an agent has for
+filing one — never offered the field in its schema and never wrote it.
+
+`/plan/spec/5446f8a8` says **"0 tasks on this spec. No GitHub issue yet."** One click away the run
+screen quotes Plan's own words about that same spec: *"Three implementation tasks created"*, and
+again *"The spec ... has been broken down into the following tasks"* naming five. **The seat did
+the work, said so in prose, and had no field to say it in.**
+
+**The read side is not at fault and was not touched.** The rail filters on `prd_id`, refuses to
+claim a count when the read failed, and was right to print 0. The column was empty.
+
+Fixed at the cause: `tasks.create` takes an optional `prd_id` and, on a run, reads the track's
+newest `prd` member — the same three-way guard `prd.draft` uses for the bet it serves, and the
+third use of the pattern `ToolCtx.trackId`'s own doc argued for: *"the difference between a link
+and a hope"*. The spec comes back in the tool result so the seat can see what it was attached to.
+
+### THE BACKFILL THAT IS READY TO RUN, AND WHY IT IS NOT IN THE TREE
+
+**165 rows across 35 specs. Measured, guarded, reversible, NOT APPLIED.** The Lovable MCP token
+expired mid-session (`requires re-authorization`). The rule is that a lane applies its own
+migration by hand and never leaves one for Lovable to apply on merge, so the file was **held out
+of the tree** rather than shipped unapplied.
+
+Re-authorize the MCP, run this, expect **165**, then commit it as
+`supabase/migrations/<version>_tasks_name_the_spec_they_implement.sql` and stamp the ledger row.
+
+```sql
+update public.tasks t
+set prd_id = m.spec_id
+from (
+  select
+    tm.artifact_id as task_id,
+    (
+      select pm.artifact_id
+      from public.spine_track_members pm
+      where pm.track_id = tm.track_id
+        and pm.artifact_kind = 'prd'
+        and pm.created_at <= tm.created_at
+      order by pm.created_at desc
+      limit 1
+    ) as spec_id
+  from public.spine_track_members tm
+  where tm.artifact_kind = 'task'
+) m
+where t.id = m.task_id
+  and m.spec_id is not null
+  and t.prd_id is null;
+
+create index if not exists tasks_prd_id_idx
+  on public.tasks (prd_id) where prd_id is not null;
+```
+
+**The three guards, each measured rather than assumed.** Only where `prd_id is null` (0 of the 199
+carry one today, so the guard protects a re-run and makes the statement idempotent). Only where a
+spec PRECEDES the task on its own track (34 of 199 have none; they stay null, because inventing a
+link for a task filed before any spec existed is the fabrication this repo fails builds over).
+Newest preceding, not first and not newest overall — tracks that go round revise the spec on the
+second lap, so a task filed on lap two belongs to the spec that was standing when it was filed.
+
+### 4. /outcomes: four fixes, and the first is a tenancy defect
+
+1. **"Forecasts due (9)" was not this workspace's.** `c8ffbbe7` holds six forecasts and NONE
+   overdue; the desk drew nine from Helio Labs — crypto wallet parity, $7.99 pricing — in a
+   workspace named "A1 delete probe". All three desk reads were unscoped, and the desk has exactly
+   one caller in the tree: `/outcomes`, a workspace record. It also put a contradiction on one
+   scroll: *"You called it on 6 of the last 9"* (unscoped, `decisions.forecast_resolution`, every
+   workspace) four regions above *"No forecast has been graded yet."* (this workspace,
+   `insights.resolution`). One noun, two tables, both true. Scoped rather than labelled, because a
+   cross-workspace queue is a real thing and this product already has one — the Inbox, which the
+   same page links to two regions down.
+2. **Nine rows ending in the byte-identical string** *"draft: the evidence did not settle it"*.
+   The constant leaves the rows and is said once in the region's sub with the count. Back the
+   moment one row differs or one row has no draft. Found independently by Lane 1 the same morning.
+3. **Four consecutive never-happened lines** — three in "What the record has changed so far" and
+   then a whole region reading "Nothing standing yet." 381 characters of admission fold into one
+   line keeping every noun and every act, 149 characters. Fires at two, never at one. The door
+   survives the fold. The partition moved off a regex on the lead onto a field, so a positive line
+   opening *"No fewer than 4 outcomes..."* can never be folded away.
+4. **Six of eight decision rows ended in the word "hold"**, and two printed their own title back
+   as `Forecast: <the title>` (2 of 204 claims in the whole record are their own title; **both are
+   in the workspace he was looking at**). "hold" is a state and not a verdict — this file's own
+   header says so — so it leaves the rows when it is on all of them and the coverage line says it
+   once. A settled hit or miss is never suppressed however uniform the column. Guarded so the
+   claim and the word can never BOTH leave: that would make "carries a forecast" and "no forecast"
+   one picture.
+
+### THE GUARD THAT CAUGHT ME, AND THE WAY I ALMOST BEAT IT
+
+`a-read-serves-the-workspace-you-are-in.test.ts` failed my first scoping draft and it was right:
+I resolved `current_user_default_workspace` server-side, and since `20260907010000` a person can
+hold two workspaces — the default is not the one they have open. That guard's own header records
+A1 reading *"1 of 2 graded forecasts came true"* on this exact surface, and it was Helio Labs'.
+
+**Then my second draft made the guard PASS by blinding it.** I moved the resolve into a shared
+helper; the scanner reads source text and cannot see through a call, so the file dropped to zero
+without the read being fixed. I inlined it back into all three, and said so in the code.
+
+**A guard you silently defeat is worse than a guard you fail.** The ratchet is one file lower,
+honestly, and `src/lib/forecast.functions.ts` is off the baseline.
+
+### The defect class, for the eleventh time, now written once
+
+**A value identical on every rendered row distinguishes nothing.** Three more removed tonight,
+which makes eleven in this repo, so the comparison finally lives in one file:
+`src/lib/a-value-on-every-row.ts`. **What to DO about a constant is never general and stays at the
+call site** — on the agent roster it leaves because the heading already says it; on the forecast
+desk it moves UP into the region's sub, because nothing else on the page says it at all.
+
+### NOT VERIFIED ON THE SERVED BUILD, AND THIS IS THE FIRST JOB NEXT SESSION
+
+- **Chrome cannot reach a dev server from this worktree.** `curl` gets 200 on `127.0.0.1`, `::1`
+  AND the LAN address; Chrome shows an error page on all three, including `/health`. Lane 3 hit
+  the identical wall last session. **Do not spend an hour on it again** — walk `supaprod.ai`.
+- **At the last read the deploy had not landed.** `/outcomes` still drew the four admission lines
+  separately, so `ea8ea51b2` was not live. The page no longer draws "Forecasts due (9)" — **that
+  is an ABSENCE and an absence proves nothing about a deploy.** Rule 18 wants a string only the
+  commit introduced. Use one of:
+  - `Nothing has been rated, re-ranked or graded yet.` (`/outcomes`)
+  - `None of them has been settled yet.` (`/outcomes` › Decisions)
+  - `Three times round Plan, Design and Build.` and `Second time round`
+    (`/track/6cc7a010-18e5-4e13-ad82-8d8d06687119`, the run the whole feature was measured on)
+
+### Open, and deliberately so
+
+- **The /evidence empty state.** Five separate restatements of "nothing yet" before a single
+  control (`DISCOVER` / `Evidence` / *"What came in, and what it is becoming."* /
+  *"Nothing has come in yet."* / *"Nothing is connected yet, so there is nothing to read."*),
+  then ~230 words of prose — a 57-word disclaimer about the sample workspace and a 67-word legend
+  for a ring, a number and a bar on an illustration of a row the reader does not have yet.
+  **Lane 1's law 31 already covers the heading stack and they have said "Nothing has come in yet."
+  is the right one to keep.** The prose below it is untouched, and each sentence in it is
+  separately argued in the file — read those arguments before cutting.
+- **The right rail says "READING FOR YOU · Research · last read 1d ago" on the same screen that
+  says nothing is connected.** Not investigated. It may be honest (a scout target with no source)
+  or it may be the contradiction it looks like.
+- **Lane 1's motion-vs-result figure, verified with one correction.** Whole database: 46 hit,
+  23 miss, 28 inconclusive = 97 resolved. Samples excluded it is 6 hit, 3 miss, 9 inconclusive, so
+  their "9 with a hit/miss verdict" is exact. **And the damning half holds: 0 of all 97 carry
+  `forecast_observations`, `forecast_predicted` or `forecast_metric`.** Every graded forecast in
+  the product's history was graded by narrative. The band columns exist and are universally empty.
+  **If /outcomes ever leads with proof, it will be empty** — the honest lead there is what is
+  stuck, on whom, and for how long.
+
+---
+
+## LANE 1 SESSION END — 2026-09-10 — the entry rebuilt, ten dead addresses, and a guard that went blind
+
+**Pushed to `main` at `ac63223f0`, six commits on top of Lane 2's `b4b23f535`. 0 ahead / 0 behind,
+working tree clean. Rebased cleanly twice; nothing of Lane 2's touched.**
+`bunx tsc` 0 · `bun test` **15,857 pass / 0 fail** · `bun run build` exit 0 · `docs:check` clean.
+
+**DEPLOYED, AND NOT WALKED. Both halves of that matter and they are different claims.**
+
+*Deployed:* Lovable synced ~6 minutes after the push and now reports
+`latest_commit_sha: a2099daef87ea96a21467d59b19a2e27e49348e2`, with its own screenshot taken against
+`id-preview-a2099dae`. So the built tree **is** this tip. Note the trap that nearly caught this: the
+first `deploy_project` was issued while Lovable still held `b4b23f53`, and a publish builds the
+commit Lovable holds **at that moment**, not the one on GitHub. It was re-deployed after the sync.
+
+*Not walked:* the browser session expired mid-verification and `/start` now redirects to `/login`.
+Signing in is not something this agent does, so **no signed-in surface in this session's work has
+been seen rendering.** Everything below rests on `tsc`, 15,857 tests, a clean production build, and
+guards proved by failing — which is a good position and is not the same thing as having looked. The
+last section names the three reads that settle it in one pass.
+
+### What the founder said, and what the last answer got wrong
+
+> *"A user lands on home and it is not appealing, carries no message, shows no journey. I cannot
+> feel the value and I cannot see any real connectivity. Layers 1, 2 and 3 do not stitch together,
+> and it reads as a dump of data and content. I need real change, not another pass of polish."*
+
+He had said *"shows no journey"* once before. The previous answer moved the seven-station road from
+eighth position to first, and it shipped. **He looked at it and said the same sentence again.** That
+is the only proof worth having that the placement was never the defect.
+
+**A journey is not a diagram of stages. A journey is one thing moving through time.** The band
+renders identically for any workspace holding the same counts: it is the machine's self-portrait,
+and it is layer 2 — the layer this product rents rather than owns — given the largest region on the
+most important screen.
+
+### The finding the whole rebuild rests on
+
+**The entry already had every field it needed and was throwing them away on every poll.**
+
+`getApprovalsQueue` is fetched by the home under the shell's key, so the home pays for the *whole*
+Inbox payload — and rendered **one integer, one noun and one title** off it. Dropped every tick:
+`evidence[]`, `impact`, `forecast{claim,howWeWillKnow,horizonDate}`, `approveConsequence`,
+`rejectConsequence`, `agentSlug`, `gatesLiveWork`, and **`trackId`** — the join back to the run list
+four hundred pixels below it on the same screen.
+
+So "layers 1, 2 and 3 stitched on one object" needed **no new read**. It needed the page to draw
+what it had already bought.
+
+### Shipped
+
+| commit | what |
+| --- | --- |
+| `33640f683` | `[data-work]` / `-main` / `-wide` / `-ctx` beside the four `sp-` layout classes |
+| `289bf5122` | the entry leads with one piece of work, told whole |
+| `778ff455e` | laws 31 and 32, with the censuses behind them |
+| `d1f3d2bf1` | ten addresses that only existed to send you somewhere else |
+| `2a174097a` | the composer stops asking a person to classify their own sentence |
+| `ac63223f0` | the generated route tree catches up |
+
+**The lead.** The oldest call waiting on a person, drawn with its evidence, its cost, its forecast,
+both consequences, and the road of the run it is holding, Approve/Decline in place. `gatesLiveWork`
+is drawn because **22 of 29 pending tool-call gates hold a run that has already finished** — so
+answering releases nothing, and no surface said so before a person pressed. Three states, three
+sentences, and the third is silence: `null` is never collapsed into `false`.
+
+**The layout.** The home was the ONE surface outside `.sp-inner`, and `shell.css` names it by name.
+Measured on the served build at 1920px: **330px of dead field on each side WHILE the page scrolled**
+(content 1168px against 880px of pane). It now has a context column for the first time, so layer 3
+stands beside the work instead of stacked under it below the fold.
+
+**What was cut, each for a measured reason.** The seven-station band (it counted the same eight
+tracks the run rows already draw with `journeyOfRun` at `size="row"`, one region higher — the
+repeated-value law at the layout level), and with it `journeyMap`, `withWaiting`, `withTimings`,
+`withPresences`, a **second observer on `runningNowKey`**, and a station filter only it could set.
+The sentence about the product. `max-w-[62rem]`.
+
+### Why the lead is a CALL and not a PROOF, and this is the number to carry
+
+Production, samples excluded, whole database: **33,777 rows describing MOTION against about 14 rows
+describing a RESULT** — 9 forecasts with a hit/miss verdict, 3 shipped things with an outcome, 2
+learnings — against **69,543 credits spent** and 3,205 agent runs. Lane 2 verified it and added the
+worse half: **0 of all 97 resolved forecasts carry `forecast_observations`, `forecast_predicted` or
+`forecast_metric`.** Every graded forecast in this product's history was graded by narrative.
+
+**An entry that leads with proof is empty. An entry that leads with motion confirms the founder's
+own complaint.** The third option is the only honest one and it happens to be the product's own
+wedge: *what is stuck, on whom, and for how long.* 28 items in the realest workspace, oldest 55 days.
+
+Also measured and worth keeping: **80% of all tracks ever created are abandoned** (43 of 54 in
+Helio Labs), **37 of those 43 never left station one**, and the commonest hold reasons —
+`out-of-time` 21, `produced-nothing` 12 — are honest, nameable, and surfaced nowhere.
+
+### Two laws, in `DESIGN-SYSTEM.md`, and they apply to every surface
+
+**31 — a surface's heading is the reader's situation, not the surface's name.** `/evidence` opens
+with FOUR typographic layers before content; `/outcomes` does the same and then five tabs. **Two
+page headings in a row on both.** The name is already in the rail and the tab. Census: **114
+tracked-out ALL-CAPS labels** in the signed-in product (88 `mrd-eyebrow` + 26 hand-rolled + 3 CSS
+classes), up to **17 on `/track/$trackId`** alone; one reads `WHAT THIS RELEASE IS ON THE HOOK FOR`,
+a 36-character sentence in 10px caps at weight 650. **This document already argued the opposite of
+what five surfaces do** — which is the most reliable sign a rule needs a guard, not a paragraph.
+
+**32 — a movement keeps its place when it is empty.** Twelve conditional regions on the home, most
+absent on any visit, so no two visits shared a shape and the sequence existed only in the comments.
+That is the literal mechanism behind *"reads as a dump"*. The one exception: an unread read draws
+nothing, because *"nothing is waiting on you"* and *"we could not find out"* are different sentences.
+
+### The through-line: ten addresses that only existed to bounce you
+
+Every authenticated route was walked for inbound and outbound links. **Ten had ZERO inbound links
+anywhere in `src/`**, and every one was a file whose whole body was `throw redirect(...)`:
+`/brain /learn /ship /decide /design /discover /prds /build /runs/$missionId /traces`. Their own
+headers gave them a one-week window opening 2026-09-02. It closed. `legacy-redirects.ts` already
+carries the ruling P-10 applied to 49 of them: **the 404 with a door is the correct landing.**
+
+- The last real reference was `research.server.ts` pointing a **RAG citation** at `/brain` — the
+  most expensive place in the product to spend a bounce, because it lands mid-thought. It names
+  `/outcomes` now.
+- `/traces` redirected to `/engine-room`, which redirects to `/team?tab=spend`: **two hops**.
+  `/traces/$traceId` is a real page and is untouched.
+- `STATION_ROUTE` named three of the stubs. `decide`/`design`/`build` spell `/start` now.
+- `ShipRecord`'s *"the revert run"* linked to `/studio/<missionId>` and **there has never been a
+  `/studio` route**: a full page load into the not-found page.
+
+### The lesson worth the most: a guard went blind for one commit
+
+`a-grid-does-not-read-flex` scanned `/^\.(sp-[a-z-]+)\s*\{/` — the class must be followed
+*immediately* by the brace. The moment `shell.css` gave the work region an attribute form beside its
+class (`.sp-inner,\n[data-work] {`) **the scanner matched nothing, its map came back empty, and it
+reported a clean tree.**
+
+Its own self-check is the only reason anyone found out: *"the guard is worthless if its input is
+empty, and an empty result would otherwise look exactly like a clean tree."* **That one sentence
+bought this. Every scanner in this repo should carry one.**
+
+It reads selector lists now, **line by line rather than by one regex** — the first rewrite WAS one
+regex and also matched nothing, because the rule bodies here carry long comments. And it now covers
+the attribute hooks, so a `[data-work]` element wearing `flex-wrap` is caught; proved by injecting
+exactly that and watching it fail by name.
+
+**And the same class of blindness, one step further on, found a REAL defect.**
+`today-states-its-wait` listed eight station files and **five were redirect stubs**, which have no
+wait branch — so it read eight files and examined three. Pointed at the surfaces those stations
+actually render on, it caught `plan.spec.$id.tsx` on the first run:
+`{provQ.isLoading ? null : ...}`, a region drawing nothing while its read was in flight. *"Nothing
+here"* and *"still looking"* are the two states a reader must never have to tell apart by waiting to
+see which one it turns into.
+
+Pair this with Lane 2's own note on the same failure mode: their second scoping draft moved the
+resolve into a shared helper, which made a source-reading guard **pass by blinding it**. Three
+instruments in one day. **An instrument that reports a clean world because someone moved the world
+out of its view is the defect class to hunt next.**
+
+### The composer stops interrogating
+
+The native `<select>` drew on **first paint above an empty box**, defaulting to the longest route —
+so the first interaction with an agentic product was a taxonomy question in *our* taxonomy. Now:
+nothing until there is a sentence; then one line saying what was read **and the word that decided
+it** (*"Reads as something broken now, from 'crashes'"*); the picker one press behind *Change*, and
+a hand-made choice is remembered and never overridden.
+
+Naming the word is the design, not a flourish: `the-bar.md`'s Anthropic lens catches *"confident
+output with no way to check it"* exactly. Forty listed words, not a model — inspectable, free per
+keystroke, and falsifiable by the person it is about.
+
+Two things the tests found: **"wrong" was in the incident list** and read *"the buttons are the
+wrong colour"* as an incident, routing a paint job to Build past the station that writes the
+forecast. And whole-word matching is not tidiness — a bare `includes()` reads "download" as "down".
+
+### Open, and none of it half-built
+
+1. **NOTHING IS VERIFIED ON THE SERVED BUILD.** Read these three, all introduced by these commits
+   and by nothing else, so one pass settles it: on `/start`, the work region should measure
+   **two grid tracks** at ≥1120px (`[data-work]`, not `.sp-inner`); the composer with an EMPTY box
+   should show **no shape control at all**; and typing *"the checkout page crashes on submit"*
+   should print **`Reads as something broken now, from "crashes".`** Do not read a deploy as landed
+   from an absence.
+2. **`define: "/plan"` in `STATION_ROUTE` is documented debt.** `AppFrame` builds `START_PATHS` from
+   `Object.values(STATION_ROUTE)`, and `/plan/spec/$id` is lit today only because `"/plan"` is in
+   that map. The honest fix is to split a station's **territory** from its **door** in `AppFrame`;
+   until then the `/plan` index stub stays so the chip lands on something.
+3. **`<Seam label="Second time round" />` is owed to Lane 2's lap seams** and deliberately NOT built:
+   Lane 2 has closed, their local version is marked, nothing is blocked, and a Meridian component
+   with no live consumer is dead code. The spec, when it has one: an eyebrow-free label at
+   `--mrd-t-small` (law 31 — not `mrd-eyebrow`) with a `--mrd-line-soft` rule running to the edge,
+   because a seam inside one column is quieter than a border between two regions.
+4. **Lane 2's 165-row `prd_id` backfill is written and NOT applied** — their Lovable MCP token
+   expired. Statement is in their handoff entry above. Expected count 165.
+5. **`/evidence`'s empty state** — five restatements of "nothing yet" and ~230 words of prose before
+   any control. Law 31 settles the heading (*"Nothing has come in yet."* is already the right one and
+   only needs to be the only one); the prose below it is each-sentence-argued in the file and should
+   not be cut blind.
+
+### Coordination note
+
+Two lanes, both Opus 5, messaging directly throughout. It worked, and the two most useful exchanges
+were both **corrections**: Lane 2 caught that the `/outcomes` heading I proposed was built on a
+cross-workspace leak (nine forecasts that belonged to another workspace) and did not implement it;
+I told them not to fight Chrome's dev-server wall and to walk `supaprod.ai`, which is the better
+instrument anyway. **Ask rather than guess, and say when a teammate's suggestion is wrong.**
+
+## Codex integration checkpoint — 2026-09-13
+
+Integrated 21 local commits with 12 newer commits on origin/main, preserving both histories. The newer home, sentence routing, repeated-run presentation and retired-route deletions are retained. Profile-timezone fixes survive on live consumers; the unused ink ApprovalCard stays deleted. Run stop-state and the initial recorded-reading guard remain included. Recovery ref: codex/recovery-before-20260913-sync.
+
+Validation of the integrated code: 15,860 tests pass, 22 skip, 37 todo, zero failures across 1,197 files; TypeScript and production build pass. Full ESLint has zero errors and 206 existing warnings after formatting two incoming route changes and excluding gitignored session scratch files under .remember/tmp. docs:check is clean. No database mutation or publication is claimed by this checkpoint.
+
+Lovable OAuth succeeded with Codex CLI 0.154.0 after adding the MCP Accept header (application/json, text/event-stream) to the existing server configuration. Without it, metadata discovery reported a missing resource field while the actual well-known resource document was valid. The persistent user-level configuration now carries the header; credentials remain in Codex storage. This running task cached the old failed connection. A fresh, ephemeral Codex CLI worker successfully called Lovable get_project for Supaprod (371dd588-1b70-4629-9bb5-9f003f3af373), reporting latest_commit_sha c95cdbead52734cec96d27f4d45a7e4c28e47721 before the integration push. Project access is verified; the current task's native connection needs a restart to use the updated setting. The native subagent retry still failed with unsupported encrypted_content, even without conversation history, but the fresh CLI worker completed successfully.
+
+The rebuild goal remains active. P-150 is incomplete: the reading guard must use the explicit decision-to-clause linkage, count valid recorded readings rather than declared populations, and carry that evidence to the artifact UI. Schema verification, connector proof, end-to-end first-run acceptance and served UI verification remain outstanding.

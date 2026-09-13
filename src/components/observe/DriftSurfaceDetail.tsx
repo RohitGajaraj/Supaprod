@@ -400,7 +400,8 @@ export function DriftSurfaceDetail({ id }: { id: string }) {
   const windowDays = Number(cfgSrc.window_days ?? DEFAULT_WINDOWS.window_days);
   const baselineDays = Number(cfgSrc.baseline_days ?? DEFAULT_WINDOWS.baseline_days);
 
-  const back = () => navigate({ to: "/engine-room", search: { room: "quality", view: "drift" } });
+  const back = () =>
+    navigate({ to: "/team", search: { tab: "spend", room: "quality", view: "drift" } });
 
   const windows = (
     <>

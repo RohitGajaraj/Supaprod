@@ -846,7 +846,9 @@ export function ControlsPanel({
           <Actions>
             <Action
               variant="quiet"
-              onClick={() => void navigate({ to: "/engine-room", search: { room: "safety" } })}
+              onClick={() =>
+                void navigate({ to: "/team", search: { tab: "spend", room: "safety" } })
+              }
             >
               {/* NAMES WHAT IT OPENS, not the room it lives in (§12). This read
                   "Open the Engine Room", and it is the instance a prop-only
