@@ -74,7 +74,6 @@ const STILL_RAW = new Set<string>([
   "src/components/shared/StageTimeline.tsx",
   "src/components/ship/ShipRecord.tsx",
   "src/components/ship/WhatShipped.tsx",
-  "src/components/spine/TrackActivity.tsx",
   "src/components/supaprod/AuditLineageSheet.tsx",
   "src/components/track/a-calendar-wait-is-not-a-stoppage.ts",
   "src/components/track/TrackConsent.tsx",

@@ -125,14 +125,11 @@ import { ToolStream, type ToolStreamRow } from "@/components/meridian/ToolStream
 import { PresenceDot, presenceColour } from "@/components/meridian/AgentPresence";
 import { enterMotion, ENTER_MS } from "@/components/spine/enter-motion";
 import { usePrefersReducedMotion } from "@/components/knowledge/graph-visual";
+import { clockInZone } from "@/lib/time-of-day";
 
 /** One map, so a station's slug and its drawing cannot disagree. */
-function clockOf(at: number): string {
-  return new Date(at).toLocaleTimeString(undefined, {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
+function clockOf(at: number, zone: string): string {
+  return clockInZone(new Date(at).toISOString(), zone);
 }
 
 function glyphForStation(s: AgentStation | null): StationGlyphKind | undefined {
@@ -832,7 +829,7 @@ export function TrackActivity({
      * whereas a turn older than the record was never written down at all.
      */
     if (d.capped) {
-      const from = d.oldestShownAt ? clockOf(Date.parse(d.oldestShownAt)) : null;
+      const from = d.oldestShownAt ? clockOf(Date.parse(d.oldestShownAt), zone) : null;
       return from
         ? `What the agents called is here from ${from} onwards. This run made more calls than that before it, and the turns that made them show none.`
         : "What the agents called is capped on this run, so its earliest turns show no calls.";
@@ -844,7 +841,7 @@ export function TrackActivity({
         ? "The other one is older than that record, so what it did is not here."
         : `The other ${unseen} are older than that record, so what they did is not here.`)
     );
-  }, [callsQ.data]);
+  }, [callsQ.data, zone]);
 
   /*
    * WHO is in flight, for the presence slot. Same source and same rule as
@@ -2071,8 +2068,8 @@ export function TrackActivity({
                           t,
                           item.seats,
                           item.count,
-                          clockOf(item.firstAt),
-                          clockOf(item.lastAt),
+                          clockOf(item.firstAt, zone),
+                          clockOf(item.lastAt, zone),
                         );
                         return (
                           <li key={item.key} className={RUN_ROW}>

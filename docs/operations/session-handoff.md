@@ -2,9 +2,13 @@
 
 ## Verified at session start
 
+The founder has reaffirmed full authority for this rebuild: repository guidance and existing design constraints are inputs, not vetoes. The desired outcome is a working product with a simple, easily understood journey and a modern, clean, minimal interface across every depth. Any existing rule that prevents solving the real customer problem should be surfaced and changed deliberately.
+
 The active Codex rebuild goal was grounded against the shared Claude conversation and the repository's current mission documents. `the-first-run/START-HERE.md`, `RULINGS.md`, the five-session operating model, and the queue were read before touching code. The current tree is clean at this checkpoint.
 
 Validation on the current tree: `bun test` passes with 15,812 passing, 22 skipped, 37 todo, and 0 failures; `bunx tsc --noEmit` passes; `bun run build` passes. Migration lint reports four existing warnings and no apply-fatal errors. The build emits existing deprecation warnings for `inputValidator()` and the Cloudflare wrapper.
+
+During this continuation, `TrackActivity` was moved from the browser-local `toLocaleTimeString` to the shared `clockInZone` formatter and its debt-ratchet entry was removed. Focused timezone tests pass. The source diff is currently uncommitted because this managed environment rejects `.git/index` writes; it must be committed when repository write access is available.
 
 The product work remains incomplete by the repository's own acceptance: one sentence must carry a run from the first station to the last without mid-run human navigation, with at most one in-place consent question, and show the result. The next session must choose an unblocked item from `the-first-run/A-QUEUE.md`, verify its path ownership, and record the work before editing.
 
