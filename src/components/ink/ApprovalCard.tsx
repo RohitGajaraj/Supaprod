@@ -2,7 +2,6 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { VerdictChip, type VerdictTone } from "./chips";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
-import { useTimezone } from "@/hooks/use-timezone";
 import { monthDayInZone } from "@/lib/time-of-day";
 
 /**
@@ -58,6 +57,7 @@ export function ApprovalCard({
   onReject,
   onOpen,
   className,
+  timezone,
 }: {
   item: ApprovalItem;
   onApprove: (id: string) => void | Promise<void>;
@@ -65,10 +65,12 @@ export function ApprovalCard({
   /** Open the underlying work (project / pass / evidence door). */
   onOpen?: (id: string) => void;
   className?: string;
+  /** Profile timezone when the host already has it; browser zone is the safe fallback. */
+  timezone?: string;
 }) {
   const [pending, setPending] = useState<"approve" | "reject" | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const zone = useTimezone();
+  const zone = timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   async function act(kind: "approve" | "reject") {
     if (pending) return;
