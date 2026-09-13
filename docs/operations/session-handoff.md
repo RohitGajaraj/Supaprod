@@ -20,6 +20,12 @@ Strategy is part of the implementation problem. Before building or preserving a 
 
 When product evidence contradicts an inherited roadmap, feature list, design rule, or positioning claim, stop preserving it by default. Record the contradiction, choose the path that best solves the user's problem, and make the change.
 
+The founder has also authorized a genuinely new visual and naming direction. The current design system, palette, brand vocabulary, route names, and layout conventions are raw material, not boundaries. Explore a premium, light, modern visual language with a distinctive human or bohemian character where it strengthens recognition and delight. References may include Perplexity, Gemini, Wispr Flow, ChatGPT, Codex, and Claude, but copy their interaction mechanics only when they solve the user's problem; do not paste a trend onto the product. Colour, illustration, spatial motifs, motion, and multi-agent presence should make concurrent work legible on one screen, while accessibility, performance, and evidence remain non-negotiable.
+
+Naming is part of the UX. Audit every user-facing noun, route label, station label, button, and status for clarity. Prefer the smallest concrete phrase a new user understands without learning SupaProd's internal model. Rename or collapse concepts that feel vague, technical, or duplicated, and carry the new vocabulary consistently through navigation, copy, URLs where safe, tests, and documentation.
+
+Parallel execution is encouraged when it improves quality and speed. Use independent agents or worktrees for genuinely disjoint audits or implementation tracks, then integrate and review them as one product. Shared flows, naming, design primitives, and schema need an explicit owner or sequencing so parallel work does not recreate the disconnected experience.
+
 The product work remains incomplete by the repository's own acceptance: one sentence must carry a run from the first station to the last without mid-run human navigation, with at most one in-place consent question, and show the result. The next session must choose an unblocked item from `the-first-run/A-QUEUE.md`, verify its path ownership, and record the work before editing.
 
 ---
