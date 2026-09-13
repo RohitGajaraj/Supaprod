@@ -33,7 +33,6 @@ const STILL_RAW = new Set<string>([
   "src/components/engine-room/RoomGlanceCard.tsx",
   "src/components/governance/ApprovalsPanel.tsx",
   "src/components/governance/BudgetsPanel.tsx",
-  "src/components/ink/ApprovalCard.tsx",
   "src/components/knowledge/BriefPanel.tsx",
   "src/components/knowledge/CompoundingPanel.tsx",
   "src/components/knowledge/DecisionDetail.tsx",

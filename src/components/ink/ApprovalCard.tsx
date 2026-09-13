@@ -2,6 +2,8 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { VerdictChip, type VerdictTone } from "./chips";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
+import { useTimezone } from "@/hooks/use-timezone";
+import { monthDayInZone } from "@/lib/time-of-day";
 
 /**
  * ApprovalCard - one item in the single queue of everything awaiting human
@@ -39,7 +41,7 @@ export type ApprovalItem = {
 };
 
 /** Humanize an ISO timestamp to a short, calm form ("2h ago", "Jul 9"). */
-function shortTime(iso: string): string {
+function shortTime(iso: string, zone: string): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
   const mins = Math.round((Date.now() - d.getTime()) / 60000);
@@ -47,7 +49,7 @@ function shortTime(iso: string): string {
   if (mins < 60) return `${mins}m ago`;
   const hours = Math.round(mins / 60);
   if (hours < 24) return `${hours}h ago`;
-  return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  return monthDayInZone(iso, zone);
 }
 
 export function ApprovalCard({
@@ -66,6 +68,7 @@ export function ApprovalCard({
 }) {
   const [pending, setPending] = useState<"approve" | "reject" | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const zone = useTimezone();
 
   async function act(kind: "approve" | "reject") {
     if (pending) return;
@@ -105,7 +108,7 @@ export function ApprovalCard({
             dateTime={item.timestamp}
             className="ink-mono shrink-0 text-mrd-tiny text-[var(--mrd-faint)]"
           >
-            {shortTime(item.timestamp)}
+            {shortTime(item.timestamp, zone)}
           </time>
         ) : null}
       </header>
