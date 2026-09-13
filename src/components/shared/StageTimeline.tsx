@@ -47,9 +47,7 @@ export interface StageTimelineProps {
  * module-private there): "Today HH:MM" or "Mon D HH:MM". */
 function fmtAt(iso: string, zone: string): string {
   const reading = dateTimeInZone(iso, zone, new Date().toISOString());
-  return reading.startsWith("yesterday ") || reading.includes(", ")
-    ? reading
-    : `Today ${reading}`;
+  return reading.startsWith("yesterday ") || reading.includes(", ") ? reading : `Today ${reading}`;
 }
 
 export function StageTimeline({ entityType, entityId, variant = "detailkit" }: StageTimelineProps) {
