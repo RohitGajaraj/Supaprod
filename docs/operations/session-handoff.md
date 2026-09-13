@@ -3735,3 +3735,7 @@ account in `docs/operations/demo-credentials.md` signed in successfully. A dispo
 reached `/track/<id>` and visibly showed Discover work, named agents, tool calls, evidence absence,
 the seven-station road, credit spend, and a truthful transition to Decide. The run was stopped after
 the test; no production release or approval was made.
+
+## STOP HANDOFF CONSISTENCY — 2026-09-13
+
+The Harbor browser walk exposed a short but visible status race after Stop: the database stop request landed before the driver wrote the paused hold, so the header could still pulse Running while the footer said the run had stopped. Commit 9e5369c52 makes the person-owned paused state read Stopping while the last dispatched seat finishes, then Stopped once idle; the footer removes both controls during that handoff and the browser tab follows the same vocabulary. Focused run status, footer mode, and tab tests pass (48/48), the full suite passes (15,814 pass, 22 skipped, 37 todo, 0 failures), bunx tsc --noEmit passes, and bun run build passes. The change is code and test verified; a fresh live press is still needed before calling the transition visually closed on production.
