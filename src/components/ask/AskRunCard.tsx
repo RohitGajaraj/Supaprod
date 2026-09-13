@@ -38,6 +38,8 @@ import { ACTION_LABEL } from "@/lib/agent-vocabulary";
 import type { LoopStep } from "@/lib/ai/loop.server";
 import { Receipt } from "@/components/meridian/Receipt";
 import { Textarea } from "@/components/meridian/forms";
+import { useTimezone } from "@/hooks/use-timezone";
+import { clockInZone } from "@/lib/time-of-day";
 
 const POLL_MS = 4000;
 
@@ -91,8 +93,8 @@ function stepLine(step: LoopStep): string {
   return "working it out";
 }
 
-function clock(): string {
-  return new Date().toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+function clock(zone: string): string {
+  return clockInZone(new Date().toISOString(), zone);
 }
 
 type Note = { key: string; verb: string; consequence: string; failed?: boolean; at: string };
@@ -105,8 +107,9 @@ export function AskRunCard({ missionId, initials }: { missionId: string; initial
   const [steerDraft, setSteerDraft] = React.useState("");
   const [steering, setSteering] = React.useState(false);
   const [notes, setNotes] = React.useState<Note[]>([]);
+  const zone = useTimezone();
   const note = (n: Omit<Note, "key" | "at">) =>
-    setNotes((prev) => [{ ...n, key: `${Date.now()}-${prev.length}`, at: clock() }, ...prev]);
+    setNotes((prev) => [{ ...n, key: `${Date.now()}-${prev.length}`, at: clock(zone) }, ...prev]);
 
   const canvas = useQuery({
     queryKey: ["ask-canvas", missionId],

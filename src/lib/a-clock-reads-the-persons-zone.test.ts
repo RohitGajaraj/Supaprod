@@ -25,8 +25,6 @@ const RAW_CLOCK =
 const STILL_RAW = new Set<string>([
   "src/components/admin/InvitationsPanel.tsx",
   "src/components/admin/VouchersPanel.tsx",
-  "src/components/ask/AskGateCard.tsx",
-  "src/components/ask/AskRunCard.tsx",
   "src/components/billing/WorkspaceClaimCard.tsx",
   "src/components/brain/ArtifactsView.tsx",
   "src/components/brain/StandingRecord.tsx",

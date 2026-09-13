@@ -32,11 +32,13 @@ import {
 import { Receipt } from "@/components/meridian/Receipt";
 import { Ask } from "@/components/meridian/Ask";
 import { questionForGate } from "./a-question-is-composed-not-punctuated";
+import { useTimezone } from "@/hooks/use-timezone";
+import { clockInZone } from "@/lib/time-of-day";
 
 type Settled = { verdict: "approve" | "reject" | "snooze"; consequence: string; failed?: boolean };
 
-function clock(): string {
-  return new Date().toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+function clock(zone: string): string {
+  return clockInZone(new Date().toISOString(), zone);
 }
 
 export function AskGateCard({
@@ -57,6 +59,7 @@ export function AskGateCard({
   const qc = useQueryClient();
   const [pending, setPending] = React.useState<string | null>(null);
   const [settled, setSettled] = React.useState<Settled | null>(null);
+  const zone = useTimezone();
 
   // THE COMMIT (anti-slop.md section 5): a settled action writes a receipt
   // carrying its OWN consequence, never a toast. The queue item already states
@@ -97,7 +100,7 @@ export function AskGateCard({
         verdict: "snooze",
         consequence: Number.isNaN(until.getTime())
           ? "It comes back with the next briefing."
-          : `It comes back after ${until.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}.`,
+          : `It comes back after ${clockInZone(until.toISOString(), zone)}.`,
       });
       invalidateShellReads(qc);
       onSettled?.();
@@ -126,7 +129,7 @@ export function AskGateCard({
                 : "You deferred it"
         }
         consequence={settled.consequence}
-        time={clock()}
+        time={clock(zone)}
         failed={settled.failed}
       />
     );
