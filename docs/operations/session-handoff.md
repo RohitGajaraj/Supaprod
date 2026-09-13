@@ -3714,3 +3714,16 @@ film masters** — nothing of tonight's, and not committed.
 **The append-never-overwrite rule was tested for real:** Lane 3 hit a rebase conflict in both handoff
 files and kept both sides in file order. Zero conflict markers, nothing truncated, all three lanes
 present in both files.
+
+## CODEX DESKTOP ACCESS — 2026-09-13
+
+Codex's built-in in-app browser is the reliable verification surface for this session. Direct
+`createBrowserTab("iab", url, { visible: true })` opens and reads SupaProd, the public demo, login,
+and the shared Claude snapshot; `getState()` may still report `Codex auth token is unavailable`
+for external browser inventory. That inventory error does not block in-app tabs.
+
+The collaboration service currently rejects fresh sub-agent turns (including `fork_turns: "none"`
+and a follow-up retry) with `unsupported content block type: encrypted_content`. This is an
+orchestration-layer failure, not a repository or browser failure. Keep integration in the root task
+and use bounded parallel shell audits until the service accepts worker turns again; do not claim
+sub-agents are running when they are not.
