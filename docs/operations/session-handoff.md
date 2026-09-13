@@ -10,6 +10,16 @@ Validation on the current tree: `bun test` passes with 15,812 passing, 22 skippe
 
 During this continuation, `TrackActivity`, `StageTimeline`, `AskRunCard`, and `AskGateCard` were moved from browser-local date/time formatters to the shared profile-zone helpers, and all four debt-ratchet entries were removed. Focused timezone tests pass. The changes landed in commits `cb339d046`, `5f8d93840`, and `6fc87ab0e`.
 
+## Product standard reaffirmed by the founder
+
+The target is an enterprise-grade, truly agentic product, not a conventional B2B SaaS dashboard with AI features. The system must carry a user's intent through a complete workflow in one understandable journey, perform the work autonomously, expose its reasoning and outputs as trustworthy evidence, and ask for a person only at a consequential boundary. A single user must be able to run the whole application end to end without stitching together disconnected screens.
+
+The product should feel fresh and new-age while staying calm, minimal, and legible. It may challenge familiar category patterns when that makes the user's job easier. Every screen, control, noun, and transition needs a reason tied to a real user outcome. Visual novelty is useful only when it improves comprehension, confidence, or action.
+
+Strategy is part of the implementation problem. Before building or preserving a capability, assess whose pain it solves, whether the pain is urgent enough to pay for, how the first useful run proves value, and how the same core loop can expand from an individual builder or founder to a team and enterprise without becoming a feature catalogue. Positioning must emerge from a demonstrated advantage in the closed loop (intent → autonomous work → observable evidence → outcome), not from claims the current product cannot prove. Market scale is an ambition; the near-term proof is a repeatable first-run outcome that a real user understands and would choose again.
+
+When product evidence contradicts an inherited roadmap, feature list, design rule, or positioning claim, stop preserving it by default. Record the contradiction, choose the path that best solves the user's problem, and make the change.
+
 The product work remains incomplete by the repository's own acceptance: one sentence must carry a run from the first station to the last without mid-run human navigation, with at most one in-place consent question, and show the result. The next session must choose an unblocked item from `the-first-run/A-QUEUE.md`, verify its path ownership, and record the work before editing.
 
 ---
