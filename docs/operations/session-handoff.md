@@ -3727,3 +3727,9 @@ and a follow-up retry) with `unsupported content block type: encrypted_content`.
 orchestration-layer failure, not a repository or browser failure. Keep integration in the root task
 and use bounded parallel shell audits until the service accepts worker turns again; do not claim
 sub-agents are running when they are not.
+
+The restarted browser session now exposes an authenticated SupaProd tab. The documented rehearsal
+account in `docs/operations/demo-credentials.md` signed in successfully. A disposable sentence
+reached `/track/<id>` and visibly showed Discover work, named agents, tool calls, evidence absence,
+the seven-station road, credit spend, and a truthful transition to Decide. The run was stopped after
+the test; no production release or approval was made.
