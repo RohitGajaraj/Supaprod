@@ -8,7 +8,7 @@ The active Codex rebuild goal was grounded against the shared Claude conversatio
 
 Validation on the current tree: `bun test` passes with 15,812 passing, 22 skipped, 37 todo, and 0 failures; `bunx tsc --noEmit` passes; `bun run build` passes. Migration lint reports four existing warnings and no apply-fatal errors. The build emits existing deprecation warnings for `inputValidator()` and the Cloudflare wrapper.
 
-During this continuation, `TrackActivity`, `StageTimeline`, `AskRunCard`, and `AskGateCard` were moved from browser-local date/time formatters to the shared profile-zone helpers, and all four debt-ratchet entries were removed. Focused timezone tests pass. The changes landed in commits `cb339d046`, `5f8d93840`, and `6fc87ab0e`.
+During this continuation, `TrackActivity`, `StageTimeline`, `AskRunCard`, `AskGateCard`, and `ApprovalCard` were moved from browser-local date/time formatters to the shared profile-zone helpers, and all five debt-ratchet entries were removed. Focused timezone tests pass. The changes landed in commits `cb339d046`, `5f8d93840`, `6fc87ab0e`, and `d4664dd1f`.
 
 ## Product standard reaffirmed by the founder
 
