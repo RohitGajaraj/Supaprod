@@ -806,6 +806,8 @@ export function TrackActivity({
    * their agents sat idle, which is the opposite of true. Silent when the record
    * covers every turn: "26 of 26" on every complete run distinguishes nothing.
    */
+  const zone = useTimezone();
+
   const coverageLine = React.useMemo(() => {
     const d = callsQ.data;
     if (!d) return null;
@@ -1163,8 +1165,6 @@ export function TrackActivity({
    * heading. A transcript section is a record of TURNS -- who acted, how many,
    * how long -- and the tally belongs to the surfaces that tally.
    */
-  const zone = useTimezone();
-
   React.useEffect(() => {
     if (!q.data) return;
     if (!primed.current) {

@@ -30,6 +30,8 @@ import { relTimeCaps } from "@/components/discover/format";
 import { Num } from "@/components/meridian/surface-parts";
 import { MonoLabel } from "@/components/supaprod/Primitives";
 import { LOOM_CARD } from "@/components/studio/studio-ui";
+import { useTimezone } from "@/hooks/use-timezone";
+import { dateTimeInZone } from "@/lib/time-of-day";
 
 /** The entity kinds the stage_events read side accepts (getStageEvents). */
 export type StageEntityType =
@@ -43,12 +45,11 @@ export interface StageTimelineProps {
 
 /** The mission surface's time idiom (fmtStarted in MissionOrchestratorDetail,
  * module-private there): "Today HH:MM" or "Mon D HH:MM". */
-function fmtAt(iso: string): string {
-  const d = new Date(iso);
-  const hm = d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false });
-  return d.toDateString() === new Date().toDateString()
-    ? `Today ${hm}`
-    : `${d.toLocaleDateString("en-US", { month: "short", day: "numeric" })} ${hm}`;
+function fmtAt(iso: string, zone: string): string {
+  const reading = dateTimeInZone(iso, zone, new Date().toISOString());
+  return reading.startsWith("yesterday ") || reading.includes(", ")
+    ? reading
+    : `Today ${reading}`;
 }
 
 export function StageTimeline({ entityType, entityId, variant = "detailkit" }: StageTimelineProps) {
@@ -57,6 +58,7 @@ export function StageTimeline({ entityType, entityId, variant = "detailkit" }: S
     queryKey: ["stage-events", entityType, entityId],
     queryFn: () => fGetStageEvents({ data: { entityType, entityId } }),
   });
+  const zone = useTimezone();
 
   const events = eventsQuery.data?.events ?? [];
 
@@ -121,7 +123,7 @@ export function StageTimeline({ entityType, entityId, variant = "detailkit" }: S
                 {e.actor}
               </span>
               <span className="mono-label tabular-nums" style={{ marginLeft: "auto" }}>
-                {fmtAt(e.at)}
+                {fmtAt(e.at, zone)}
               </span>
             </div>
           ))}
