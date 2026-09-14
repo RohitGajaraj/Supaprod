@@ -26,7 +26,18 @@ export type Theme = "dark" | "light";
 export type ResolvedTheme = Theme;
 
 const STORAGE_KEY = "supaprod.theme";
-const DEFAULT_THEME: Theme = "dark";
+/**
+ * LIGHT SINCE 2026-09-14, on the founder's ruling that a first visit should open
+ * on the light ground. Both grounds are fully supported and the toggle is
+ * unchanged; this is only which one arrives with no stored preference.
+ *
+ * THREE PLACES DECIDE THE GROUND AND ALL THREE HAD TO MOVE TOGETHER: this
+ * constant, the `data-theme` attribute the server paints in `__root.tsx`, and
+ * the pre-hydration bootstrap script beside it. Changing this one alone would
+ * paint dark on every first load and flash to light at hydration, which is
+ * worse than either ground and is the defect that bootstrap exists to prevent.
+ */
+const DEFAULT_THEME: Theme = "light";
 
 type ThemeContextValue = {
   /** The ground the reader chose. */
@@ -67,10 +78,12 @@ function readStoredTheme(): Theme {
   try {
     const v = window.localStorage.getItem(STORAGE_KEY);
     if (v === "dark" || v === "light") return v;
-    // Migrations. Both retired values resolve to dark rather than falling
-    // through, so a reader who had picked "system" lands on the designed
-    // ground instead of whatever their laptop happened to prefer.
-    if (v === "system" || v === "aurora") return "dark";
+    // Migrations. Both retired values resolve to the DEFAULT rather than
+    // falling through, so a reader who had picked "system" lands on the ground
+    // the product opens on instead of whatever their laptop happened to prefer.
+    // Written as the constant, not as a literal: this used to say "dark" and
+    // would have kept sending migrated readers there after the default moved.
+    if (v === "system" || v === "aurora") return DEFAULT_THEME;
   } catch {
     /* noop */
   }

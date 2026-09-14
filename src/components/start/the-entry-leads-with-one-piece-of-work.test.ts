@@ -102,7 +102,7 @@ describe("the entry opens with one piece of work", () => {
     expect(ROUTE).not.toContain("theMessage");
 
     /* The replacement is mounted, and it is gated. */
-    const mount = ROUTE.indexOf("<FirstLook");
+    const mount = ROUTE.indexOf("<WhatThisDoes");
     expect(mount).toBeGreaterThan(-1);
     const gate = ROUTE.indexOf("entryHasNothingToSay({");
     expect(gate).toBeGreaterThan(-1);

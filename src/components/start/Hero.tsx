@@ -81,6 +81,12 @@ export function heroCopy(input: {
   queueShort?: string | null;
   /** The clock a quiet seat is measured against. Now, unless a test says. */
   nowMs?: number;
+  /**
+   * `WhatThisDoes` is drawing above this header, so the first-visit line would
+   * be the third sentence in a row about saying a sentence. The title still
+   * stands; see the `runs.length === 0` branch.
+   */
+  introduced?: boolean;
 }): HeroCopy {
   const name = input.product ?? "your product";
   const runs = input.runs;
@@ -301,9 +307,25 @@ export function heroCopy(input: {
     return {
       eyebrow,
       title: `What should ${name} do first?`,
-      /* The three starter runs say themselves when they arrive; the hero does
-         not promise them before then (third review, 2026-09-08). */
-      line: `Say it in one sentence. You will watch it happen on the run's own page, and it stops to ask you only where the call is yours.${short}`,
+      /*
+       * ── AND IT SAYS NOTHING WHEN SOMETHING ABOVE ALREADY DID ──────────────
+       *
+       * `introduced` means `WhatThisDoes` is on screen, one region up, saying
+       * how the machine works in more detail than this line ever could. Driven
+       * in a browser on the empty workspace, the two stood together and the
+       * page carried three consecutive sentences about saying a sentence -- the
+       * precise failure the 2026-09-08 pass on this file warned about when it
+       * declined to add a third.
+       *
+       * The TITLE stays, because it is the invitation and it names the person's
+       * own product, which the introduction above deliberately does not.
+       *
+       * The three starter runs say themselves when they arrive; the hero does
+       * not promise them before then (third review, 2026-09-08).
+       */
+      line: input.introduced
+        ? short.trim()
+        : `Say it in one sentence. You will watch it happen on the run's own page, and it stops to ask you only where the call is yours.${short}`,
     };
   }
   /* Each of the four branches below keeps its sentence verbatim and hands the
@@ -369,37 +391,43 @@ export function Hero({ copy }: { copy: HeroCopy }) {
       <h1 className="font-mrd-display text-mrd-h1 leading-mrd-tight font-medium tracking-[-0.015em] text-mrd-ink">
         {copy.title}
       </h1>
-      <p className="max-w-[var(--mrd-measure-page)] text-mrd-prose leading-mrd-prose text-mrd-body">
-        {copy.line}
-        {copy.door ? (
-          <>
-            {" "}
-            {/*
-             * ── A CONTROL'S LABEL IS ONE PHRASE AND NEVER BREAKS ──────────
-             *
-             * SEEN ON THE SERVED ENTRY, 2026-09-10: "Open Inbox" occupied TWO
-             * line boxes, with "Open" ending one line and "Inbox" starting the
-             * next. Measured with `getClientRects().length`, not by eye.
-             *
-             * A two-word door split across lines stops reading as a control at
-             * all -- the eye takes "...2 runs have stopped. Open" as the end of
-             * a sentence and "Inbox" as the start of another. This door sits in
-             * the largest paragraph on the landing page, so it is the worst
-             * place in the product for that to happen.
-             *
-             * `nowrap` on the LABEL only. The paragraph still wraps wherever it
-             * likes; what cannot break is the thing a person is meant to press.
-             */}
-            <Link
-              to={copy.door.to}
-              className="whitespace-nowrap rounded-mrd-xs text-mrd-body underline decoration-mrd-line decoration-dotted underline-offset-[3px] transition-colors hover:text-mrd-ink hover:decoration-mrd-edge hover:decoration-solid"
-              style={{ transitionDuration: "var(--mrd-d-press)" }}
-            >
-              {copy.door.label}
-            </Link>
-          </>
-        ) : null}
-      </p>
+      {/* AN EMPTY LINE IS NO PARAGRAPH AT ALL. `introduced` blanks the line on
+          the first visit because the region above says it better, and an empty
+          <p> still occupies its own leading, which would leave a visible gap
+          between the headline and the composer for no content. */}
+      {copy.line || copy.door ? (
+        <p className="max-w-[var(--mrd-measure-page)] text-mrd-prose leading-mrd-prose text-mrd-body">
+          {copy.line}
+          {copy.door ? (
+            <>
+              {" "}
+              {/*
+               * ── A CONTROL'S LABEL IS ONE PHRASE AND NEVER BREAKS ──────────
+               *
+               * SEEN ON THE SERVED ENTRY, 2026-09-10: "Open Inbox" occupied TWO
+               * line boxes, with "Open" ending one line and "Inbox" starting the
+               * next. Measured with `getClientRects().length`, not by eye.
+               *
+               * A two-word door split across lines stops reading as a control at
+               * all -- the eye takes "...2 runs have stopped. Open" as the end of
+               * a sentence and "Inbox" as the start of another. This door sits in
+               * the largest paragraph on the landing page, so it is the worst
+               * place in the product for that to happen.
+               *
+               * `nowrap` on the LABEL only. The paragraph still wraps wherever it
+               * likes; what cannot break is the thing a person is meant to press.
+               */}
+              <Link
+                to={copy.door.to}
+                className="whitespace-nowrap rounded-mrd-xs text-mrd-body underline decoration-mrd-line decoration-dotted underline-offset-[3px] transition-colors hover:text-mrd-ink hover:decoration-mrd-edge hover:decoration-solid"
+                style={{ transitionDuration: "var(--mrd-d-press)" }}
+              >
+                {copy.door.label}
+              </Link>
+            </>
+          ) : null}
+        </p>
+      ) : null}
     </header>
   );
 }

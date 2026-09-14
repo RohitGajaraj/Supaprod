@@ -191,16 +191,58 @@ describe("the entry mounts the owner", () => {
     "utf8",
   );
 
-  it("is mounted on the entry", () => {
-    expect(ROUTE).toContain("FirstLook");
+  it("is mounted on the entry, and gated on the rule", () => {
+    expect(ROUTE).toContain("<WhatThisDoes");
+    expect(ROUTE).toContain("<FirstLookExamples");
     expect(ROUTE).toContain("entryHasNothingToSay");
   });
 
-  it("draws before the composer, because it is what tells you what to type", () => {
-    const first = ROUTE.indexOf("<FirstLook");
+  it("says what the machine is ABOVE the box, and offers examples BELOW it", () => {
+    /*
+     * ── THE SPLIT, AND WHY IT IS THE THING WORTH PINNING ──────────────────
+     *
+     * The first version was one block above the composer, and driving it in a
+     * browser on the empty workspace showed the cost: the screen carried five
+     * regions all saying a version of "say a sentence", two of them at
+     * `text-mrd-h1`, plus SIX example cards in two grids once `StarterRuns`
+     * landed its own three. The fix for the founder's "dump of data" had
+     * reproduced it.
+     *
+     * So the halves are placed by what they are for, and this is the order:
+     * the sentence sits above the box because it frames it, and the examples
+     * sit below because pressing one fills the box above them.
+     */
+    const says = ROUTE.indexOf("<WhatThisDoes");
     const composer = ROUTE.indexOf("<Composer");
-    expect(first).toBeGreaterThan(-1);
+    const examples = ROUTE.indexOf("<FirstLookExamples");
+    expect(says).toBeGreaterThan(-1);
     expect(composer).toBeGreaterThan(-1);
-    expect(first).toBeLessThan(composer);
+    expect(examples).toBeGreaterThan(-1);
+    expect(says).toBeLessThan(composer);
+    expect(examples).toBeGreaterThan(composer);
+  });
+
+  it("never shows two sets of example cards", () => {
+    /*
+     * `StarterRuns` writes three sentences from THIS product's own one-liner, so
+     * where it draws it beats a generic example outright and the generic three
+     * must stand down. One hoisted condition, read by both, because two copies
+     * of it is how they would drift back into drawing six cards.
+     */
+    expect(ROUTE).toContain("const startersWillDraw");
+    expect(ROUTE).toContain("entryEmpty && !startersWillDraw");
+    /* And the StarterRuns site reads the same variable rather than re-deriving
+       it. One `startersStand(` call remains, inside the hoist. */
+    expect(ROUTE.match(/startersStand\(/g)?.length).toBe(1);
+  });
+
+  it("stands the empty-queue panel down, so the page carries one headline", () => {
+    /* `TheCallInFront`'s `nothing` branch draws "Nothing is waiting on you." at
+       h1 with a paragraph under it. Correct for an operator whose queue is
+       clear; furniture on a workspace where nothing exists at all, and it put a
+       second h1 200px from the hero's. */
+    expect(ROUTE).toContain("{entryEmpty ? null : (");
+    /* The hero's own first-visit line stands down for the same reason. */
+    expect(ROUTE).toContain("introduced: entryEmpty");
   });
 });

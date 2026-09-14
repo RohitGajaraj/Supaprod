@@ -295,10 +295,31 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: React.ReactNode }) {
   return (
-    // className="dark" makes SSR, no-JS, and pre-hydration states dark-first
-    // (Tempo v5 theme law); the bootstrap script below flips to light only
-    // when the user explicitly stored that preference.
-    <html lang="en" className="dark" suppressHydrationWarning>
+    /*
+     * ── LIGHT IS THE GROUND THE PRODUCT OPENS ON (founder, 2026-09-14) ──────
+     *
+     * This said `className="dark"` and painted dark-first for SSR, no-JS and
+     * pre-hydration, under a 2026-08-14 ruling that dark is "the one the
+     * product is designed on". The founder has superseded it in as many words:
+     * *"You can make the default light. That would be better rather than the
+     * dark one."* Both grounds stay fully supported and the toggle is
+     * unchanged; only which one a first visit opens on has moved.
+     *
+     * ── THE SERVER HAS TO PAINT IT, OR THE FLIP IS A REGRESSION ────────────
+     * `:root` carries the dark tokens and `[data-theme="light"]` overrides
+     * them, so changing only `DEFAULT_THEME` in use-theme.tsx would leave every
+     * first load painting dark and flashing to light at hydration. That is
+     * worse than either ground on its own, and it is the exact defect the
+     * bootstrap script below was written to remove for the `system` case. So
+     * the attribute is set here, the class is gone, and the three places that
+     * decide the ground (this attribute, that script, `DEFAULT_THEME`) agree.
+     *
+     * VERIFIED before the change: the light ground was driven in a browser on
+     * the entry, the queue and a finished run, and both token blocks are
+     * contrast-checked against AA by `every-text-token-clears-aa.test.ts`, so
+     * this is not trading legibility for taste.
+     */
+    <html lang="en" data-theme="light" suppressHydrationWarning>
       <head suppressHydrationWarning>
         <ThemeBootstrapScript />
         <HeadContent />
@@ -333,8 +354,14 @@ function RootShell({ children }: { children: React.ReactNode }) {
 function ThemeBootstrapScript() {
   // Pre-hydration theme bootstrap: avoid FOUC. Contract: dark = class 'dark'
   // with NO data-theme (:root already holds the dark tokens); light =
-  // data-theme='light' with the 'dark' class removed. Legacy stored "aurora"
-  // and an absent value both resolve to dark.
+  // data-theme='light' with the 'dark' class removed.
+  //
+  // THE DEFAULT INVERTED ON 2026-09-14 and this block inverted with it. An
+  // absent stored value, and the retired "aurora", now resolve to LIGHT, which
+  // is what the SSR attribute above paints; only an explicit 'dark' moves the
+  // document off it. Everything below about 'system' still holds -- it is the
+  // one stored value that cannot express itself as a literal, so it has to read
+  // the media query here rather than after hydration.
   //
   // THIS MUST MIRROR `resolveTheme` IN use-theme.tsx EXACTLY, INCLUDING 'system'.
   // It did not, and that was a real defect rather than a nicety: the stored
@@ -348,15 +375,20 @@ function ThemeBootstrapScript() {
   // at first paint rather than a preference that only applies after hydration.
   //
   // The media query is read ONLY when the stored value is 'system'. An absent
-  // value still resolves to dark, deliberately: "dark is the default
-  // experience" is a product decision (DEFAULT_THEME, use-theme.tsx:8), and
-  // quietly following the OS for brand-new users would change it here rather
-  // than where it belongs.
+  // value resolves to LIGHT, deliberately: which ground a first visit opens on
+  // is a product decision (DEFAULT_THEME, use-theme.tsx), and quietly following
+  // the OS for brand-new users would make that decision here rather than where
+  // it belongs.
+  //
+  // THE PREDICATE IS NOW "IS IT DARK", not "is it light", so that the DEFAULT
+  // needs no branch at all: an absent or unrecognised value falls through and
+  // the SSR attribute above already has it right. Written the other way round,
+  // every new stored value anybody adds would silently paint dark.
   return (
     <script
       suppressHydrationWarning
       dangerouslySetInnerHTML={{
-        __html: `(function(){try{var t=localStorage.getItem('supaprod.theme');var d=document.documentElement;var light=t==='light'||(t==='system'&&typeof window.matchMedia==='function'&&window.matchMedia('(prefers-color-scheme: light)').matches);if(light){d.classList.remove('dark');d.setAttribute('data-theme','light');}else{d.classList.add('dark');d.removeAttribute('data-theme');}}catch(e){/* default dark via the SSR class */}})();`,
+        __html: `(function(){try{var t=localStorage.getItem('supaprod.theme');var d=document.documentElement;var dark=t==='dark'||(t==='system'&&typeof window.matchMedia==='function'&&window.matchMedia('(prefers-color-scheme: dark)').matches);if(dark){d.classList.add('dark');d.removeAttribute('data-theme');}else{d.classList.remove('dark');d.setAttribute('data-theme','light');}}catch(e){/* default light via the SSR attribute */}})();`,
       }}
     />
   );

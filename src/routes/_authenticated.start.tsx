@@ -12,7 +12,7 @@ import { Composer } from "@/components/meridian/onramp-parts";
 import { ExampleJobs, type ExampleJob } from "@/components/start/ExampleJobs";
 import { YourRuns } from "@/components/start/YourRuns";
 import { Arriving } from "@/components/start/Arriving";
-import { FirstLook } from "@/components/start/FirstLook";
+import { FirstLookExamples, WhatThisDoes } from "@/components/start/FirstLook";
 import { entryHasNothingToSay } from "@/components/start/nobody-owned-the-empty-entry";
 import { Hero, heroCopy } from "@/components/start/Hero";
 import { CrewAtWork } from "@/components/start/CrewAtWork";
@@ -580,6 +580,51 @@ function StartLanding() {
   );
 
   /*
+   * ── HAS EVERY REGION ON THIS PAGE ANSWERED, AND HAS NONE ANYTHING TO SAY ──
+   *
+   * Reproduced on the served product, 2026-09-14: this whole screen was a
+   * loading line and an empty box, because `TheCallInFront`, `ExampleJobs`,
+   * `Arriving` and `StarterRuns` each correctly draw nothing on a workspace
+   * with no work, no bets and no sources. Every refusal is well argued; nobody
+   * owned their sum. The argument and the reproduction are in
+   * `nobody-owned-the-empty-entry.ts`.
+   *
+   * COMPUTED ONCE because THREE regions branch on it, and a second copy of this
+   * expression is how two of them would eventually disagree about whether the
+   * page is empty.
+   */
+  const entryEmpty = entryHasNothingToSay({
+    lead: lead.kind === "unread" ? null : lead.kind,
+    runs: runs.isSuccess ? (runs.data ?? []) : null,
+    bets: bets.isSuccess ? (bets.data ?? []) : null,
+    waiting,
+    /* A NULL COUNT IS AN UNANSWERED QUESTION, NOT A ZERO. The read can succeed
+       and still carry null for this clause (its own reader refuses to invent
+       one), and treating that as "no evidence" is exactly the substitution
+       `Arriving` documents paying for. It stays null here, which keeps the
+       introduction silent rather than drawing it over a workspace that has
+       sources. */
+    hasEvidence:
+      homeReads.isSuccess && homeReads.data.arrivingCount !== null
+        ? homeReads.data.arrivingCount > 0
+        : null,
+  });
+
+  /*
+   * WHICH SET OF EXAMPLES, AND NEVER BOTH.
+   *
+   * `StarterRuns` writes three sentences from THIS product's own one-liner, so
+   * where it can draw it beats a generic example outright. Driven in a browser
+   * on the empty workspace, both sets drew at once and the screen carried six
+   * example cards in two grids -- the duplication this change exists to remove,
+   * introduced by the fix for it. The generic three are the fallback for a
+   * workspace with no product row to read.
+   */
+  const startersWillDraw = Boolean(
+    startersStand(runs.data, bets.data?.length ?? 0) && activeProductId && activeProduct,
+  );
+
+  /*
    * ANSWERING IN PLACE, WITH THE INBOX'S OWN MUTATION SHAPE.
    *
    * Same server function, same optimistic drop, same invalidation — copied in
@@ -848,78 +893,63 @@ function StartLanding() {
          * `the-call-in-front.ts` for the production numbers that decided it, and
          * for why an entry that leads with proof would be empty today.
          */}
-        <TheCallInFront
-          lead={lead}
-          zone={timezone}
-          nowIso={new Date().toISOString()}
-          busy={decide.isPending}
-          onApprove={() =>
-            lead.kind === "call"
-              ? decide.mutate({ item: lead.item, verdict: "approve" })
-              : undefined
-          }
-          onDecline={() =>
-            lead.kind === "call" ? decide.mutate({ item: lead.item, verdict: "reject" }) : undefined
-          }
-        />
+        {/*
+         * STANDS DOWN ON A WORKSPACE THAT HAS NOTHING AT ALL (2026-09-14). Its
+         * `nothing` branch draws *"Nothing is waiting on you."* at
+         * `text-mrd-h1` with a paragraph explaining where questions will
+         * arrive. That is exactly right for an operator whose queue happens to
+         * be clear, and it is furniture on a workspace with no runs, no bets and
+         * no sources: nothing is waiting because nothing exists, and it put a
+         * SECOND h1 on the page 200px from the hero's. Driven in a browser, the
+         * empty entry carried two headings of the same size and five separate
+         * sentences about saying a sentence.
+         *
+         * The lead itself is untouched -- every other state still draws through
+         * it, first, as `the-entry-leads-with-one-piece-of-work` requires.
+         */}
+        {entryEmpty ? null : (
+          <TheCallInFront
+            lead={lead}
+            zone={timezone}
+            nowIso={new Date().toISOString()}
+            busy={decide.isPending}
+            onApprove={() =>
+              lead.kind === "call"
+                ? decide.mutate({ item: lead.item, verdict: "approve" })
+                : undefined
+            }
+            onDecline={() =>
+              lead.kind === "call"
+                ? decide.mutate({ item: lead.item, verdict: "reject" })
+                : undefined
+            }
+          />
+        )}
 
         {/*
-         * ── WHAT THE ENTRY SAYS WHEN EVERY OTHER REGION HAS NOTHING ─────────
-         *
-         * Reproduced on the served product, 2026-09-14: this whole screen was
-         * a loading line and an empty box, because `TheCallInFront`,
-         * `ExampleJobs`, `Arriving` and `StarterRuns` each correctly draw
-         * nothing on a workspace with no work, no bets and no sources. Every
-         * refusal is well argued; nobody owned their sum.
-         *
-         * `entryHasNothingToSay` is that owner, and it asserts emptiness only
-         * from reads that have ANSWERED -- so this never flashes over a
-         * workspace with a year of runs while a query lands. The full argument,
-         * including why invented examples are right in this state and were
-         * wrong where they used to stand, is in
-         * `nobody-owned-the-empty-entry.ts`.
-         *
-         * ABOVE THE COMPOSER, because it is the thing that tells a person what
-         * to type into it.
+         * WHAT THE MACHINE IS, above the invitation that names the person's own
+         * product. The only region on this entry that can answer "what is
+         * this", and it draws only where nothing else has anything to say. Its
+         * examples are a separate region, below the composer, because a press
+         * fills the box; see `FirstLook.tsx` for why the two were split.
          */}
-        {entryHasNothingToSay({
-          lead: lead.kind === "unread" ? null : lead.kind,
-          runs: runs.isSuccess ? (runs.data ?? []) : null,
-          bets: bets.isSuccess ? (bets.data ?? []) : null,
-          waiting,
-          /* A NULL COUNT IS AN UNANSWERED QUESTION, NOT A ZERO. The read can
-             succeed and still carry null for this clause (its own reader
-             refuses to invent one), and treating that as "no evidence" is
-             exactly the substitution `Arriving` documents paying for. It stays
-             null here, which keeps this region silent rather than letting it
-             introduce the product over a workspace that has sources. */
-          hasEvidence:
-            homeReads.isSuccess && homeReads.data.arrivingCount !== null
-              ? homeReads.data.arrivingCount > 0
-              : null,
-        }) ? (
-          <FirstLook
-            onUse={(example) => {
-              setSentence(example.sentence);
-              /* The shape rides with the sentence, so a broken-thing example
-                 does not get sent through discovery. `ComposerRoutePicker`
-                 shows what it picked and the person can still change it. */
-              setPickedShape(example.shape);
-              const field = fieldRef.current;
-              if (field) {
-                field.focus();
-                field.select();
-              }
-            }}
-          />
-        ) : null}
+        {entryEmpty ? <WhatThisDoes /> : null}
 
         {/* THE HERO WAITS FOR ITS NAME (Lane 1, 2026-09-08). Seen live: "What
           should your product do next?" for a beat before the workspace
           resolved, then "What should Prism do next?". A headline that
           changes its subject is a headline nobody trusts; the slot holds its
           height and the words arrive once. */}
-        <div className="min-h-[7.5rem]">
+        {/*
+         * THE RESERVATION FOLLOWS WHAT IS ACTUALLY COMING. 7.5rem holds the
+         * eyebrow, the headline AND the line, so the words can land without
+         * shifting the composer. On the first visit the line stands down (see
+         * `introduced` in Hero.tsx) and the same reservation left a visible
+         * 110px hole between the headline and the box, measured in a browser on
+         * the empty workspace. The shorter slot still holds eyebrow plus
+         * headline, which is everything that arrives in that state.
+         */}
+        <div className={entryEmpty ? "min-h-[4.5rem]" : "min-h-[7.5rem]"}>
           {heroReady ? (
             <>
               <Hero
@@ -931,6 +961,11 @@ function StartLanding() {
                   waitingShape,
                   waitingFirst,
                   queueShort,
+                  /* `WhatThisDoes` is above this header saying how the machine
+                     works, so the first-visit line would be the third sentence
+                     in a row about saying a sentence. The headline still names
+                     the person's own product. */
+                  introduced: entryEmpty,
                 })}
               />
               {/* A REFUSED QUEUE READ IS SAID, NOT ROUNDED TO ZERO. The hero
@@ -991,6 +1026,37 @@ function StartLanding() {
             never mounted; Lane 2 kept it from deletion for exactly this. */}
           <WhatWeAlreadyHold subject={sentence} />
         </div>
+
+        {/*
+         * THE GENERIC EXAMPLES, AND ONLY WHERE NOTHING BETTER EXISTS.
+         *
+         * Below the composer because a press fills the box ABOVE it, which is
+         * also where `StarterRuns` and `ExampleJobs` sit for the same reason.
+         *
+         * `startersWillDraw` is what keeps this from doubling up: `StarterRuns`
+         * writes three sentences from this product's own one-liner, and a
+         * sentence about the person's actual product beats a generic one every
+         * time. Driven in a browser on the empty workspace, both sets drew at
+         * once and the screen carried six example cards in two grids -- the
+         * duplication this change exists to remove, arriving through the fix
+         * for it.
+         */}
+        {entryEmpty && !startersWillDraw ? (
+          <FirstLookExamples
+            onUse={(example) => {
+              setSentence(example.sentence);
+              /* The shape rides with the sentence, so a broken-thing example is
+                 not sent through discovery. `ComposerRoutePicker` shows what it
+                 picked and the person can still change it. */
+              setPickedShape(example.shape);
+              const field = fieldRef.current;
+              if (field) {
+                field.focus();
+                field.select();
+              }
+            }}
+          />
+        ) : null}
 
         {/*
          * ── THE DIRECTOR SITS WITH THE DOOR, AND IT USED TO BE TENTH ─────────
@@ -1086,7 +1152,11 @@ function StartLanding() {
          * first run screen (Lane 3, listStarterRuns). The reading is shown
          * while it happens; a press composes, Enter starts.
          */}
-        {startersStand(runs.data, bets.data?.length ?? 0) && activeProductId && activeProduct ? (
+        {/* `startersWillDraw` is this exact condition, hoisted, because
+            `FirstLookExamples` above has to know whether this region is going to
+            draw in order to stand down for it. Two copies of the expression is
+            how the two would eventually disagree and show six cards. */}
+        {startersWillDraw && activeProductId && activeProduct ? (
           <StarterRuns
             productId={activeProductId}
             productName={activeProduct.name}
