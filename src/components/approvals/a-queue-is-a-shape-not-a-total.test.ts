@@ -37,7 +37,7 @@ describe("a queue is a shape, not a total", () => {
      * The two assertions below still pin that nothing is dropped upstream.
      */
     expect(shapeSentence(queueShape(HELIO), false)).toBe(
-      "35 design gates and 31 other calls are waiting for you.",
+      "35 designs to sign off and 31 other calls are waiting for you.",
     );
   });
 
@@ -47,7 +47,7 @@ describe("a queue is a shape, not a total", () => {
     // spec, playbook_proposal and trust_graduation are zero on this workspace
     // and must not appear as "0 specs".
     for (const f of shape) expect(f.n).toBeGreaterThan(0);
-    // Not `not.toContain("0 ")`, which "10 assumption challenges" satisfies.
+    // Not `not.toContain("0 ")`, which "10 assumptions to re-check" satisfies.
     for (const f of shape) expect(f.label).not.toStartWith("0 ");
   });
 
@@ -69,7 +69,7 @@ describe("a queue is a shape, not a total", () => {
   });
 
   it("keeps the floor when a family read was capped", () => {
-    expect(shapeSentence(queueShape(HELIO), true)).toStartWith("At least 35 design gates");
+    expect(shapeSentence(queueShape(HELIO), true)).toStartWith("At least 35 designs to sign off");
   });
 
   it("gets the singular right on both halves of the sentence", () => {
@@ -87,7 +87,7 @@ describe("a queue is a shape, not a total", () => {
   it("still names the largest family, so the sentence says where to start", () => {
     // The compression takes the enumeration, never the lead: a person who reads
     // only this line still knows which family to open first.
-    expect(shapeSentence(queueShape(HELIO), false)).toStartWith("35 design gates");
+    expect(shapeSentence(queueShape(HELIO), false)).toStartWith("35 designs to sign off");
   });
 
   it("counts an unmapped family rather than dropping it", () => {

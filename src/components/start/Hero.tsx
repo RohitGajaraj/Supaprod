@@ -101,6 +101,47 @@ export function heroCopy(input: {
     // Unread. Say the invitation; never a count that has not been looked up.
     return { eyebrow, title: `What should ${name} do next?`, line: PROMISE };
   }
+  /*
+   * ── THE HEADLINE IS THE INVITATION. THE STATE IS THE LINE UNDER IT ────────
+   *
+   * REVERSING A DECISION THIS FILE MADE SEVERAL TIMES OVER, deliberately, and
+   * the reason is not taste. Every earlier pass optimised the same question --
+   * *which count is the most honest one to lead with* -- and each answer was
+   * right about honesty and wrong about the slot. Read on the served entry,
+   * 2026-09-14, Helio Labs, in the largest type on the product:
+   *
+   *   "20 design gates and 33 other calls are waiting for you."
+   *
+   * Founder, on this screen: the app *"feels like disconnected stations and a
+   * dump of data"*, and a user *"cannot tell what SupaProd is, where to start,
+   * what to do next"*. That headline answers none of those. It answers **what
+   * the system is blocked on**, which is a debt, and it puts it in the eight
+   * most expensive pixels in the product.
+   *
+   * ── AND IT WAS ALREADY SAID, 200px HIGHER, BETTER ─────────────────────────
+   * `TheCallInFront` renders ABOVE this header and draws the oldest waiting
+   * call in full -- its title, its evidence, how long it has waited, and
+   * Approve/Decline **answerable in place**. Measured on the same paint: the
+   * card read "Predictive outage alerts from meter dips ... Waiting on you 67
+   * days" with both buttons live. So the headline underneath it was not adding
+   * the fact; it was counting a card the person was already looking at, in
+   * bigger type, with no control on it.
+   *
+   * ── WHAT LEADS INSTEAD, AND WHY IT IS NOT A REGRESSION IN HONESTY ─────────
+   * The invitation leads, because the one thing every visitor to this page can
+   * always usefully do is say what they want next, and on a first visit it is
+   * the ONLY thing they can do. Every count that used to hold the title is
+   * still on the screen, one type size down, first clause of the line, with its
+   * door -- plus the rail's own Inbox badge, which carries it persistently on
+   * every surface. **No all-clear is ever said over an unread or non-empty
+   * queue**, which is the guarantee this file's honesty tests exist to hold;
+   * what changed is which fact is loudest, not which facts are told.
+   *
+   * This is the pattern the reference products all settle on (Codex, Claude,
+   * ChatGPT, Perplexity): the prompt is the hero and the backlog is quiet
+   * beneath it. None of them opens with how far behind you are.
+   */
+  const invite = `What should ${name} do ${runs.length === 0 ? "first" : "next"}?`;
   const open = runs.filter((r) => r.status === "open");
   /* A call is a person's whether it is a gate (`needsYou`) or a hold the
      driver marks as theirs: one predicate, the row's own. */
@@ -243,10 +284,13 @@ export function heroCopy(input: {
      * looking at the layout. It earns its place only when there is no call to
      * name -- then it is the whole direction rather than a preamble to one.
      */
+    /* The count keeps its exact sentence and loses the largest type: it is now
+       the first clause of the line, ahead of the one to start with. See the
+       block above `const invite`. */
     return {
       eyebrow,
-      title,
-      line: `${lead || "Answer them in Inbox, or on the runs below that carry them."}${mostUrgent()}${short}`,
+      title: invite,
+      line: `${title} ${lead || "Answer them in Inbox, or on the runs below that carry them."}${mostUrgent()}${short}`,
       door: { label: "Open Inbox", to: "/inbox" },
     };
   }
@@ -262,37 +306,42 @@ export function heroCopy(input: {
       line: `Say it in one sentence. You will watch it happen on the run's own page, and it stops to ask you only where the call is yours.${short}`,
     };
   }
+  /* Each of the four branches below keeps its sentence verbatim and hands the
+     title to the invitation, for the reason recorded above `const invite`. The
+     state is the first clause of the line, so nothing is lost and the person is
+     still told what needs them before they are told what they could start. */
   if (needs > 0) {
     return {
       eyebrow,
-      title: `${plural(needs, "run needs", "runs need")} you.`,
-      line: `Answer below and the work carries on.${rest(null)}${short}`,
+      title: invite,
+      line: `${plural(needs, "run needs", "runs need")} you. Answer below and the work carries on.${rest(null)}${short}`,
     };
   }
   if (quiet > 0) {
     /* Before stopped: a stopped run spends nothing more, a quiet seat may. */
     return {
       eyebrow,
-      title: `${plural(quiet, "run has", "runs have")} gone quiet.`,
-      line: `${quiet === 1 ? "Its seat has" : "Their seats have"} not moved for ${Math.round(longestQuiet / 60_000)} min. Look below before more is spent on ${quiet === 1 ? "it" : "them"}.${rest("quiet")}${short}`,
+      title: invite,
+      line: `${plural(quiet, "run has", "runs have")} gone quiet. ${quiet === 1 ? "Its seat has" : "Their seats have"} not moved for ${Math.round(longestQuiet / 60_000)} min. Look below before more is spent on ${quiet === 1 ? "it" : "them"}.${rest("quiet")}${short}`,
     };
   }
   if (stopped > 0) {
     return {
       eyebrow,
-      title: `${plural(stopped, "run has", "runs have")} stopped.`,
-      line: `Each one says why below. Look before more is spent on it.${rest("stopped")}${short}`,
+      title: invite,
+      line: `${plural(stopped, "run has", "runs have")} stopped. Each one says why below. Look before more is spent on it.${rest("stopped")}${short}`,
     };
   }
   if (moving > 0) {
+    const movingSays = `${plural(moving, "run is", "runs are")} moving.`;
     return {
       eyebrow,
-      title: `${plural(moving, "run is", "runs are")} moving.`,
+      title: invite,
       line: unread
-        ? "Watch them below. Whether anything else is waiting for you could not be read."
+        ? `${movingSays} Watch them below. Whether anything else is waiting for you could not be read.`
         : input.queueShort
-          ? `Watch them below.${short}`
-          : "Watch them below, or hand over the next thing.",
+          ? `${movingSays} Watch them below.${short}`
+          : `${movingSays} Watch them below, or hand over the next thing.`,
     };
   }
   return {

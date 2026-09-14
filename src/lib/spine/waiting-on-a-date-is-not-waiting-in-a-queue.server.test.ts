@@ -1,5 +1,33 @@
 import { describe, expect, test } from "bun:test";
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+/*
+ * ── THE BUILDER IS POSTGREST'S, NOT `createClient`'S, AND THAT IS THE POINT ──
+ *
+ * This fixture's whole value is that it drives the REAL query builder, so a
+ * missing column in a `.select()` fails the test instead of being papered over
+ * by a hand-written stub. It used to reach that builder through
+ * `createClient`, and that made it pass alone and fail in the suite:
+ * `src/lib/payments/grant-core.money-safety.test.ts` installs a process-wide
+ * module mock over the supabase-js package, and such a mock is global for the
+ * whole Bun run, so by the time this file ran `createClient` returned a
+ * money-safety double with no `.from` at all. Six tests failed with
+ * `db.from is not a function` on a module they never referenced.
+ *
+ * THE PACKAGE SPECIFIER IS DELIBERATELY NOT WRITTEN NEXT TO THAT VERB ABOVE.
+ * `src/__tests__/a-module-mock-is-process-wide.test.ts` finds process-wide
+ * mocks by reading test files as TEXT, so a docblock quoting the call verbatim
+ * registers as a second file mocking that package and fails its ratchet. My
+ * first version of this comment did exactly that -- the same "a guard matching
+ * its own documentation" trap `driver.ts` records paying for twice.
+ *
+ * `PostgrestClient` IS the layer under test -- the code below only ever calls
+ * `.from().select().in().eq().is().order()`, all of it PostgREST -- and nothing
+ * in the repo mocks `@supabase/postgrest-js`. So this both removes the coupling
+ * and narrows the fixture to exactly the surface being verified. The auth and
+ * realtime layers `createClient` dragged in were never used here; the
+ * per-fixture `storageKey` existed only to stop them colliding.
+ */
+import { PostgrestClient } from "@supabase/postgrest-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { tracksAReadingBringsForward } from "./waiting-on-a-date-is-not-waiting-in-a-queue.server";
 
 const readings = [6, 7, 8].map((day) => ({
@@ -8,8 +36,6 @@ const readings = [6, 7, 8].map((day) => ({
   by: "founder",
 }));
 const metric = { id: "metric", status: "standing", measures_decision_id: "decision", readings };
-
-let fixtureId = 0;
 
 /** Real Supabase query builder and server adapter, with an in-memory HTTP transport. */
 function fixture(
@@ -51,40 +77,33 @@ function fixture(
       },
     ],
   };
-  const db = createClient("https://forecast-test.invalid", "test-key", {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false,
-      storageKey: "forecast-test-" + fixtureId++,
-    },
-    global: {
-      fetch: async (input) => {
-        const url = new URL(
-          typeof input === "string" ? input : input instanceof URL ? input.href : input.url,
-        );
-        requests.push(url);
-        const table = url.pathname.split("/").at(-1)!;
-        if (!(table in tables)) throw new Error("Unexpected table: " + table);
-        if (options.failedTable === table) {
-          return new Response(JSON.stringify({ message: "read failed" }), {
-            status: 500,
-            headers: { "Content-Type": "application/json" },
-          });
-        }
-        const columns = url.searchParams.get("select")!.split(",");
-        const kind = url.searchParams.get("artifact_kind")?.replace(/^eq./, "");
-        const rows = tables[table].filter((row) => !kind || row.artifact_kind === kind);
-        // Projection is essential: a fixture returning complete rows would hide a missing SELECT field.
-        const data =
-          options.nullTable === table
-            ? null
-            : rows.map((row) => Object.fromEntries(columns.map((column) => [column, row[column]])));
-        return new Response(JSON.stringify(data), {
+  const db = new PostgrestClient("https://forecast-test.invalid/rest/v1", {
+    fetch: async (input: RequestInfo | URL) => {
+      const url = new URL(
+        typeof input === "string" ? input : input instanceof URL ? input.href : input.url,
+      );
+      requests.push(url);
+      const table = url.pathname.split("/").at(-1)!;
+      if (!(table in tables)) throw new Error("Unexpected table: " + table);
+      if (options.failedTable === table) {
+        return new Response(JSON.stringify({ message: "read failed" }), {
+          status: 500,
           headers: { "Content-Type": "application/json" },
         });
-      },
+      }
+      const columns = url.searchParams.get("select")!.split(",");
+      const kind = url.searchParams.get("artifact_kind")?.replace(/^eq./, "");
+      const rows = tables[table].filter((row) => !kind || row.artifact_kind === kind);
+      // Projection is essential: a fixture returning complete rows would hide a missing SELECT field.
+      const data =
+        options.nullTable === table
+          ? null
+          : rows.map((row) => Object.fromEntries(columns.map((column) => [column, row[column]])));
+      return new Response(JSON.stringify(data), {
+        headers: { "Content-Type": "application/json" },
+      });
     },
-  });
+  }) as unknown as SupabaseClient;
   return { db, requests };
 }
 

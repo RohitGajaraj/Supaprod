@@ -35,7 +35,9 @@ import { join } from "node:path";
  */
 
 const CONFIG = readFileSync(join(import.meta.dir, "..", "..", "..", "eslint.config.js"), "utf8");
-const GITIGNORE = readFileSync(join(import.meta.dir, "..", "..", "..", ".gitignore"), "utf8");
+/* `.gitignore` is deliberately NOT read as text here any more: the ignore rules
+   live across several files and git is the only thing that knows all of them.
+   See the probe in "every ignored path is one git also refuses to store". */
 
 /** The generated outputs that produced the five-figure baseline. */
 const MUST_IGNORE = [
@@ -116,14 +118,52 @@ describe("eslint does not read generated output", () => {
     );
     const listed = [...block.matchAll(/"([^"]+)"/g)].map((m) => m[1]);
     expect(listed.length).toBeGreaterThan(5);
+    /*
+     * ── ASK GIT, DO NOT RE-IMPLEMENT GIT (2026-09-14) ────────────────────────
+     *
+     * This used to hand-parse the ROOT `.gitignore` and compare stems, and it
+     * reported `.remember/tmp/**` as not ignored while git ignores it perfectly
+     * well -- through a NESTED ignore file, `.remember/.gitignore`, whose single
+     * line is `*`. Confirmed with `git check-ignore -v .remember/tmp/x`, which
+     * names that file and that rule.
+     *
+     * So the config was right and the instrument was wrong, which made a real
+     * guard fail on a real repo for a reason that had nothing to do with the
+     * rule it protects. Nested ignore files, negations, `info/exclude` and the
+     * global ignore file are all part of "will git store this", and none of them
+     * is visible in one file's text.
+     *
+     * `git check-ignore` IS the question this test asks, so it is now the thing
+     * being asked. `--no-index` keeps the answer about the ignore rules rather
+     * than about whether the path happens to be tracked already, and a glob is
+     * reduced to a concrete probe path because check-ignore matches paths, not
+     * patterns. Exit code 0 means ignored, 1 means not; anything else is a
+     * broken instrument and must not read as a pass.
+     */
     for (const path of listed) {
       if (exempt.has(path)) continue;
-      const stem = path.replace(/\/$/, "");
-      const inGitignore =
-        GITIGNORE.includes(`${stem}\n`) ||
-        GITIGNORE.includes(`${stem}/\n`) ||
-        GITIGNORE.split("\n").some((l) => l.trim().replace(/\/$/, "") === stem);
-      expect({ path, gitignored: inGitignore }).toEqual({ path, gitignored: true });
+      const stem = path.replace(/\/?\*\*?$/, "").replace(/\/$/, "");
+      /*
+       * BOTH THE PATH AND A PATH INSIDE IT, because a `dir/` pattern in
+       * `.gitignore` matches DIRECTORIES ONLY: `check-ignore playwright-report`
+       * answers "not ignored" while `playwright-report/anything` is ignored, and
+       * the second is the question that matters. An eslint ignore entry exists to
+       * stop the linter READING FILES at that location, so a file at that
+       * location is the honest probe.
+       */
+      const root = join(import.meta.dir, "..", "..", "..");
+      const ignored = [stem, `${stem}/.probe`].some((probe) => {
+        const check = Bun.spawnSync(["git", "check-ignore", "--no-index", "-q", probe], {
+          cwd: root,
+        });
+        if (check.exitCode > 1) {
+          throw new Error(
+            `git check-ignore could not answer for ${probe}: ${check.stderr.toString()}`,
+          );
+        }
+        return check.exitCode === 0;
+      });
+      expect({ path, gitignored: ignored }).toEqual({ path, gitignored: true });
     }
   });
 

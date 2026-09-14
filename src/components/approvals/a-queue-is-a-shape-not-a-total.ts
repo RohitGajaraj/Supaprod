@@ -29,10 +29,28 @@
  */
 import type { ApprovalFilter, ApprovalKind } from "@/lib/approvals-queue.functions";
 
-/** Singular and plural, in the words a person would use out loud. */
+/**
+ * Singular and plural, in the words a person would use out loud.
+ *
+ * ── TWO OF THESE WERE STILL THE SCHEMA'S WORDS (2026-09-14) ────────────────
+ * The rule above is right and two entries did not meet it. `design_gate` read
+ * "design gate" and `assumption_challenge` read "assumption challenge" -- both
+ * are the column value with the underscore taken out, and neither is a phrase a
+ * founder says out loud. Read live on the served entry, they composed the
+ * product's largest sentence: *"20 design gates and 33 other calls are waiting
+ * for you."* A *gate* is this system's own mechanism noun (it is what the
+ * driver calls a paused tool call), and a *challenge* names the machine's
+ * activity rather than the person's job.
+ *
+ * What the person is actually being asked to do is sign off a design, and
+ * re-check an assumption that new evidence contradicts. Named as the ask, the
+ * same sentence reads *"20 designs to sign off and 33 other decisions"*, which
+ * a stranger can act on without learning anything about how this product is
+ * built. The KIND is untouched -- only the words are.
+ */
 const NAMES: Record<ApprovalKind, [one: string, many: string]> = {
-  design_gate: ["design gate", "design gates"],
-  assumption_challenge: ["assumption challenge", "assumption challenges"],
+  design_gate: ["design to sign off", "designs to sign off"],
+  assumption_challenge: ["assumption to re-check", "assumptions to re-check"],
   decision: ["decision", "decisions"],
   tool_call: ["agent action", "agent actions"],
   house_rule: ["house rule", "house rules"],

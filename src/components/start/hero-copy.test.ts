@@ -56,7 +56,14 @@ describe("heroCopy", () => {
         { ...base, working: { seat: "Scribe", since: "", tool: null } },
       ],
     });
-    expect(c.title).toBe("1 run needs you.");
+    /* THE INVITATION HOLDS THE TITLE AND THE STATE LEADS THE LINE
+       (2026-09-14). The fact is unchanged and still first; what moved is which
+       type size carries it. The argument is on `const invite` in Hero.tsx: the
+       oldest waiting call is already drawn above this header by
+       `TheCallInFront`, answerable in place, so a count in the largest type was
+       restating a card the person was looking at. */
+    expect(c.title).toBe("What should Prism do next?");
+    expect(c.line).toStartWith("1 run needs you.");
     expect(c.line).toContain("1 run is moving on its own");
   });
 
@@ -69,7 +76,10 @@ describe("heroCopy", () => {
         { ...base, station: "learn", holdBecause: "The forecast comes due on 2026-10-03." },
       ],
     });
-    expect(c.title).toBe("2 runs have stopped.");
+    expect(c.title).toBe("What should Prism do next?");
+    expect(c.line).toStartWith("2 runs have stopped.");
+    /* The guarantee this test exists for, unchanged: a stopped run is never
+       rounded to calm. */
     expect(c.line).not.toContain("Nothing");
   });
 
@@ -79,8 +89,9 @@ describe("heroCopy", () => {
       runs: [{ ...base, holdReason: "going-in-circles" }],
       waiting: 6,
     });
-    expect(c.title).toBe("6 calls are waiting for you.");
-    expect(c.line).toContain("Inbox");
+    expect(c.title).toBe("What should Prism do next?");
+    expect(c.line).toStartWith("6 calls are waiting for you.");
+    expect(c.door?.to).toBe("/inbox");
   });
 
   it("names the largest family, as the Inbox page does, rather than a raw total", () => {
@@ -89,19 +100,24 @@ describe("heroCopy", () => {
       runs: [],
       waiting: 53,
       waitingShape: [
-        { n: 20, label: "20 design gates" },
-        { n: 12, label: "12 assumption challenges" },
+        /* The family's own words, and they changed on 2026-09-14: "design gate"
+           was the column value with the underscore removed. See the NAMES map
+           in `a-queue-is-a-shape-not-a-total.ts`. */
+        { n: 20, label: "20 designs to sign off" },
+        { n: 12, label: "12 assumptions to re-check" },
       ],
     });
-    expect(c.title).toBe("20 design gates and 33 other calls are waiting for you.");
+    /* Runs is `[]` here, so the invitation asks for the FIRST thing. */
+    expect(c.title).toBe("What should Prism do first?");
+    expect(c.line).toStartWith("20 designs to sign off and 33 other calls are waiting for you.");
     expect(
       heroCopy({
         product: "Prism",
         runs: [],
         waiting: 2,
         waitingShape: [{ n: 2, label: "2 decisions" }],
-      }).title,
-    ).toBe("2 decisions are waiting for you.");
+      }).line,
+    ).toStartWith("2 decisions are waiting for you.");
   });
 
   it("says how many are moving when nothing needs a person", () => {
@@ -109,7 +125,8 @@ describe("heroCopy", () => {
       product: null,
       runs: [{ ...base, working: { seat: "Scribe", since: "", tool: null } }],
     });
-    expect(c.title).toBe("1 run is moving.");
+    expect(c.title).toBe("What should your product do next?");
+    expect(c.line).toStartWith("1 run is moving.");
   });
 
   it("calls a seat quiet past the stall threshold, as the strip, the row and the mark do", () => {
@@ -128,7 +145,8 @@ describe("heroCopy", () => {
       waiting: 0,
       nowMs: Date.parse("2026-09-08T00:45:00Z"),
     });
-    expect(quiet.title).toBe("1 run has gone quiet.");
+    expect(quiet.title).toBe("What should Prism do next?");
+    expect(quiet.line).toStartWith("1 run has gone quiet.");
     expect(quiet.line).toContain("45 min");
     expect(quiet.line).not.toContain("moving");
     /* Five minutes after its last call the same seat is still moving. */
@@ -138,7 +156,7 @@ describe("heroCopy", () => {
       waiting: 0,
       nowMs: Date.parse("2026-09-08T00:05:00Z"),
     });
-    expect(moving.title).toBe("1 run is moving.");
+    expect(moving.line).toStartWith("1 run is moving.");
   });
 
   it("counts a terminal hold with the stopped, not with the moving or the quiet", () => {
@@ -149,8 +167,11 @@ describe("heroCopy", () => {
       runs: [{ ...base, holdReason: "given-up" }],
       waiting: 0,
     });
-    expect(c.title).toBe("1 run has stopped.");
-    expect(c.line).not.toContain("1 run has stopped");
+    expect(c.title).toBe("What should Prism do next?");
+    expect(c.line).toStartWith("1 run has stopped.");
+    /* Once, not twice: the fact leads the line and `rest()` must not repeat the
+       branch's own subject after it. */
+    expect(c.line.match(/1 run has stopped/g)?.length).toBe(1);
   });
 
   it("falls back to the invitation, in the product's name, when everything is settled", () => {
@@ -178,7 +199,8 @@ describe("heroCopy", () => {
       runs: [{ ...base, working: { seat: "Scribe", since: "", tool: null } }],
       waiting: null,
     });
-    expect(moving.title).toBe("1 run is moving.");
+    expect(moving.title).toBe("What should Prism do next?");
+    expect(moving.line).toStartWith("1 run is moving.");
     expect(moving.line).toContain("could not be read");
   });
 
@@ -190,7 +212,8 @@ describe("heroCopy", () => {
       waiting: 31,
       queueShort: caveat,
     });
-    expect(c.title).toBe("31 calls are waiting for you.");
+    expect(c.title).toBe("What should Prism do next?");
+    expect(c.line).toStartWith("31 calls are waiting for you.");
     expect(c.line).toContain(caveat);
     /* And with nothing counted, the all-clear gives way to the caveat. */
     const settled = heroCopy({
@@ -270,8 +293,10 @@ describe("the line under a calls headline", () => {
 
   it("leads with the one call to start with, and drops the layout sentence", () => {
     const c = callsWaiting();
+    /* The count leads the line since 2026-09-14 (it used to lead the title);
+       the direction follows it immediately, which is the claim here. */
     expect(c.line).toStartWith(
-      'Start with "Show homeowner installer arrival window on order page".',
+      '6 calls are waiting for you. Start with "Show homeowner installer arrival window on order page".',
     );
     // The door below is labelled "Open Inbox" and the runs are visibly below.
     expect(c.line).not.toContain("Answer them in Inbox");
@@ -306,7 +331,7 @@ describe("the line under a calls headline", () => {
       waitingFirst: "Show homeowner installer arrival window on order page",
     });
     expect(stoppedOnly.line).not.toContain("stopped");
-    expect(stoppedOnly.line).toStartWith('Start with "Show homeowner');
+    expect(stoppedOnly.line).toStartWith('6 calls are waiting for you. Start with "Show homeowner');
   });
 
   it("still says QUIET, because the road has no state for it", () => {
@@ -334,7 +359,7 @@ describe("the line under a calls headline", () => {
   it("says where to answer when there is no call it can name", () => {
     // The fallback is the whole direction here rather than a preamble to one.
     const c = callsWaiting({ waitingFirst: null });
-    expect(c.line).toStartWith("Answer them in Inbox");
+    expect(c.line).toStartWith("6 calls are waiting for you. Answer them in Inbox");
     expect(c.line).not.toContain("Start with");
   });
 
@@ -353,8 +378,31 @@ describe("the line under a calls headline", () => {
       waiting: 0,
       nowMs: Date.parse("2026-09-08T00:45:00Z"),
     });
-    expect(c.title).toBe("1 run has gone quiet.");
+    expect(c.line).toStartWith("1 run has gone quiet.");
     expect(c.line).toContain("1 run has stopped");
+  });
+
+  /*
+   * THE GUARANTEE THE REORDERING COULD HAVE BROKEN, pinned explicitly: the
+   * headline is now the same invitation in several states, so it can no longer
+   * be the thing that tells a person something needs them. The LINE must carry
+   * that in every one of those states, or the reordering traded a loud truth for
+   * a quiet silence.
+   */
+  it("still says what needs a person in every state the headline no longer names", () => {
+    const states = [
+      { runs: [{ ...base, needsYou: { tool: "studio.pr.merge" } }], waiting: 0 },
+      { runs: [{ ...base, holdReason: "given-up" as const }], waiting: 0 },
+      { runs: [{ ...base, working: seat }], waiting: 0, nowMs: Date.parse("2026-09-08T00:45:00Z") },
+      { runs: [{ ...base }], waiting: 6 },
+    ];
+    for (const state of states) {
+      const c = heroCopy({ product: "Prism", ...state });
+      expect(c.title).toBe("What should Prism do next?");
+      /* Not an empty line, and not an all-clear, in any of them. */
+      expect(c.line.length).toBeGreaterThan(20);
+      expect(c.line).not.toContain("Nothing you started");
+    }
   });
 });
 
