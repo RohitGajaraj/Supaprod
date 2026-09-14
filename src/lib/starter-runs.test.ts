@@ -6,6 +6,7 @@ import {
   readStoredStarterRuns,
   STARTER_RUNS_SYSTEM,
   starterRunsPrompt,
+  starterRunsState,
 } from "./starter-runs";
 
 describe("a fresh product's first three runs", () => {
@@ -59,9 +60,48 @@ describe("a fresh product's first three runs", () => {
   });
 
   it("a long sentence is cut with an ellipsis rather than shown in full", () => {
+    /*
+     * THE BOUND DROPPED FROM 140 TO 72 ON 2026-09-14, and the reason is on
+     * `SENTENCE_MAX`: 140 was roughly twice what a `PickCard` holds at three
+     * lines in this grid, so all three cards on the first screen a fresh
+     * workspace ever shows rendered a clipped subordinate clause ending in an
+     * ellipsis. Measured on the served product, three of three.
+     *
+     * The truncation BEHAVIOUR is what this test is about and it is unchanged;
+     * only the number moved. The prompt now states the same number, so the model
+     * aims at the bound instead of being cut at it.
+     */
     const [run] = parseStarterRuns({ runs: [{ sentence: "x".repeat(200), why: "y" }] });
-    expect(run?.sentence.length).toBe(140);
+    expect(run?.sentence.length).toBe(72);
     expect(run?.sentence.endsWith("…")).toBe(true);
+  });
+
+  it("a row stored under the old bound reads as stale, so the sweep rewrites it", () => {
+    /*
+     * `clean()` truncates rather than rejecting, so without this a row written
+     * under the 140 bound would render clipped for ever -- the defect the new
+     * bound removes, preserved by the fix for it. Null here sends
+     * `starterRunsState` to `unclaimed` and the minute sweep regenerates the row
+     * against the new prompt, with no migration and no manual reset.
+     *
+     * Keyed on the RAW length, because after truncation a clipped sentence and a
+     * naturally short one are indistinguishable.
+     */
+    const old = { runs: [{ sentence: "x".repeat(120), why: "y" }] };
+    expect(readStoredStarterRuns(old)).toBeNull();
+    expect(starterRunsState({ starter_runs: old, starter_runs_at: null }, Date.now())).toBe(
+      "unclaimed",
+    );
+    /* A row already within the bound is untouched and still serves. */
+    const fresh = { runs: [{ sentence: "Let people undo a delete", why: "y" }] };
+    expect(readStoredStarterRuns(fresh)).toEqual([
+      { sentence: "Let people undo a delete", why: "y" },
+    ]);
+    /* And a refusal is still final rather than being read as stale. */
+    const refused = { runs: [], refused: { reason: "no", at: "2026-09-01T00:00:00Z" } };
+    expect(starterRunsState({ starter_runs: refused, starter_runs_at: null }, Date.now())).toBe(
+      "refused",
+    );
   });
 
   it("nothing usable is an empty list, and a stored empty set reads as not generated", () => {
