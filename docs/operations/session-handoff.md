@@ -1,3 +1,110 @@
+# SESSION — 2026-09-14 — THE ENTRY REBUILT AGAINST MEASURED BEHAVIOUR
+
+> _Created: 2026-07-28 · Last updated: 2026-09-14_
+
+**Branch `main` · 7 commits ahead of `origin/main` at the time of writing · 15,904 pass / 0 fail · tsc clean · `bun run build` passes · tree clean**
+
+## READ THIS FIRST: what access this session actually had
+
+Stated plainly because three of the decisions below turn on it.
+
+- **No database write access, and no Lovable MCP.** `.kiro/settings/mcp.json` declares a `lovable` server but no MCP tools were exposed to this session, and `kiro_powers` reports no powers installed. `.env`'s `SUPABASE_ACCESS_TOKEN` is an **unexpanded placeholder** (`${SU...}`), and there is no service-role key anywhere in `.env`, so the Supabase Management API answers `401 JWT could not be decoded`. **No schema change was made and none is pending.** Where a fix would ordinarily have needed a data reset, it was written to self-heal instead (see the starter-runs commit).
+- **Read access to live data, as the Harbor user, through RLS.** Signing in against `/auth/v1/token` with `E2E_DEMO_EMAIL` / `E2E_DEMO_PASSWORD` and querying `/rest/v1` returns exactly what that account can see. Every number in this handoff came from there or from a browser.
+- **Authenticated browser verification works.** Playwright and its browsers are installed locally. Both `https://supaprod.ai` and the dev server on `:8080` were driven signed in. A dev server was already running on `:8080` serving this worktree (pid 8363, another session's); it was reused rather than starting a second, per R-21, and **not stopped**, because it was not this session's to stop.
+
+## THE FINDING THAT SHOULD OUTLIVE EVERY COMMIT HERE
+
+**The engine is not the problem. The entry is, and the reason is structural rather than a matter of anyone's taste.**
+
+Measured against live data as the Harbor user: **63 tracks, 2 done, 43 abandoned, 18 open. 38 of 63 never left the first station. $7.28 spent.** And yet `spine_track_members` holds **516 artifacts across 31 tracks** — 225 signals, 101 tasks, 56 prototypes, 37 decisions, 26 specs, 13 missions, 8 changesets, 1 deployment. The crew produces plenty and closes the loop about 3% of the time.
+
+The run screen (`/track/$trackId`) is **the best surface in the product** and already does what the brief asks. Read off a finished run: the road with what each stop produced, a "What happened" narrative, "What this run got you" with the pull request, the forecast it was on the hook for, and a `missed` verdict measured against the spec's own threshold — plus the sentence *"All 6 moves on this route were made by the loop on its own. A person answered one call along the way."* That is the product's whole claim, proven, on one screen.
+
+**None of that was reachable from a home screen that made sense**, and that is what was fixed.
+
+### The structural defect: nobody owned the sum of correct refusals
+
+On the workspace the scope menu opens by default, the entire home screen was **a loading line and an empty text box**. Not one region was at fault:
+
+- `Arriving` returns null with no connected source, because "0 findings this week" over a product nobody has been asked about "is a reproach rather than a fact".
+- `ExampleJobs` draws only the workspace's own ranked bets, because "the director cannot direct with no evidence".
+- `TheCallInFront` draws nothing when nothing waits.
+- `StarterRuns` needs a product row to read a one-liner off.
+- A guard had **deliberately removed** the one sentence about the product, on the grounds that it is furniture to somebody who has work on screen.
+
+Every one of those is correct and well argued. **Their sum is a blank page, and no region was responsible for the sum.** That is the shape to look for elsewhere in this codebase: a screen where each part is individually right and the whole says nothing.
+
+`entryHasNothingToSay` is now that owner. It asserts emptiness only from reads that have **answered**, so it can never flash over a populated workspace, and a null count stays null rather than becoming a zero.
+
+### The second defect: the headline answered the wrong question
+
+On the populated workspace the largest type in the product read **"20 design gates and 33 other calls are waiting for you."** — over a card that already drew the oldest of those calls in full, with Approve and Decline on it, one waiting 67 days.
+
+Every earlier pass on `Hero.tsx` optimised the same question (*which count is the most honest one to lead with*) and each answer was right about honesty and wrong about the slot. A visitor is asking "what is this, and what do I do". A count of debt answers neither, and the card above had already said it better.
+
+The invitation now holds the headline in every state. Every count keeps its exact sentence one size down as the first clause of the line, with its door. **No honesty guarantee was traded away**: a new test walks the four states whose titles are now identical and asserts each still says what needs a person and never reads as an all-clear.
+
+## WHAT SHIPPED, IN ORDER
+
+1. **`2d248ae0f`** — Committed the previous session's uncommitted forecast work after verifying it (62 focused tests). A forecast verdict now rests on readings actually recorded against the linked success-metric clause, with reciprocal ownership, rather than on a seat-declared observation count. The decision card shows the expectation and the latest reading separately, so a prediction cannot be read as a measurement.
+2. **`983b4d2a0`** — The entry stops opening with how far behind you are. Plus two family names that were still the schema's words: `design gate` → **"designs to sign off"**, `assumption challenge` → **"assumptions to re-check"**, named as the person's job rather than the machine's mechanism.
+3. **`bee4ebc6a`** — `entryHasNothingToSay` + `WhatThisDoes` + `FirstLookExamples`. `what-this-does-for-you.ts` deleted: caller-less, and its sentence led with "Seven stations", which is internal vocabulary.
+4. **`034a12d87`** — Light is the ground a first visit opens on, on the founder's ruling superseding the 2026-08-14 one. **Three places decide the ground and all three moved together**; changing only `DEFAULT_THEME` would have painted dark on every first load and flashed at hydration.
+5. **`798729c51`** — The light ground's own tokens had never reached it (see below).
+6. **`962822538`** — The first three starter cards stop being clipped essay prompts.
+7. **`533f82ca1`** — Five citations pointed at a page that 404s.
+
+## THREE BUGS THAT WERE INVISIBLE UNTIL LIGHT BECAME THE DEFAULT
+
+**`meridian.css` declared its light-ground overrides behind `:root[data-mrd-theme="light"], .mrd-light`. Nothing in the product has ever set either selector.** The ground is `[data-theme="light"]`. Read out of `getComputedStyle` in a browser, both tokens were byte-identical across grounds:
+
+```
+--mrd-bloom    oklch(98% .004 70 / .16)   a near-white wash on a 98.5% sheet
+--mrd-sketch   oklch(72% .11 42)          a dark-ground ink against white
+```
+
+The first is the composer's glow — **the field the founder asked to feel lit had no glow at all on paper** — and the second is the hand-drawn glyph ink. Both were harmless while dark was the default, because dark is the ground where the un-overridden values happen to be right.
+
+This is the `FOCUS_RING` shape the design doctrine already names, and **neither existing guard could see it**: one catches a class naming no token, the other a token never declared. This one was declared, used, and behind a selector that never matched. `a-light-ground-token-must-reach-the-light-ground.test.ts` closes that third hole.
+
+## THE INSTRUMENTS THAT WERE WRONG, NOT THE RULES
+
+Three guards failed or passed for reasons unrelated to what they protect. Recording them because the pattern is this repo's most expensive one.
+
+- **A fixture reached the real query builder through `createClient`**, which a payments test replaces process-wide. Six tests failed with `db.from is not a function` **in the suite while passing alone**. Now built on `PostgrestClient` directly — the layer actually under test, which nothing mocks.
+- **The eslint-ignore guard hand-parsed the root `.gitignore`** and reported `.remember/tmp` as unignored; git ignores it through a **nested** ignore file. It now asks `git check-ignore`, and probes a path *inside* a directory entry because a `dir/` pattern matches directories only.
+- **A guard matched its own documentation.** My first docblock quoted the process-wide mock call verbatim, and the ratchet that finds such calls by reading test files as text counted my comment as a second mocker. **This happened four times in this codebase and once to me in this session.** Never write the literal a text-scanning guard searches for.
+
+## WHAT IS STILL WRONG, AND WHAT I DID NOT DO
+
+Ordered by what I would take next.
+
+1. **The loop closes 3% of the time, and no surface says so honestly.** 43 abandoned, 38 stuck at the first station. The holds a user meets are `given-up`, `produced-nothing`, `going-in-circles`, `station-cannot-finish`, `needs-a-waived-station`. `HOLD_LINE` translates them well, but **the product has no answer for "this run died, what now"** beyond "Why it stopped". This is the biggest remaining gap and it is a product question, not a copy one.
+2. **`needs-a-waived-station` is unrecoverable by design.** `route.ts` documents that nothing reopens a waived station — `applyTrigger` and `setStationWaiver` both have zero callers, and the latter would no-op anyway. One live track is held there. A person cannot unstick it from any surface.
+3. **The default workspace is called "A1 delete probe".** A test leftover is the first thing the scope menu shows, and its name reaches the hero as the product name ("What should A1 delete probe do first?"). **This is a data fix needing DB write access I did not have.**
+4. **Two h1-sized headings still coexist on non-empty entries.** `TheCallInFront` draws the lead at `text-mrd-h1` and `Hero` draws its own below it. I stood the empty-state panel down but did not restructure the populated case.
+5. **`/threads` renders "Untitled thread" with no messages.** `SURFACE-MAP.md` marks it FOLD; it is still in the rail.
+6. **`/engine-room` redirects to `/team?tab=spend`, `/plan` and `/meridian` redirect to `/start`.** Working, but the rail advertises none of them and the redirects are unexplained to a person who bookmarked one.
+7. **The forecast settlement path has never fired on real data.** 133 specs, 0 readings, per the repo's own measurement; my commit 1 makes the verdict rest on those readings, so it currently and correctly says so rather than inventing one.
+8. **I did not touch the run screen.** It is the best surface here and the brief's remaining asks (concurrent work legible, browser/preview activity, file diffs) belong there. I deliberately spent this session making it reachable rather than changing it.
+
+## HOW TO REPRODUCE ANY NUMBER ABOVE
+
+```
+# live data as the Harbor user (read-only, RLS-scoped)
+curl -s -X POST "$SUPABASE_URL/auth/v1/token?grant_type=password" \
+  -H "apikey: $SUPABASE_PUBLISHABLE_KEY" -H 'Content-Type: application/json' \
+  -d '{"email":"'"$E2E_DEMO_EMAIL"'","password":"'"$E2E_DEMO_PASSWORD"'"}'
+# then GET /rest/v1/spine_tracks?select=... with apikey + Bearer
+
+# the browser walks (scratch scripts, deliberately NOT left in the repo:
+# playwright.config.ts collects every *.spec.ts in e2e/, tracked or not)
+```
+
+The three verification scripts were written at the repo root as `verify-*.local.mjs`, run, and **deleted**. They signed in, switched workspace through the scope menu, captured full-page screenshots and `innerText`, and read `getComputedStyle` off `documentElement`. Rewriting one is a few minutes; leaving an unreviewed spec in `e2e/` is a documented hazard here.
+
+---
+
 # CODEX RE-ORIENTATION — 2026-09-13
 
 > _Created: 2026-07-28 · Last updated: 2026-09-13_
