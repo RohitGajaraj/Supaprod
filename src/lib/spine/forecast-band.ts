@@ -60,7 +60,9 @@ export const MIN_OBSERVATIONS_FOR_A_BAND = 3;
  */
 export function bandFor(reading: number | null | undefined, band: ForecastBand): BandVerdict {
   if (typeof reading !== "number" || !Number.isFinite(reading)) return "unknown";
-  if (!band.direction) return "unknown";
+  if (band.direction !== "lower-is-better" && band.direction !== "higher-is-better") {
+    return "unknown";
+  }
   if (band.driftingAt === null || band.missedAt === null) return "unknown";
   if (!Number.isFinite(band.driftingAt) || !Number.isFinite(band.missedAt)) return "unknown";
 
@@ -79,6 +81,12 @@ export function bandFor(reading: number | null | undefined, band: ForecastBand):
   return "missed";
 }
 
+function isReadingCount(value: unknown): value is number {
+  return (
+    typeof value === "number" && Number.isFinite(value) && Number.isInteger(value) && value >= 0
+  );
+}
+
 /**
  * Whether this band is founded on enough to act on.
  *
@@ -89,8 +97,7 @@ export function bandFor(reading: number | null | undefined, band: ForecastBand):
  */
 export function bandIsWellFounded(band: ForecastBand): boolean {
   return (
-    typeof band.recordedReadings === "number" &&
-    band.recordedReadings >= MIN_OBSERVATIONS_FOR_A_BAND
+    isReadingCount(band.recordedReadings) && band.recordedReadings >= MIN_OBSERVATIONS_FOR_A_BAND
   );
 }
 
@@ -104,7 +111,7 @@ export function bandIsWellFounded(band: ForecastBand): boolean {
  */
 export function thinBandNote(band: ForecastBand): string | null {
   if (bandIsWellFounded(band)) return null;
-  const n = typeof band.recordedReadings === "number" ? band.recordedReadings : null;
+  const n = isReadingCount(band.recordedReadings) ? band.recordedReadings : null;
   if (n === null) {
     return "The record has no readings behind this band, so treat it as a guess rather than a measurement.";
   }

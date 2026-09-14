@@ -27,6 +27,7 @@
  */
 import { createServerFn } from "@tanstack/react-start";
 import { isForecastCheckable } from "./metric-probe.server";
+import { readForecastReading } from "./forecast-reading.server";
 import { z } from "zod";
 
 import { wallsByTrack, type PlatformWall } from "@/lib/spine/the-wall-the-platform-put-up";
@@ -2985,6 +2986,13 @@ const FIELDS: Readonly<Record<string, readonly string[]>> = {
     "forecast_next_check_at",
     "forecast_deferred_count",
     "forecast_deferred_at",
+    "forecast_clause_id",
+    "forecast_metric",
+    "forecast_predicted",
+    "forecast_direction",
+    "forecast_band_drifting_at",
+    "forecast_band_missed_at",
+    "forecast_observations",
   ],
   prd: ["body_md", "status", "design_gate_status", "github_issue_url", "shipped_at"],
   // Widened for the pane's step list: `seq`/`depends_on` give the plan its
@@ -3123,6 +3131,25 @@ export const getTrackArtifacts = createServerFn({ method: "GET" })
             });
           }
         }),
+      );
+
+      await Promise.all(
+        [...found.entries()]
+          .filter(([key]) => key.startsWith("decision:"))
+          .map(async ([key, artifact]) => {
+            const clauseId = artifact.fields.forecast_clause_id;
+            const record = await readForecastReading(
+              supabase,
+              track.workspaceId,
+              key.slice("decision:".length),
+              typeof clauseId === "string" ? clauseId : null,
+            );
+            artifact.fields.forecast_reading_status = record.status;
+            artifact.fields.forecast_recorded_readings = record.count;
+            artifact.fields.forecast_latest_reading = record.reading?.value ?? null;
+            artifact.fields.forecast_reading_by = record.reading?.by ?? null;
+            artifact.fields.forecast_reading_at = record.reading?.at ?? null;
+          }),
       );
 
       /*

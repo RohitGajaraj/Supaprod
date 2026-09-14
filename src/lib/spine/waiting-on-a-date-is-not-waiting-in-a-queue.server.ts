@@ -124,34 +124,41 @@ export async function tracksAReadingBringsForward(
   const live = [...prdByTrack.keys()].filter((t) => decisionByTrack.has(t));
   if (live.length === 0) return out;
 
-  const [{ data: prds }, { data: decisions }] = await Promise.all([
-    db
-      .from("prds")
-      .select("id,contract")
-      .in(
-        "id",
-        live.map((t) => prdByTrack.get(t)!),
-      ),
-    db
-      .from("decisions")
-      .select(
-        "id,forecast_direction,forecast_band_drifting_at,forecast_band_missed_at,forecast_observations",
-      )
-      .in(
-        "id",
-        live.map((t) => decisionByTrack.get(t)!),
-      ),
-  ]);
-  if (!prds || !decisions) return out;
+  const [{ data: prds, error: prdErr }, { data: decisions, error: decisionErr }] =
+    await Promise.all([
+      db
+        .from("prds")
+        .select("id,contract")
+        .in(
+          "id",
+          live.map((t) => prdByTrack.get(t)!),
+        ),
+      db
+        .from("decisions")
+        .select(
+          "id,forecast_clause_id,forecast_direction,forecast_band_drifting_at,forecast_band_missed_at,forecast_observations",
+        )
+        .in(
+          "id",
+          live.map((t) => decisionByTrack.get(t)!),
+        ),
+    ]);
+  if (prdErr || decisionErr || !prds || !decisions) return out;
 
   const contractById = new Map<string, unknown>(
     (prds as Array<{ id: string; contract: unknown }>).map((r) => [r.id, r.contract]),
   );
   const bandById = new Map<string, ForecastBand>();
+  const clauseByDecisionId = new Map<string, string | null>();
   for (const d of decisions as Array<Record<string, unknown>>) {
     const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : null);
+    if (typeof d.id !== "string" || !d.id.trim()) continue;
+    clauseByDecisionId.set(
+      d.id,
+      typeof d.forecast_clause_id === "string" ? d.forecast_clause_id : null,
+    );
     const dir = d.forecast_direction;
-    bandById.set(String(d.id), {
+    bandById.set(d.id, {
       direction: dir === "higher-is-better" || dir === "lower-is-better" ? dir : null,
       driftingAt: num(d.forecast_band_drifting_at),
       missedAt: num(d.forecast_band_missed_at),
@@ -161,8 +168,10 @@ export async function tracksAReadingBringsForward(
 
   for (const trackId of live) {
     const contract = contractById.get(prdByTrack.get(trackId)!);
-    const band = bandById.get(decisionByTrack.get(trackId)!) ?? null;
-    if (aReadingCanBringLearnForward(contract, band).lift) out.add(trackId);
+    const decisionId = decisionByTrack.get(trackId)!;
+    const band = bandById.get(decisionId) ?? null;
+    const link = { decisionId, clauseId: clauseByDecisionId.get(decisionId) ?? null };
+    if (aReadingCanBringLearnForward(contract, band, link).lift) out.add(trackId);
   }
   return out;
 }

@@ -136,3 +136,26 @@ describe("what the system DOES, which is the half we never had", () => {
     expect(tierActionFor("unknown", lower)).toBe("none");
   });
 });
+
+describe("recorded count and runtime direction validation", () => {
+  it("declared population alone never establishes a band", () => {
+    expect(bandIsWellFounded({ ...lower, observations: 41200, recordedReadings: undefined })).toBe(
+      false,
+    );
+  });
+  it("requires a finite nonnegative integer count and never displays invalid counts", () => {
+    for (const count of [NaN, Infinity, -Infinity, -1, 3.5, 0.5, "3", null, undefined]) {
+      const band = { ...lower, recordedReadings: count } as unknown as ForecastBand;
+      expect(bandIsWellFounded(band)).toBe(false);
+      expect(thinBandNote(band)).toContain("record has no readings");
+      expect(tierActionFor("missed", band)).toBe("log");
+    }
+    expect(bandIsWellFounded({ ...lower, recordedReadings: 0 })).toBe(false);
+    expect(thinBandNote({ ...lower, recordedReadings: 0 })).toContain("0 readings");
+  });
+  it("invalid runtime direction values produce unknown", () => {
+    for (const direction of ["sideways", "", 1, {}, undefined]) {
+      expect(bandFor(71, { ...higher, direction } as unknown as ForecastBand)).toBe("unknown");
+    }
+  });
+});

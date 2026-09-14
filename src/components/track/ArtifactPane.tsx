@@ -23,6 +23,8 @@
  * reason (P-16): a tabpanel with no tablist is an orphaned ARIA role.
  */
 import * as React from "react";
+import { useTimezone } from "@/hooks/use-timezone";
+import { dateTimeInZone } from "@/lib/time-of-day";
 import { failureLine } from "@/lib/error-copy";
 import { humanizeText } from "@/lib/ai/humanize";
 import { panelSaysItFiledNothing } from "@/components/track/who-reports-an-empty-station";
@@ -579,6 +581,7 @@ function num(v: unknown): number | null {
 }
 
 function DecisionCard({ item }: { item: ArtifactView }) {
+  const zone = useTimezone();
   const f = item.fields;
   const status = str(f.status);
   /*
@@ -618,27 +621,26 @@ function DecisionCard({ item }: { item: ArtifactView }) {
   const bySlug = str(f.decided_by_agent_slug);
   const deferred = num(f.forecast_deferred_count);
 
-  /*
-   * THE FORECAST AS A BAND (gap #15, U8). Every judgement here is
-   * `src/lib/spine/forecast-band.ts`'s, which S0 shipped today with its
-   * migration; `forecast-band-words.ts` only chooses the sentences.
-   *
-   * ── WHY THIS IS CORRECT BEFORE THE COLUMNS ARE IN `FIELDS` ──────────────
-   * `FIELDS.decision` (`track.functions.ts`, S0's) does not select the band
-   * columns yet, so these read `undefined` today and `bandFor` answers
-   * `unknown` -- which is **the right answer for all 182 forecasts on record**,
-   * because measured the minute the columns landed, ZERO carry a predicted
-   * value, a threshold, an observation count, a metric or a direction. So this
-   * renders the truth now and the real band the moment S0 widens the map. Ask
-   * filed; no latent wrong render either way.
-   */
+  // Thresholds describe the expectation; the joined record supplies the measurement.
   const band = {
     direction: (str(f.forecast_direction) as "lower-is-better" | "higher-is-better" | null) ?? null,
     driftingAt: num(f.forecast_band_drifting_at),
     missedAt: num(f.forecast_band_missed_at),
     observations: num(f.forecast_observations),
+    recordedReadings: num(f.forecast_recorded_readings),
   };
-  const reading = bandReading(num(f.forecast_predicted), band);
+  const measured = num(f.forecast_latest_reading);
+  const predicted = num(f.forecast_predicted);
+  const readingAt = str(f.forecast_reading_at);
+  const readingBy = str(f.forecast_reading_by);
+  const readingStatus = str(f.forecast_reading_status);
+  const reading = bandReading(measured, band);
+  const readingSays =
+    readingStatus === "unavailable" || readingStatus === null
+      ? "The recorded readings could not be loaded."
+      : readingStatus === "unlinked"
+        ? "This forecast is not linked to a success metric yet."
+        : reading.says;
   const shape = bandShape(band);
 
   // The horizon as a calendar day; the schema wants an instant, the reader
@@ -724,17 +726,24 @@ function DecisionCard({ item }: { item: ArtifactView }) {
                 ) : null}
               </span>
             ) : null}
-            {/*
-              HOW FAR OFF, AND WHAT THE SYSTEM DID ABOUT IT (U8). The chip above
-              says hit or miss; this says the distance and the response, which
-              U8 calls "the half nobody has ever seen". On every forecast on
-              record today it says the honest thing instead: recorded as a
-              single number, so it can only be right or wrong.
-            */}
-            <span className="text-mrd-small text-mrd-mute">{reading.says}</span>
+            {predicted !== null ? (
+              <span className="mrd-meta">
+                Expected: {predicted}
+                {str(f.forecast_metric) ? ` · ${str(f.forecast_metric)}` : ""}
+              </span>
+            ) : null}
+            {measured !== null && readingAt && readingBy ? (
+              <span className="mrd-meta">
+                Latest reading: {measured} · Recorded by {readingBy} ·{" "}
+                <time dateTime={readingAt}>
+                  {dateTimeInZone(readingAt, zone, new Date().toISOString())}
+                </time>
+              </span>
+            ) : null}
+            <span className="text-mrd-small text-mrd-mute">{readingSays}</span>
             {shape ? <span className="mrd-meta">{shape}</span> : null}
-            {reading.did ? (
-              <span className="text-mrd-small text-mrd-mute">{reading.did}</span>
+            {reading.nextStep ? (
+              <span className="text-mrd-small text-mrd-mute">{reading.nextStep}</span>
             ) : null}
             {reading.standing ? <span className="mrd-meta">{reading.standing}</span> : null}
             {deferred !== null && deferred > 0 ? (
