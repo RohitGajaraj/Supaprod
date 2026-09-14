@@ -1,3 +1,46 @@
+# PRODUCTION VERIFIED — 2026-09-14, after the founder's manual publish
+
+> _Created: 2026-07-28 · Last updated: 2026-09-14_
+
+**`origin/main` at `384d3de7c` · 15,908 pass / 0 fail · tsc clean · build passes · tree clean**
+
+The founder published manually because Lovable's GitHub sync had not picked the push up. It has now landed. Driven signed in against `https://supaprod.ai` as the Harbor account, every change from this session is serving:
+
+| # | Claim | Measured on production |
+|---|---|---|
+| 1 | Light is the ground a first visit opens on | `<html lang="en" data-theme="light">` in the served HTML, **no `class="dark"`**, `documentElement.dataset.theme === "light"` |
+| 2 | The light ground's own tokens reach it | `--mrd-bloom` = `oklch(32% .02 70/.13)` and `--mrd-sketch` = `oklch(55% .13 42)`. Both were byte-identical to the dark values before this session, so the composer had **no glow on paper** and the glyph ink was tuned for a dark ground |
+| 3 | The headline is the invitation, not a debt | `h1` reads *"What should A1 delete probe do next?"*. It read *"20 design gates and 33 other calls are waiting for you."* before |
+| 4 | The count is still told, one size down | `"designs to sign off"` present in the body |
+| 5 | Schema words are gone from the queue's families | `"design gates"` absent |
+| 6 | The repointed citations land | `/outcomes?tab=decisions` serves the decision ledger; `/brain` was returning the 404 page |
+| 7 | No regressions | zero page errors across the walk |
+
+**A settled run now has a door**, verified against real rows on the dev server before the push: the abandoned track `a09eb8e4` footer reads *"This run was abandoned. · 1m 18s · Start a new run from this"*, the link resolves to `/start?about=Round+8%3A+…`, and pressing it lands with the composer holding that exact sentence. 43 of 63 runs had no control on any surface before this.
+
+## STILL BLOCKED ON ACCESS I DO NOT HAVE
+
+**The default workspace is called "A1 delete probe".** It is the first thing the scope menu shows and its name reaches the largest type on the product as the product's name — visible in row 3 of the table above, in production, right now. This is a **data fix, not a code fix**: rename or archive that workspace, or make a real one the default.
+
+I could not do it. `.env`'s `SUPABASE_ACCESS_TOKEN` is an unexpanded placeholder (`${SU...}`), there is no service-role key, and no Lovable MCP tool was exposed to this session, so the Management API answers `401` and every write door is shut. Read access as the Harbor user through RLS is what produced every number in this handoff.
+
+**The SQL, if you want it applied directly** — it renames rather than deletes, because 9 tracks and their artifacts hang off that workspace and deleting it would take real history with it:
+
+```sql
+-- Verify first: which workspace is the default, and what hangs off it.
+select w.id, w.name, w.is_sample, count(t.id) as tracks
+from workspaces w left join spine_tracks t on t.workspace_id = w.id
+group by w.id, w.name, w.is_sample order by tracks desc;
+
+-- Then rename the probe so it stops introducing the product.
+-- id c8ffbbe7-fd7c-4deb-8b12-36da0944f8ce, 9 tracks, is_sample = false.
+update workspaces set name = 'Scratch' where id = 'c8ffbbe7-fd7c-4deb-8b12-36da0944f8ce';
+```
+
+Rollback is the same statement with the old name. Nothing references the string, so this touches no foreign key and no policy.
+
+---
+
 # SESSION — 2026-09-14 — THE ENTRY REBUILT AGAINST MEASURED BEHAVIOUR
 
 > _Created: 2026-07-28 · Last updated: 2026-09-14_
