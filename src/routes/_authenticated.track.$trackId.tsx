@@ -860,6 +860,13 @@ function TrackPage() {
           hold={track.holdReason}
           because={track.holdBecause}
           /*
+           * THE SENTENCE, SO A SETTLED RUN HAS SOMEWHERE TO GO. Measured live:
+           * 43 of 63 runs are abandoned and the footer drew no control on any of
+           * them. The door carries this title into the composer; the person's
+           * Enter is still what starts anything. See `footer-mode.ts`'s `again`.
+           */
+          title={track.title}
+          /*
            * P-37. A track at Learn on a horizon that has not arrived is waiting
            * on the CALENDAR, and this bar was calling it "Stopped, and not on
            * you." beside a "Run it now" that cannot move a date. With the

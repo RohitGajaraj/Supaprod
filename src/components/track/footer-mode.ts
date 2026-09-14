@@ -88,6 +88,48 @@ export type FooterMode = {
    * opposite answers.
    */
   leave: string | null;
+  /**
+   * Whether this run should offer to start a NEW one from its own sentence.
+   *
+   * ── THE ONE DEAD END LEFT IN THE PRODUCT, AND IT IS THE BIGGEST ──────────
+   *
+   * Measured against live data as the Harbor user: **43 of 63 runs carry
+   * `status = 'abandoned'`**, and this file gave every one of them
+   * `canStop: false, canRun: false, leave: null` -- literally no control, on
+   * any surface. `retryStation`, `stopTrack`, `rewindTrackTo`,
+   * `submitStationByHand` and `steerTrack` all refuse a run that is not open,
+   * correctly. So two thirds of everything a person can see here is inert, and
+   * the screen says "This run was abandoned." and stops.
+   *
+   * Worse, nothing in `src/` writes that status. There is no abandon control
+   * and no code path that sets it, so those rows arrived from outside the
+   * application and a person cannot even be told how it happened.
+   *
+   * `way-out.ts` opens with this product's own rule: **"NO DEAD END, EVER"**,
+   * and names a stop with no stated next step as the thing R-20 forbids
+   * outright. It reasons only about HOLDS, so a settled run was outside its
+   * scope and outside everything else's.
+   *
+   * ── WHY THE DOOR IS A NEW RUN AND NOT A REVIVAL ──────────────────────────
+   * Reopening a closed run would need a writer for a status nothing writes, and
+   * it would land the work back on a station that already failed with its
+   * attempts spent and its artifacts superseded. The useful thing a person has
+   * from a dead run is THE SENTENCE -- the outcome they wanted, which is still
+   * what they want. So the door carries the sentence into the composer.
+   *
+   * ── AND IT SPENDS NOTHING BY ITSELF ─────────────────────────────────────
+   * It navigates to `/start?about=<sentence>`, which the entry already reads
+   * into the composer (`useState(about ?? "")`). The person's own Enter is what
+   * starts a run, which is the consent rule `StarterRuns`, `ExampleJobs` and
+   * `FirstLookExamples` all hold: a suggestion fills the box, a press never
+   * spends. No new server function, no status write, nothing to undo.
+   *
+   * A FINISHED run gets it too, and that is deliberate rather than incidental:
+   * "that worked, do it again for the next thing" is the commonest reason to
+   * want this, and a graded outcome is the best possible starting point for a
+   * second run.
+   */
+  again: boolean;
 };
 
 import { waitingOnTime, calendarWaitLine } from "./a-calendar-wait-is-not-a-stoppage";
@@ -157,13 +199,29 @@ export function footerMode(input: {
       canStop: false,
       canRun: false,
       leave: null,
+      /* A calendar wait is a live run holding a date, not a settled one. It
+         comes back on its own, so offering a second run would invite a
+         duplicate of work already in flight. */
+      again: false,
     };
   }
   if (input.status === "done") {
-    return { line: "This run is finished.", canStop: false, canRun: false, leave: null };
+    return {
+      line: "This run is finished.",
+      canStop: false,
+      canRun: false,
+      leave: null,
+      again: true,
+    };
   }
   if (input.status === "abandoned") {
-    return { line: "This run was abandoned.", canStop: false, canRun: false, leave: null };
+    return {
+      line: "This run was abandoned.",
+      canStop: false,
+      canRun: false,
+      leave: null,
+      again: true,
+    };
   }
 
   /*
@@ -187,6 +245,9 @@ export function footerMode(input: {
         canStop: false,
         canRun: false,
         leave: null,
+        /* An open run: the door is Run it or Stop, above. A second run from the
+         same sentence while this one is live would be a duplicate. */
+        again: false,
       };
     }
     return {
@@ -194,6 +255,9 @@ export function footerMode(input: {
       canStop: false,
       canRun: true,
       leave: null,
+      /* An open run: the door is Run it or Stop, above. A second run from the
+         same sentence while this one is live would be a duplicate. */
+      again: false,
     };
   }
 
@@ -222,6 +286,9 @@ export function footerMode(input: {
       canStop: true,
       canRun: false,
       leave: "This page is buying its next steps. Close it and it finishes the step it is on.",
+      /* An open run: the door is Run it or Stop, above. A second run from the
+         same sentence while this one is live would be a duplicate. */
+      again: false,
     };
   }
 
@@ -250,6 +317,9 @@ export function footerMode(input: {
       // saying so is the whole of SESSION-1's second unit.
       leave: "You can close this. It carries on without you.",
       canRun: false,
+      /* An open run: the door is Run it or Stop, above. A second run from the
+         same sentence while this one is live would be a duplicate. */
+      again: false,
     };
   }
 
@@ -338,6 +408,9 @@ export function footerMode(input: {
       canStop: false,
       canRun: terminal,
       leave: null,
+      /* An open run: the door is Run it or Stop, above. A second run from the
+         same sentence while this one is live would be a duplicate. */
+      again: false,
     };
   }
 
@@ -349,8 +422,22 @@ export function footerMode(input: {
    * of them terminal.
    */
   if (input.tone === "hold") {
-    return { line: "Stopped, and not on you.", canStop: false, canRun: true, leave: null };
+    /* An open run: its doors are Run it and Stop, above. A second run from the
+       same sentence while this one can still move would be a duplicate. */
+    return {
+      line: "Stopped, and not on you.",
+      canStop: false,
+      canRun: true,
+      leave: null,
+      again: false,
+    };
   }
 
-  return { line: "Nothing is driving it right now.", canStop: false, canRun: true, leave: null };
+  return {
+    line: "Nothing is driving it right now.",
+    canStop: false,
+    canRun: true,
+    leave: null,
+    again: false,
+  };
 }

@@ -435,3 +435,100 @@ describe("an overdue horizon is not a calendar wait", () => {
     expect(at(null, NOW).line).toContain("Learn returns");
   });
 });
+
+/*
+ * ── A SETTLED RUN IS NOT A DEAD END (2026-09-14) ──────────────────────────
+ *
+ * Measured against live data as the Harbor user: **43 of 63 runs carry
+ * `status = 'abandoned'` and 2 are `done`.** This file gave every one of them
+ * `canStop: false, canRun: false, leave: null`, and `RunFooter`'s third branch
+ * drew nothing at all -- so two thirds of everything a person can open had no
+ * control on any surface.
+ *
+ * Every server function that could move them refuses a run that is not open,
+ * correctly: `retryStation` ("This work is closed, so there is no station to
+ * run."), `stopTrack`, `rewindTrackTo`, `submitStationByHand`, `steerTrack`.
+ * And nothing in `src/` writes `'abandoned'`, so those rows arrived from outside
+ * the application and a person cannot even be told how.
+ *
+ * `way-out.ts` opens with this product's own rule -- NO DEAD END, EVER -- and
+ * reasons only about HOLDS, so a settled run was outside its scope and outside
+ * everything else's.
+ */
+describe("a settled run offers a way forward", () => {
+  const settled = {
+    tone: null,
+    hold: null,
+    because: null,
+    walking: false,
+    crewLive: false,
+  } as const;
+
+  it("offers a new run from an abandoned one, which had no control at all", () => {
+    const m = footerMode({ ...settled, status: "abandoned" });
+    expect(m.again).toBe(true);
+    /* And it does NOT pretend the dead run itself can move. */
+    expect(m.canRun).toBe(false);
+    expect(m.canStop).toBe(false);
+    expect(m.line).toBe("This run was abandoned.");
+  });
+
+  it("offers one from a finished run too", () => {
+    /* Deliberate rather than incidental: "that worked, now the next thing" is
+       the commonest reason to want this, and a graded outcome is the best
+       starting point a second run can have. */
+    const m = footerMode({ ...settled, status: "done" });
+    expect(m.again).toBe(true);
+    expect(m.canRun).toBe(false);
+  });
+
+  it("never offers one while the run can still move itself", () => {
+    /*
+     * THE MIRROR, and it is the assertion that matters: a second run started
+     * from a sentence whose first run is still live is a duplicate, which is the
+     * thing the promotion sweep's unique index exists to prevent one layer down.
+     * Every open state must refuse, including the holds where nothing is coming
+     * without a person -- those have `retryStation`, undo and handback, and
+     * `way-out.ts` names them.
+     */
+    const opens = [
+      { ...settled, status: "open" as const },
+      { ...settled, status: "open" as const, tone: "you" as const, hold: "given-up" },
+      { ...settled, status: "open" as const, tone: "you" as const, hold: "station-cannot-finish" },
+      { ...settled, status: "open" as const, tone: "hold" as const, hold: "out-of-time" },
+      { ...settled, status: "open" as const, tone: "hold" as const, hold: "needs-evidence" },
+      { ...settled, status: "open" as const, walking: true },
+      { ...settled, status: "open" as const, crewLive: true },
+      {
+        ...settled,
+        status: "open" as const,
+        tone: "you" as const,
+        hold: "paused",
+        because: "Stopped by you.",
+      },
+    ];
+    for (const input of opens) {
+      const m = footerMode(input);
+      expect({ hold: input.hold ?? "none", again: m.again }).toEqual({
+        hold: input.hold ?? "none",
+        again: false,
+      });
+    }
+  });
+
+  it("refuses one on a calendar wait, which comes back on its own", () => {
+    /* A track at Learn holding an unarrived horizon is waiting, not settled.
+       Offering a second run there would duplicate work already in flight. */
+    const m = footerMode({
+      ...settled,
+      status: "open",
+      station: "learn",
+      hold: "needs-evidence",
+      horizon: "2026-12-01T00:00:00Z",
+      now: Date.parse("2026-09-14T00:00:00Z"),
+      returnsOn: "Tue, Dec 1",
+    });
+    expect(m.again).toBe(false);
+    expect(m.canRun).toBe(false);
+  });
+});

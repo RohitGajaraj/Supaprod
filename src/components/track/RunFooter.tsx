@@ -29,6 +29,7 @@
  * anything, because a route that waives and reopens stations has no position to
  * report.
  */
+import { Link } from "@tanstack/react-router";
 import { Action } from "@/components/meridian/surface-parts";
 import { footerMode } from "@/components/track/footer-mode";
 
@@ -47,6 +48,7 @@ export function RunFooter({
   starting,
   elapsed,
   cost,
+  title,
 }: {
   status: "open" | "done" | "abandoned";
   tone: "you" | "hold" | null;
@@ -71,6 +73,15 @@ export function RunFooter({
   elapsed?: string | null;
   /** Total recorded spend, or null when nothing recorded a price. */
   cost?: string | null;
+  /**
+   * The run's own sentence, carried into a new run when this one is settled.
+   *
+   * Optional so every existing caller compiles unchanged; without it a settled
+   * run draws no door, which is exactly the behaviour that shipped before. A
+   * door with no sentence to carry would be a false one, and this file's
+   * neighbour refuses those by name.
+   */
+  title?: string | null;
 }) {
   const mode = footerMode({
     status,
@@ -153,6 +164,38 @@ export function RunFooter({
           <Action variant="primary" busy={starting} onClick={onRun}>
             {starting ? "Walking the route" : "Run it now"}
           </Action>
+        ) : /*
+         * ── THE SETTLED RUN'S ONE DOOR (2026-09-14) ─────────────────────
+         *
+         * The third case above used to draw nothing at all, and measured
+         * against live data that is two thirds of everything a person can
+         * see: 43 of 63 runs carry `status = 'abandoned'` and 2 are `done`.
+         * Every server function that could move them refuses a run that is
+         * not open, correctly, so the screen said "This run was abandoned."
+         * and offered nothing. `way-out.ts` opens with this product's own
+         * rule -- NO DEAD END, EVER -- and reasons only about holds, so a
+         * settled run fell outside it and outside everything else.
+         *
+         * The useful thing a dead run leaves behind is its SENTENCE: the
+         * outcome somebody wanted, which is still what they want. So the
+         * door carries that sentence to the composer.
+         *
+         * A LINK, AND IT SPENDS NOTHING. `/start?about=` is read straight
+         * into the composer by the entry, and the person's own Enter starts
+         * the run -- the same consent rule `StarterRuns`, `ExampleJobs` and
+         * `FirstLookExamples` hold. No status is written and nothing is
+         * revived, so there is nothing to undo. `title` is the one thing
+         * this footer needs that it did not already take.
+         */
+        mode.again && title ? (
+          <Link
+            to="/start"
+            search={{ about: title }}
+            className="mrd-focus inline-flex items-center rounded-mrd-ctl px-mrd-3 py-1 text-mrd-small text-mrd-body underline decoration-mrd-line decoration-dotted underline-offset-[3px] transition-colors hover:text-mrd-ink hover:decoration-mrd-edge hover:decoration-solid"
+            style={{ transitionDuration: "var(--mrd-d-press)" }}
+          >
+            Start a new run from this
+          </Link>
         ) : null}
       </div>
     </footer>
