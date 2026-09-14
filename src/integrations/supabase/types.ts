@@ -2908,6 +2908,7 @@ export type Database = {
       }
       deployments: {
         Row: {
+          build_detail: Json | null
           changeset_id: string | null
           commit_sha: string
           created_at: string
@@ -2916,7 +2917,6 @@ export type Database = {
           embeddable: boolean | null
           embeddable_checked_at: string | null
           environment: string
-          build_detail: Json | null
           failure_reason: string | null
           id: string
           is_sample: boolean
@@ -2929,6 +2929,7 @@ export type Database = {
           workspace_id: string
         }
         Insert: {
+          build_detail?: Json | null
           changeset_id?: string | null
           commit_sha?: string
           created_at?: string
@@ -2937,7 +2938,6 @@ export type Database = {
           embeddable?: boolean | null
           embeddable_checked_at?: string | null
           environment?: string
-          build_detail?: Json | null
           failure_reason?: string | null
           id?: string
           is_sample?: boolean
@@ -2950,6 +2950,7 @@ export type Database = {
           workspace_id: string
         }
         Update: {
+          build_detail?: Json | null
           changeset_id?: string | null
           commit_sha?: string
           created_at?: string
@@ -2958,7 +2959,6 @@ export type Database = {
           embeddable?: boolean | null
           embeddable_checked_at?: string | null
           environment?: string
-          build_detail?: Json | null
           failure_reason?: string | null
           id?: string
           is_sample?: boolean
@@ -3888,7 +3888,7 @@ export type Database = {
           decision_id: string
           id: string
           reason: string
-          reopened_at: string
+          reopened_at: string | null
           reopened_by: string | null
           resolution: string
           resolution_rationale: string | null
@@ -3900,7 +3900,7 @@ export type Database = {
           decision_id: string
           id?: string
           reason: string
-          reopened_at?: string
+          reopened_at?: string | null
           reopened_by?: string | null
           resolution: string
           resolution_rationale?: string | null
@@ -3912,7 +3912,7 @@ export type Database = {
           decision_id?: string
           id?: string
           reason?: string
-          reopened_at?: string
+          reopened_at?: string | null
           reopened_by?: string | null
           resolution?: string
           resolution_rationale?: string | null
@@ -7879,9 +7879,9 @@ export type Database = {
           is_sample: boolean
           mission_id: string | null
           pr_number: number | null
-          preview_reclaimed_at: string | null
           pr_url: string | null
           prd_id: string | null
+          preview_reclaimed_at: string | null
           product_id: string | null
           release_notes: string | null
           release_notes_at: string | null
@@ -7905,9 +7905,9 @@ export type Database = {
           is_sample?: boolean
           mission_id?: string | null
           pr_number?: number | null
-          preview_reclaimed_at?: string | null
           pr_url?: string | null
           prd_id?: string | null
+          preview_reclaimed_at?: string | null
           product_id?: string | null
           release_notes?: string | null
           release_notes_at?: string | null
@@ -7931,9 +7931,9 @@ export type Database = {
           is_sample?: boolean
           mission_id?: string | null
           pr_number?: number | null
-          preview_reclaimed_at?: string | null
           pr_url?: string | null
           prd_id?: string | null
+          preview_reclaimed_at?: string | null
           product_id?: string | null
           release_notes?: string | null
           release_notes_at?: string | null
@@ -9912,6 +9912,14 @@ export type Database = {
         }
         Returns: Json
       }
+      approvals_queue_counts: {
+        Args: { p_exclude?: string }
+        Returns: {
+          name: string
+          waiting: number
+          workspace_id: string
+        }[]
+      }
       auto_advance_agent_arc: {
         Args: { p_agent_id: string; p_user_id: string }
         Returns: string
@@ -9988,6 +9996,13 @@ export type Database = {
         }[]
       }
       credits_enabled: { Args: never; Returns: boolean }
+      credits_spent_by_trace: {
+        Args: { p_trace_ids: string[] }
+        Returns: {
+          credits: number
+          trace_id: string
+        }[]
+      }
       cron_tick_admin_expiries: { Args: never; Returns: Json }
       current_kill_state: {
         Args: { ws: string }
@@ -9995,42 +10010,6 @@ export type Database = {
           reason: string
           system_paused: boolean
           workspace_paused: boolean
-        }[]
-      }
-      approvals_queue_counts: {
-        Args: { p_exclude?: string }
-        Returns: { workspace_id: string; name: string; waiting: number }[]
-      }
-      credits_spent_by_trace: {
-        Args: { p_trace_ids: string[] }
-        Returns: { trace_id: string; credits: number }[]
-      }
-      track_tool_calls: {
-        Args: { p_track_id: string; p_limit?: number; p_search_tools?: string[] }
-        Returns: Json
-      }
-      mission_marks: {
-        Args: { p_workspace_id: string; p_limit?: number }
-        Returns: {
-          id: string
-          title: string
-          status: string
-          created_at: string
-          updated_at: string
-          completed_at: string | null
-          current_agent_id: string | null
-          current_agent_slug: string | null
-          track_id: string | null
-        }[]
-      }
-      latest_run_checkpoints: {
-        Args: { p_run_ids: string[] }
-        Returns: {
-          run_id: string
-          step_index: number
-          trace_id: string | null
-          steps: Json
-          recalled_memories: Json
         }[]
       }
       current_user_default_workspace: { Args: never; Returns: string }
@@ -10175,6 +10154,16 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      latest_run_checkpoints: {
+        Args: { p_run_ids: string[] }
+        Returns: {
+          recalled_memories: Json
+          run_id: string
+          step_index: number
+          steps: Json
+          trace_id: string
+        }[]
       }
       limit_gates_enabled: { Args: never; Returns: boolean }
       log_api_call: {
@@ -10361,6 +10350,35 @@ export type Database = {
           tokens_used: number
         }[]
       }
+      mission_marks: {
+        Args: { p_limit?: number; p_workspace_id: string }
+        Returns: {
+          completed_at: string
+          created_at: string
+          current_agent_id: string
+          current_agent_slug: string
+          id: string
+          status: string
+          title: string
+          track_id: string
+          updated_at: string
+        }[]
+      }
+      mission_routed_stations: {
+        Args: { p_mission_ids: string[] }
+        Returns: {
+          agent_slug: string
+          mission_id: string
+        }[]
+      }
+      mission_spec_titles: {
+        Args: { p_mission_ids: string[] }
+        Returns: {
+          mission_id: string
+          prd_id: string
+          title: string
+        }[]
+      }
       move_product: {
         Args: { _dest_workspace_id: string; _product_id: string }
         Returns: undefined
@@ -10534,6 +10552,16 @@ export type Database = {
       tier_product_limit: { Args: { _tier: string }; Returns: number }
       tier_seat_limit: { Args: { _tier: string }; Returns: number }
       tier_workspace_limit: { Args: { _tier: string }; Returns: number }
+      tool_call_args_slim: { Args: { p_args: Json }; Returns: Json }
+      tool_call_found: { Args: { p_result: Json }; Returns: number }
+      track_tool_calls: {
+        Args: {
+          p_limit?: number
+          p_search_tools?: string[]
+          p_track_id: string
+        }
+        Returns: Json
+      }
       transfer_workspace_ownership: {
         Args: { _new_owner_id: string; _workspace_id: string }
         Returns: undefined
