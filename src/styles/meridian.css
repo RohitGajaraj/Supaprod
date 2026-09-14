@@ -3042,6 +3042,41 @@ textarea:not([readonly]):not([disabled]):focus-visible {
   --mrd-bloom-live: 1;
   --mrd-bloom-size: 128px;
 }
+/*
+ * ── THIS BLOCK HAD NEVER APPLIED, AND IT WAS MEASURED (2026-09-14) ─────────
+ *
+ * It was keyed on `:root[data-mrd-theme="light"], .mrd-light`. **Nothing in the
+ * product has ever set either one.** The light ground is
+ * `[data-theme="light"]`, written by `__root.tsx` and by the pre-hydration
+ * bootstrap beside it; a repo-wide search for `data-mrd-theme` and `mrd-light`
+ * finds them in this file and nowhere else.
+ *
+ * So both overrides below were inert, and the two tokens resolved to their DARK
+ * values on paper. Read out of `getComputedStyle` in a browser on the light
+ * ground: `--mrd-bloom` = `oklch(98% .004 70 / .16)` and `--mrd-sketch` =
+ * `oklch(72% .11 42)`, byte-identical to the dark ground.
+ *
+ * WHAT THAT COST, and it is not cosmetic:
+ *
+ *   · THE COMPOSER HAD NO GLOW ON PAPER. A 98%-lightness wash at 16% alpha over
+ *     a 98.5% sheet is nothing at all. The founder asked for it in as many
+ *     words on 2026-09-01 -- *"for the typing bar, you can have a subtle glow,
+ *     like how new-age AI platforms have some gradient effect"* -- and the
+ *     header above this block explains at length why it inverts on paper. The
+ *     reasoning was right; the selector never delivered it.
+ *   · THE HAND-DRAWN GLYPHS WERE WASHED OUT, carrying a 72%-lightness ink tuned
+ *     for a dark ground against white.
+ *
+ * Both defects were invisible while dark was the default and every reader was
+ * on the ground where the fallbacks happen to be correct. Light is now the
+ * default, so this is on the first screen of the product.
+ *
+ * THE APP'S OWN SELECTOR LEADS. The other two are kept rather than deleted so
+ * any surface that sets them keeps working, but they are no longer load-bearing
+ * and `a-light-ground-token-must-reach-the-light-ground.test.ts` now fails if
+ * this block stops naming the attribute the product actually sets.
+ */
+[data-theme="light"],
 :root[data-mrd-theme="light"],
 .mrd-light {
   /* On paper the bloom cannot be lighter than the ground, so it inverts: a
