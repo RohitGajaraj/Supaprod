@@ -70,12 +70,48 @@ describe("the entry opens with one piece of work", () => {
     expect(ROUTE).not.toContain("routeStations");
   });
 
-  it("stops explaining itself: the sentence about the product is gone", () => {
-    /* "Seven stations take one sentence from evidence to shipped, and grade
-       whether it worked." — true about the PRODUCT, printed at the top of the
-       screen a person opens to find out about THEIR product. */
+  it("explains itself only where there is nothing else to show", () => {
+    /*
+     * ── THIS TEST USED TO SAY "STOPS EXPLAINING ITSELF" FULL STOP ───────────
+     *
+     * The sentence it removed was *"Seven stations take one sentence from
+     * evidence to shipped, and grade whether it worked."* -- true about the
+     * PRODUCT, printed at the top of the screen a person opens to find out
+     * about THEIR product. On visit two it is furniture. That reasoning stands
+     * and this test still enforces it.
+     *
+     * WHAT IT MISSED, measured on the served product 2026-09-14: it assumed
+     * there was always something of the person's own to show instead. On the
+     * workspace the scope menu opens by default there was not -- the entire
+     * home screen was a loading line and an empty text box, because
+     * `TheCallInFront`, `ExampleJobs`, `Arriving` and `StarterRuns` each
+     * correctly draw nothing with no work, no bets and no sources. The founder's
+     * complaint that users *"cannot tell what SupaProd is, where to start"* is
+     * that screen.
+     *
+     * So the rule is now CONDITIONAL rather than absent, and this test pins the
+     * condition, which is the part that can regress: the explanation must be
+     * gated on every other region having answered and come up empty. An
+     * unconditional mount would pass the old assertion's spirit and fail this
+     * one.
+     *
+     * `whatThisDoesForYou` stays banned by name: it is deleted, and its sentence
+     * led with the station count this product treats as internal vocabulary.
+     */
     expect(ROUTE).not.toContain("whatThisDoesForYou");
     expect(ROUTE).not.toContain("theMessage");
+
+    /* The replacement is mounted, and it is gated. */
+    const mount = ROUTE.indexOf("<FirstLook");
+    expect(mount).toBeGreaterThan(-1);
+    const gate = ROUTE.indexOf("entryHasNothingToSay({");
+    expect(gate).toBeGreaterThan(-1);
+    /* The gate opens the expression the mount sits inside, so it must come
+       first. A `<FirstLook` with no gate above it is the regression. */
+    expect(gate).toBeLessThan(mount);
+
+    /* And nothing about stations reaches the reader from this route. */
+    expect(ROUTE).not.toContain("Seven stations");
   });
 });
 

@@ -12,6 +12,8 @@ import { Composer } from "@/components/meridian/onramp-parts";
 import { ExampleJobs, type ExampleJob } from "@/components/start/ExampleJobs";
 import { YourRuns } from "@/components/start/YourRuns";
 import { Arriving } from "@/components/start/Arriving";
+import { FirstLook } from "@/components/start/FirstLook";
+import { entryHasNothingToSay } from "@/components/start/nobody-owned-the-empty-entry";
 import { Hero, heroCopy } from "@/components/start/Hero";
 import { CrewAtWork } from "@/components/start/CrewAtWork";
 import { StarterRuns } from "@/components/start/StarterRuns";
@@ -696,6 +698,26 @@ function StartLanding() {
    * The lead says the same thing without claiming it: a call, its evidence, its
    * road and its dated promise IS "evidence to shipped, and grade whether it
    * worked", shown rather than asserted.
+   *
+   * ── AND THAT ARGUMENT HAS ONE STATE IT DOES NOT REACH (2026-09-14) ────────
+   * Every clause above is true WHEN THERE IS A LEAD TO SHOW. On a workspace
+   * with no work, no bets and no sources there is none, and the reasoning ends
+   * with nothing standing in its place: measured on the served product, the
+   * whole screen was a loading line and an empty box.
+   *
+   * So the sentence is back, under two conditions that answer both halves of
+   * the objection above. It draws ONLY when every other region on this entry
+   * has answered and come up empty (`entryHasNothingToSay`), so a returning
+   * operator with work on screen never meets it and it cannot be furniture on
+   * visit two. And it no longer describes machinery: `WHAT_IT_DOES` names what
+   * the crew PRODUCES and says nothing about stations, which is the founder's
+   * standing instruction about internal vocabulary.
+   *
+   * `what-this-does-for-you.ts` is deleted rather than revived. Its sentence
+   * led with "Seven stations", which is the half of it that was wrong on its own
+   * terms, and a module kept alive with no caller is what `route.ts` documents
+   * three of. The replacement lives in `nobody-owned-the-empty-entry.ts` with
+   * the reproduction beside it.
    */
 
   const betOpen = theBetStillOpen({
@@ -840,6 +862,57 @@ function StartLanding() {
             lead.kind === "call" ? decide.mutate({ item: lead.item, verdict: "reject" }) : undefined
           }
         />
+
+        {/*
+         * ── WHAT THE ENTRY SAYS WHEN EVERY OTHER REGION HAS NOTHING ─────────
+         *
+         * Reproduced on the served product, 2026-09-14: this whole screen was
+         * a loading line and an empty box, because `TheCallInFront`,
+         * `ExampleJobs`, `Arriving` and `StarterRuns` each correctly draw
+         * nothing on a workspace with no work, no bets and no sources. Every
+         * refusal is well argued; nobody owned their sum.
+         *
+         * `entryHasNothingToSay` is that owner, and it asserts emptiness only
+         * from reads that have ANSWERED -- so this never flashes over a
+         * workspace with a year of runs while a query lands. The full argument,
+         * including why invented examples are right in this state and were
+         * wrong where they used to stand, is in
+         * `nobody-owned-the-empty-entry.ts`.
+         *
+         * ABOVE THE COMPOSER, because it is the thing that tells a person what
+         * to type into it.
+         */}
+        {entryHasNothingToSay({
+          lead: lead.kind === "unread" ? null : lead.kind,
+          runs: runs.isSuccess ? (runs.data ?? []) : null,
+          bets: bets.isSuccess ? (bets.data ?? []) : null,
+          waiting,
+          /* A NULL COUNT IS AN UNANSWERED QUESTION, NOT A ZERO. The read can
+             succeed and still carry null for this clause (its own reader
+             refuses to invent one), and treating that as "no evidence" is
+             exactly the substitution `Arriving` documents paying for. It stays
+             null here, which keeps this region silent rather than letting it
+             introduce the product over a workspace that has sources. */
+          hasEvidence:
+            homeReads.isSuccess && homeReads.data.arrivingCount !== null
+              ? homeReads.data.arrivingCount > 0
+              : null,
+        }) ? (
+          <FirstLook
+            onUse={(example) => {
+              setSentence(example.sentence);
+              /* The shape rides with the sentence, so a broken-thing example
+                 does not get sent through discovery. `ComposerRoutePicker`
+                 shows what it picked and the person can still change it. */
+              setPickedShape(example.shape);
+              const field = fieldRef.current;
+              if (field) {
+                field.focus();
+                field.select();
+              }
+            }}
+          />
+        ) : null}
 
         {/* THE HERO WAITS FOR ITS NAME (Lane 1, 2026-09-08). Seen live: "What
           should your product do next?" for a beat before the workspace
