@@ -103,8 +103,8 @@ export function FirstLookExamples({
       {/* Says what a press DOES, because a card that silently spent money would
           be the one thing this region must not do. */}
       <p className="mrd-meta">
-        Examples of the kind of sentence it can act on. Pick one to put it in the box, then change it
-        to yours.
+        Examples of the kind of sentence it can act on. Pick one to put it in the box, then change
+        it to yours.
       </p>
       <ul className="grid gap-mrd-3 md:grid-cols-3">
         {EXAMPLE_SENTENCES.map((example) => (
