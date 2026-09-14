@@ -166,8 +166,25 @@ export function learningMarkdown(
   if (facts.length) blocks.push(facts.join("\n"));
 
   if (extras.decision)
+    /*
+     * `/outcomes`, NOT `/brain`. THE OLD ADDRESS 404s (verified 2026-09-14).
+     *
+     * The surface was renamed and every other caller moved with it;
+     * `no-surface-nobody-can-reach.test.ts` records the citation it repointed
+     * for the same reason. This line was missed, and it is the worst place to
+     * miss one: driven signed in against the served product, `/brain` renders
+     * the 404 page ("There is no page at this address"), and this is a link
+     * offered to a person INSIDE a graded outcome, pointing at the decision that
+     * outcome grades. A citation that dead-ends is the one link on this surface
+     * that must not.
+     *
+     * The query is unchanged because `/outcomes` takes exactly this shape:
+     * `validateSearch` accepts `tab` plus a `decision` id and routes legacy tab
+     * names through LEGACY_TABS, so `?tab=decisions&decision=<id>` lands on the
+     * decision ledger with that row drilled.
+     */
     blocks.push(
-      `Graded the decision: ["${extras.decision.title}"](/brain?tab=decisions&decision=${extras.decision.id})`,
+      `Graded the decision: ["${extras.decision.title}"](/outcomes?tab=decisions&decision=${extras.decision.id})`,
     );
 
   const reversals = overturnedCalls(extras.overturns);

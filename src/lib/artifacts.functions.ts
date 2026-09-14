@@ -111,7 +111,7 @@ export const listArtifacts = createServerFn({ method: "GET" })
             kind: "doc",
             name: str(r.title) ?? "Untitled",
             updatedAt: str(r.updated_at),
-            href: "/brain?tab=docs",
+            href: "/outcomes?tab=docs",
             productId: str(r.project_id),
           });
         }

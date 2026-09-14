@@ -281,7 +281,8 @@ async function gatherInternal(
   for (const c of chunks) {
     const map = RAG_KIND_MAP[c.source_kind] ?? {
       kind: "doc" as const,
-      href: () => "/brain?tab=docs",
+      /* `/outcomes?tab=docs`. `/brain` 404s; `docs` is a real tab there. */
+      href: () => "/outcomes?tab=docs",
     };
     const key = `${c.source_kind}:${c.source_id ?? c.id}`;
     const existing = bySource.get(key);
@@ -339,7 +340,7 @@ async function gatherInternal(
     snapshots.push({
       kind: "decision",
       title: "Recent decisions (5 newest)",
-      href: "/brain?tab=decisions",
+      href: "/outcomes?tab=decisions",
       lines: decisions.map((d) => `- ${d.title} (${d.status})`),
     });
   }

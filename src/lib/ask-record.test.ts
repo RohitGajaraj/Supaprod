@@ -85,7 +85,7 @@ describe("ask-record: what a real fact turns into", () => {
     const c = recordCitationFor({ blocks: [DEC] });
     expect(c?.text).toBe("This was decided already: Fix it in the caller. It still stands.");
     expect(c?.evidence).toContain("DEC");
-    expect(c?.href).toBe("/brain?tab=decisions&decision=aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+    expect(c?.href).toBe("/outcomes?tab=decisions&decision=aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
   });
 
   it("a rejected decision says it was turned down, never that it stands", () => {

@@ -84,7 +84,11 @@ function fromDecision(b: Extract<AnswerBlock, { kind: "decision" }>): RecordCita
   return {
     text,
     evidence: join([formatAuditId("decision", b.id), on(b.createdAt)]),
-    href: `/brain?tab=decisions&decision=${b.id}`,
+    /* `/outcomes`, not `/brain`: the old address 404s (verified on the served
+       product 2026-09-14). This is an ASK CITATION, so a dead one sends a person
+       who asked a question to a not-found page holding the answer's evidence.
+       The query is unchanged; `/outcomes` takes exactly this shape. */
+    href: `/outcomes?tab=decisions&decision=${b.id}`,
   };
 }
 

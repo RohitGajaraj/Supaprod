@@ -597,7 +597,7 @@ describe("learningMarkdown — per-verdict export", () => {
       decision: { id: "d-123", title: "Ship digest v2" },
     });
     expect(md).toContain(
-      `Graded the decision: ["Ship digest v2"](/brain?tab=decisions&decision=d-123)`,
+      `Graded the decision: ["Ship digest v2"](/outcomes?tab=decisions&decision=d-123)`,
     );
   });
 
