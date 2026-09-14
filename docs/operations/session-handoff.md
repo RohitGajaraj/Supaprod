@@ -1,3 +1,67 @@
+# SESSION CLOSE — 2026-09-14 — THE PROBE WORKSPACE RENAMED, AND WHAT IT EXPOSED
+
+> _Created: 2026-07-28 · Last updated: 2026-09-14_
+
+## The rename is done, and it was a data change, not a code one
+
+`workspaces.name` for `c8ffbbe7-fd7c-4deb-8b12-36da0944f8ce` is now **`Scratch`**, was `A1 delete probe`.
+
+Applied through the authenticated PostgREST endpoint as the Harbor user, which RLS permits because that user is the row's `owner_id` (`60000000-ffff-4000-8000-000000000001`). This is the one write door open to this session; the Management API and any service-role path are not (see the access note in the session below).
+
+**Verified three ways.** The PATCH returned the row with `name: "Scratch"`; an independent read-back confirms it; and driven signed in against production, `A1 delete probe` appears nowhere on the entry or in the scope menu while `Scratch` appears in the picker.
+
+**Rollback**, if it is ever wanted:
+
+```sql
+update workspaces set name = 'A1 delete probe'
+where id = 'c8ffbbe7-fd7c-4deb-8b12-36da0944f8ce';
+```
+
+### Why it was renamed rather than deleted
+
+The founder offered to delete it. The data said not to, and the numbers are the argument: that workspace holds **9 tracks, every one `status = 'open'`, $1.08 of real spend, and 73 artifacts** (42 tasks, 20 prototypes, 5 decisions, 3 specs, 3 missions). Three of the nine sit on `the-call-is-yours`, which means they are waiting on a person rather than broken. `is_sample` is `false`, so the sweep has been treating it as real work all along.
+
+Deleting would cascade through `spine_track_members`, and the product has 63 tracks of which only 20 are not abandoned — so removing 9 open ones would have destroyed close to half of everything that still works, irreversibly, to fix what was only ever a **name reaching the largest type on the screen**. Renaming fixes 100% of the visible defect at zero risk. All 9 tracks re-counted after the write: still 9.
+
+The `slug` is deliberately left as `a1-delete-probe`. It is not rendered anywhere a person reads, and slugs can appear in addresses somebody has kept.
+
+## WHAT THE RENAME EXPOSED, AND WHY THE CODE WAS LEFT ALONE
+
+Renaming it moved the default workspace to **`Arrival walk`**, which is the empty one. That is a genuine finding rather than a side effect:
+
+`src/hooks/use-workspace.tsx:81` reads workspaces `.order("name", { ascending: true })`, and `:132` takes `workspaces[0]` as the fallback default. **So the default workspace is whichever name sorts first alphabetically.** `A1 delete probe` was winning on its `A1` prefix, and `Arrival walk` wins now.
+
+**It was not fixed, deliberately, and this is the reasoning to inherit rather than the conclusion.** There is no honest "most recently used" signal available:
+
+| signal | Arrival walk | Helio Labs | Scratch | usable? |
+|---|---|---|---|---|
+| `created_at` | 2026-09-03 | 2026-07-25 | 2026-09-03 | arbitrary; oldest-first happens to give the right answer today and would give a sample workspace to a new user |
+| `updated_at` | 2026-09-03T08:45 | 2026-07-25T08:47 | 2026-09-03T10:00 | **stale creation time on all three.** The rename did not bump it, so no trigger maintains it |
+| `last_auto_cluster_at` | 16:30:00 | 16:30:01 | 16:40:02 | a sweep clock, not a person's activity. All three within ten minutes |
+| track count | 0 | 54 | 9 | the only true signal, and it needs a second query in a hook that runs on every page |
+
+And the blast radius is smaller than it first looks: `localStorage` (`supaprod.workspace.active`) already persists the choice, and the effect at `:127-134` keeps a stored id whenever it is still a workspace the user belongs to. **The alphabetical fallback therefore only decides a FRESH browser**, not a returning session.
+
+Reordering a hook every surface depends on, unverified, at the end of a session, to change a fallback that only affects first-ever loads, is a worse trade than writing it down. If it is picked up: the honest fix is a cheap activity read (open track count, or newest `spine_tracks.created_at` per workspace) folded into the existing workspaces query, not a different arbitrary column.
+
+## STATE AT CLOSE
+
+**`origin/main` at `898b08baf` plus this handoff · local and remote in sync · tree clean**
+
+Gates on the last full run: **15,908 pass, 22 skip, 37 todo, 0 fail** · `bunx tsc --noEmit` clean · `bun run build` passes · `bun run docs:check` clean · migration lint 0 apply-fatal (4 pre-existing warnings).
+
+Eleven commits this session, every one verified against the served product or live rows before it was pushed. Nothing is left uncommitted and no scratch script was left in the repo (`playwright.config.ts` collects every `*.spec.ts` in `e2e/` whether tracked or not, which is a documented hazard here).
+
+## THE FIRST THREE THINGS I WOULD DO NEXT
+
+1. **The naming audit is scoped and unstarted.** A full ranked list is in this session's notes below. The headline items: `components/discover/DiscoverSurface.tsx` renders roughly 18 strings that call one object both **"cluster"** and **"theme"**, plus a raw **`ICE`** acronym and the word **"station"**, on a nav-rail door (`/evidence`) that sits **outside** the existing lint's scope. And one object is called four things across the product: **run / track / mission / "piece of work"** -- `_authenticated.track.$trackId.tsx` renders "This piece of work" and "This run could not be read." in the same card while the route noun is `track`. The durable fix is extending `src/lib/__tests__/a-user-never-reads-the-org-chart.test.ts` (add the six route files and `components/discover`, `brain`, `settings`, `start`; add `mission|seat|sweep|tick|waived|cluster|artifact|ICE` to the word list; scan every quoted string rather than only eight props) and then fixing what it catches. Expect ~40 findings.
+
+2. **The loop still closes about 3% of the time** and no surface says so. 43 of 63 runs abandoned, 38 of 63 never left the first station. The recovery controls all exist and work (`retryStation` clears even a terminal hold, `rewindTrackTo`, `submitStationByHand`), and a settled run now has a forward door -- but nothing tells a person that two thirds of their history is dead, or why. That is a product question, not a copy one.
+
+3. **Nothing in `src/` writes `spine_tracks.status = 'abandoned'`.** Verified by enumerating all 35 `createServerFn` exports in `track.functions.ts`: none writes `status`. The only `'abandoned'` write in the codebase is `studio.functions.ts:1309`, on `studio_changesets`, a different table. So 43 rows reached that state from outside the application and a person cannot be told how. Worth finding the writer before building anything else on top of that status.
+
+---
+
 # PRODUCTION VERIFIED — 2026-09-14, after the founder's manual publish
 
 > _Created: 2026-07-28 · Last updated: 2026-09-14_
