@@ -241,3 +241,14 @@ ruling. His words: *"Stop everything and build something new."*
 - The design-partner kit is retired (founder, same day).
 - Not done, founder's call: pausing the autonomous engine's crons, which spend credits every minute
   on a product with no users.
+
+---
+
+# RULED — 2026-09-23 18:20 IST — R-42: SUPAPROD IS STOPPED; THE FINANCE PIVOT IS DECLINED
+
+**Supersedes the recommendation in the entry above.** The founder accepted stopping Supaprod and
+declined the reset's pivot (independent validation of AI agents in regulated finance): no services
+company, nothing tied to one narrow kind of work, nothing correlated with his former employer's
+domain; he wants a large, untapped opportunity. Ruling: `the-first-run/RULINGS.md` R-42. The
+constraints for the next search and the tension it must resolve: `docs/strategy/strategy-reset-2026-09.md` §14.
+**Do not claim packets, run lanes, or build product surfaces.** Next: a fresh search for a direction.

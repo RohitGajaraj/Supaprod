@@ -4401,3 +4401,14 @@ awaits the founder's ruling.**
 **Open, and all the founder's:** (1) read the Intellect contract before any outreach or code reuse;
 (2) whether to pause the engine crons; (3) whether to message the other lanes to stop product work;
 (4) grade P1–P5 in §11 when they fall due.
+
+## R-42 ruled — 2026-09-23 18:20 IST — session "Validating idea"
+
+**Supaprod product work is stopped by founder ruling**
+([`../../the-first-run/RULINGS.md`](../../the-first-run/RULINGS.md) R-42). The reset's recommended
+pivot to independent validation of AI agents in regulated finance is **declined**, with his reasons
+verbatim in the ruling and in §14 of [`../strategy/strategy-reset-2026-09.md`](../strategy/strategy-reset-2026-09.md),
+which also lists the seven constraints for the next search. Closure banners were added to
+`README.md`, `START-HERE.md`, `A-QUEUE.md`, the status board and `CLAUDE.md`; existing content is
+kept as the record. **Open:** the engine crons still run (founder's call), and a fresh direction
+search starts next.

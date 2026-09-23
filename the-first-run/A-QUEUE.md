@@ -1,5 +1,9 @@
 # A-QUEUE — the one queue for A1, A2 and A3
 
+> **STOPPED 2026-09-23 ([R-42](./RULINGS.md)).** Supaprod product work has ended by founder ruling.
+> **No packet below may be claimed.** Read
+> [`../docs/strategy/strategy-reset-2026-09.md`](../docs/strategy/strategy-reset-2026-09.md) §14 first.
+
 > _Created: 2026-09-02 · Last updated: 2026-09-02 · by A1. This file replaces `BUILD-QUEUE.md`, `docs/lanes/QUEUE-S*.md` and
 > `coordination/` as the channel between lanes. Those are frozen as records. If a document and this
 > file disagree about what to build next, this file wins; `RULINGS.md` still wins on doctrine._

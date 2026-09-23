@@ -2,6 +2,10 @@
 
 > _Created: 2026-09-23 · Last updated: 2026-09-23_
 
+> **The pivot this file evaluated was declined by the founder on 2026-09-23** ([R-42](../../the-first-run/RULINGS.md);
+> reasons in [`../strategy/strategy-reset-2026-09.md`](../strategy/strategy-reset-2026-09.md) §14).
+> The evidence below stands as evidence; it is not the plan.
+
 **Part of the 2026-09-23 strategy reset** ([`../strategy/strategy-reset-2026-09.md`](../strategy/strategy-reset-2026-09.md)).
 This is the **verbatim** final report of a research subagent, extracted from its session transcript by script so no wording was changed (it addresses the founder as "you"; only its H1 was demoted to H2), briefed to **try to break** one hypothesis:
 *"Governance, validation and examiner-ready evidence for AI agents deployed in regulated financial

@@ -112,6 +112,10 @@ Labels: **[FACT]** carries a source and date. **[INFERENCE]** is reasoning from 
 
 ## 5. The assessment, written after the verdict
 
+> **The verdict's pivot was declined on 2026-09-23 (R-42).** The rows below that name "the pivot"
+> describe the declined direction. The general findings (not a moat; a replaceable part; the record
+> is what is kept) hold for any direction.
+
 The verdict in [`../strategy/strategy-reset-2026-09.md`](../strategy/strategy-reset-2026-09.md) is
 reached without Jev. Jev is then tested against it.
 

@@ -18,7 +18,9 @@ Nothing here is superseded by age. A 2026-06 competitor sweep is still true abou
 **Read these before any sweep on the market, the agentic stack, AI governance or pivot options, so it
 is not run a third time.** The verdict they feed is
 [`../strategy/strategy-reset-2026-09.md`](../strategy/strategy-reset-2026-09.md); the founder's
-brief is [`../prompts/strategy-reset.md`](../prompts/strategy-reset.md).
+brief is [`../prompts/strategy-reset.md`](../prompts/strategy-reset.md). **Ruled 2026-09-23 (R-42):
+Supaprod stops, and the finance-validation pivot these files evaluated was declined.** The evidence
+stands; §14 of the verdict lists the constraints for the next search.
 
 | File | What it holds |
 | --- | --- |

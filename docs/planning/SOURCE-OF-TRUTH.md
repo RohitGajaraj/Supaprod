@@ -1,6 +1,6 @@
 # Source of truth
 
-> _Created: 2026-06-18 · Last updated: 2026-08-09_
+> _Created: 2026-06-18 · Last updated: 2026-09-23_
 
 **This is the ONE file for where we are and what is next.** It merged the old `SOURCE-OF-TRUTH.md` on 2026-08-04, because two files were answering the same question and their overlap had gone stale in both directions.
 
@@ -13,6 +13,16 @@ If you are starting a session: read this, then [`../operations/session-handoff.m
 ---
 
 ## Now
+
+**2026-09-23 — SUPAPROD PRODUCT WORK STOPPED ([R-42](../../the-first-run/RULINGS.md)).** After an
+adversarial strategy reset the founder ruled the product stops. The reset's recommended pivot
+(independent validation of AI agents in regulated finance) was declined: no services company,
+nothing tied to his former employer's domain, and the target is a large untapped opportunity. A new
+direction is being searched under the constraints in
+[`../strategy/strategy-reset-2026-09.md`](../strategy/strategy-reset-2026-09.md) §14. **Everything
+below this line describes a product that is no longer being built.**
+
+---
 
 **2026-09-02 — A1 took the director seat.** The audit, positioning call, three-surface ruling, run-screen
 story, deletions, dated plan and date call (**23 September public launch; 15 September product complete

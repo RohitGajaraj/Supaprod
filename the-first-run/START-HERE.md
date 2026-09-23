@@ -1,5 +1,9 @@
 # START HERE — every lane, every session, first file
 
+> **STOPPED 2026-09-23 ([R-42](./RULINGS.md)).** Supaprod product work has ended by founder ruling.
+> Nothing below is the plan any more. Read
+> [`../docs/strategy/strategy-reset-2026-09.md`](../docs/strategy/strategy-reset-2026-09.md) §14 first.
+
 > _If you read one thing, read this. It says what we are doing, why, and where the detail lives._
 
 ## This is not a feature sprint

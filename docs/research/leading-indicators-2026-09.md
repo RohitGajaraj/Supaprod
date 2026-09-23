@@ -108,6 +108,10 @@ is a forecast and says so.
 
 ## 5. The forecast
 
+> **Rows 1, 4, 5 and 6 are general. Rows 2 and 3 and "the gap" below are framed on regulated
+> finance, a direction the founder declined on 2026-09-23 (R-42).** They stand as forecasts, not as
+> the plan.
+
 | # | Within 6–12 months | Label |
 | --- | --- | --- |
 | 1 | Every agent-building layer (runtime, memory, evals, observability, logs, spend, identity) is a lab or incumbent feature. **A startup entering those layers now is entering to be acquired or flattened.** | [INFERENCE] |

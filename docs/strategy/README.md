@@ -8,7 +8,7 @@ If you only need the product's positioning and the current claim, that is in [`.
 
 ---
 
-> **2026-09-23 — strategy reset, awaiting the founder's ruling.** The founder asked for an adversarial
+> **2026-09-23 — RULED ([R-42](../../the-first-run/RULINGS.md)): Supaprod product work stops; the finance-validation pivot is declined; a new direction is being searched.** Earlier the same day: The founder asked for an adversarial
 > review of whether Supaprod should exist. [**strategy-reset-2026-09.md**](./strategy-reset-2026-09.md)
 > recommends **stopping the product** and testing, for two weeks and with no product code, a pivot
 > to independent validation of AI agents in regulated financial services. Until he rules, read it

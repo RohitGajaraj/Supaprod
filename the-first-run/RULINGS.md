@@ -4,6 +4,9 @@
 > this file wins.** Every ruling carries the evidence that decided it, so a lane can see why rather
 > than only what. Dated so a later ruling can supersede an earlier one on the record.
 
+> **R-42 (2026-09-23), at the end of this file, stops Supaprod product work.** Every ruling above it
+> governs a product that is no longer being built.
+
 ---
 
 ## R-01 · The seven stations are a progress display, never a menu — 2026-08-25
@@ -1178,3 +1181,33 @@ of a person the day their repo is connected. The server shape needs a runtime we
 building it first would delay every customer whose repo is a site to serve the ones whose repo is
 an app. Reversible by the founder. Packets: P-128 (detection and this ruling), P-128b (the deploy
 path).
+
+---
+
+## R-42 · Supaprod product work stops. The finance-validation pivot is declined. (2026-09-23)
+
+**The decision, in the founder's words (18:17 IST), after the strategy reset:** *"One thing I understood is that whatever we are building is not the right thing, so we need to stop it. I'm good with that. Let's think about what we need to build."*
+
+**The evidence that decided it.** [`../docs/strategy/strategy-reset-2026-09.md`](../docs/strategy/strategy-reset-2026-09.md)
+§0 and §5: no users after three months, one finished run ever (about the product's own paperwork),
+the thesis bundled free by Linear, Atlassian and Anthropic, and the repo's own 2026-08-11 validation
+concluding that outside evidence *"contradicts the business"*.
+
+**Ruled.**
+
+- **No further product work on Supaprod.** No packet is claimed from [`A-QUEUE.md`](./A-QUEUE.md); no
+  lane runs; no run-screen, Meridian, marketing, film, naming or funding-application work. The
+  acceptance in [`START-HERE.md`](./START-HERE.md) is withdrawn, not failed.
+- **The codebase is frozen, not deleted.** The public site stays up as it is.
+- **R-01 to R-41 stay as the record of how the product was built.** None of them is a reason to
+  resume it.
+- **The pivot the reset recommended is declined:** independent validation of AI agents in
+  regulated financial services (options 1 to 3). His reasons, verbatim: *"I'm not really sure why you picked up the finance part and want to correlate it with what I'm working on with my ex-employer. I really do not want to operate as a service company or something particular to particular work. I want to work on something where the possibilities are there, opportunities are huge, and untapped potential is there, and so on."*
+- **Next is a new search for a direction**, under the constraints listed in the reset's §14.
+
+**What it forbids.** Any lane resuming Supaprod work without a new founder ruling; reviving the
+finance-validation pivot as the plan; proposing a services company, a narrow vertical, or anything
+tied to his former employer's domain as the next direction.
+
+**Still the founder's call:** pausing the autonomous engine's scheduled jobs, which spend model
+credits on a product with no users.

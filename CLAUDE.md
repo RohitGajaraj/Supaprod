@@ -10,12 +10,12 @@ them. **They are still true. They are not withdrawn.**
 
 ## Where to start
 
-- **The strategy reset (2026-09-23) comes before any product work.**
-  [`docs/strategy/strategy-reset-2026-09.md`](./docs/strategy/strategy-reset-2026-09.md) recommends
-  stopping Supaprod and testing a pivot for two weeks with no product code. It awaits the founder's
-  ruling; his words were *"Stop everything and build something new."* The research behind it is
-  indexed in [`docs/research/README.md`](./docs/research/README.md), so read that before running
-  any market sweep again.
+- **Supaprod product work is stopped (founder ruling R-42, 2026-09-23).** Do not claim packets,
+  run lanes or build product surfaces. The reasoning, the declined finance pivot, and the
+  constraints for choosing what comes next are in
+  [`docs/strategy/strategy-reset-2026-09.md`](./docs/strategy/strategy-reset-2026-09.md) §14. The
+  research behind it is indexed in [`docs/research/README.md`](./docs/research/README.md), so read
+  that before running any market sweep again.
 - **The queue and the report (2026-09-02):** [`the-first-run/A-QUEUE.md`](./the-first-run/A-QUEUE.md)
   is the only queue between lanes A1, A2 and A3; [`the-first-run/A1-REPORT.md`](./the-first-run/A1-REPORT.md)
   holds the audit, positioning, journey and dated plan.

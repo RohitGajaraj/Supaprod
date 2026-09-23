@@ -2,7 +2,10 @@
 
 > _Created: 2026-09-23 · Last updated: 2026-09-23_
 
-**Status: analysis for the founder's decision. It is not a ruling until he makes it.** Written by
+**Status: RULED 2026-09-23 18:17 IST ([R-42](../../the-first-run/RULINGS.md)). Stopping Supaprod is
+accepted. The recommended pivot (§0 items 3 and 4, §10 options 1 to 3, §11) is DECLINED; see §14
+for why and for the constraints the next search runs under.** The rest of this file stands as the
+analysis and evidence it was. Written by
 the Claude Code session "Validating idea" on 2026-09-23, from the founder's brief
 ([`../prompts/strategy-reset.md`](../prompts/strategy-reset.md), verbatim) and five research files
 committed alongside it. Every outside claim below links to the research file that sources it; the
@@ -34,7 +37,7 @@ Labels used throughout: **[FACT]** has a source. **[ASSUMPTION]** is believed an
    scoreboard of who was wrong, and nobody buys that for themselves. In a regulated financial
    institution it is called **independent validation** and **outcomes analysis**, and it is
    mandatory.
-3. **The recommended pivot is independent validation of AI agents in regulated financial
+3. **[DECLINED 2026-09-23, §14.]** **The recommended pivot is independent validation of AI agents in regulated financial
    services, sold as a finished validation, not as software.** Start with the AI vendors that sell
    agents into Indian banks and NBFCs, because the RBI's June 2026 draft makes their customers
    validate every third-party model "notwithstanding any validation, certification, or assurance
@@ -265,7 +268,10 @@ Full file: [`../research/jev-and-laya-2026-09.md`](../research/jev-and-laya-2026
 
 ## 10. The strongest directions
 
-### Option 1 (recommended). Independent validation evidence for AI agents sold into regulated finance, vendor side first
+> **Options 1 to 3 were declined by the founder on 2026-09-23 (§14).** Kept as the record of what was
+> evaluated and why it looked strongest on the evidence.
+
+### Option 1 (recommended, then declined). Independent validation evidence for AI agents sold into regulated finance, vendor side first
 
 | | |
 | --- | --- |
@@ -335,6 +341,10 @@ forecast engine almost directly.**
 ---
 
 ## 11. The validation plan
+
+> **Not run. The pivot it tests was declined on 2026-09-23 (§14).** Predictions P1 to P5 are void,
+> not failed: they were never tested. The method (48-hour conversations, one hand-made deliverable,
+> kill criteria, locked predictions) carries over to whatever the next search proposes.
 
 **The rule: no product code until the one-week test passes. The deliverable is made by hand.**
 
@@ -509,3 +519,50 @@ underneath each one.
   brand. They answer a question the new direction does not ask.
 - **Check V1 before reusing any of it.** If an IP assignment clause reaches code written while
   employed, only the ideas travel, not the code.
+
+---
+
+## 14. The founder's ruling, 2026-09-23 18:17 IST
+
+**Accepted: stop Supaprod.** *"One thing I understood is that whatever we are building is not the right thing, so we need to stop it. I'm good with that. Let's think about what we need to build."* Recorded as [R-42](../../the-first-run/RULINGS.md).
+
+**Declined: the finance-validation pivot.** *"I'm not really sure why you picked up the finance part and want to correlate it with what I'm working on with my ex-employer. I really do not want to operate as a service company or something particular to particular work. I want to work on something where the possibilities are there, opportunities are huge, and untapped potential is there, and so on."*
+
+**Why this file recommended finance in the first place, so the next search does not repeat it.** The
+founder's 17:27 message asked to focus *"on any area where our expertise comes from"*, and his
+deepest recent expertise is the AI platform at his former employer. The research then showed the
+layer labs cannot absorb is independence and accountability, which in finance is validation. That
+reasoning was sound on its inputs. **The ruling adds three inputs it did not have:** no services
+company, nothing tied to one particular kind of work, and nothing correlated with his former
+employer's domain. Expertise is an advantage to use where it helps, not a domain to stay inside.
+
+### The constraints the next search runs under
+
+| # | Constraint | Source |
+| --- | --- | --- |
+| 1 | A frontier model or vertical release must not eliminate it | Founder, 17:27 |
+| 2 | Huge, untapped opportunity; possibilities, not a niche | Founder, 18:17 |
+| 3 | A product company, not a services company | Founder, 18:17 |
+| 4 | Not particular to one narrow kind of work | Founder, 18:17 |
+| 5 | Not in or correlated with his former employer's domain (financial-services AI) | Founder, 18:17 |
+| 6 | Provable fast enough to raise; open to investors | Founder, 17:27 |
+| 7 | B2B or B2C both open; the evidence so far favours B2B for a solo founder with no consumer audience | Founder, 17:27, and [stack §F](../research/agentic-stack-and-absorption-2026-09.md) |
+
+### The tension the next search has to resolve, stated now
+
+**[INFERENCE]** The research found three things labs do not absorb: independence from the model
+vendor, accountability for outcomes in regulated work, and neutral cross-vendor layers (for the
+category leader only) ([stack §B](../research/agentic-stack-and-absorption-2026-09.md)). The first
+two tend to be services-shaped, which constraint 3 rules out. **So the next direction has to get its
+protection from a source this reset did not examine:** a proprietary data asset or network effect
+that compounds with use, a system of record the labs do not own, a hard physical-world or hardware
+component, or distribution the labs cannot reach. Constraint 2 (huge) and the earlier "boring, few
+players" can both hold; they cannot hold for a category the labs' own releases already describe.
+
+### What carries forward
+
+- All five research files stand as evidence. The categories to avoid in
+  [stack, "Categories to avoid"](../research/agentic-stack-and-absorption-2026-09.md) still apply.
+- The validation method in §11 carries over. Its specific test does not.
+- Nothing in the codebase carries over until a new direction passes its own test.
+
