@@ -220,3 +220,24 @@ waiting on you" and "we could not find out" are different sentences.
 ## Codex integration checkpoint — 2026-09-13
 
 The local 21 commits and origin/main's 12 commits have been integrated with both histories preserved. Keep the new home and repeated-run experience; the unused ink ApprovalCard was deliberately deleted upstream. Integrated gates: 15,860 pass, zero fail; tsc and build pass; lint zero errors, 206 warnings; docs clean. Lovable OAuth now succeeds when the existing MCP configuration sends Accept: application/json, text/event-stream. An already-running task may need its MCP connection restarted to pick up the setting. No deployment is claimed here. P-150 still needs explicit forecast-clause linkage through count derivation and UI; the broad rebuild is not complete. See session-handoff.md for the detailed checkpoint.
+
+---
+
+# STRATEGY RESET — 2026-09-23 17:54 IST — SESSION "Validating idea" — READ THIS BEFORE ANY PRODUCT WORK
+
+**The founder asked whether Supaprod should exist. The answer written down is: stop the product,
+and test a pivot for two weeks with no product code.** It is analysis awaiting his ruling, not a
+ruling. His words: *"Stop everything and build something new."*
+
+- Verdict: `docs/strategy/strategy-reset-2026-09.md` (§0 is the call, §11 the validation plan with
+  kill criteria and five locked predictions to grade, §13 what happens to the codebase).
+- Research, indexed in `docs/research/README.md` under "The strategy reset": internal evidence,
+  the agentic stack and what labs absorb, regulated-FS agent governance, leading indicators, Jev and
+  Laya. Brief verbatim: `docs/prompts/strategy-reset.md`.
+- The recommended pivot: independent validation of AI agents in regulated finance, vendor side
+  first (AI vendors selling into Indian banks and NBFCs under the RBI's 2026-06-24 draft).
+- **First action is the founder's, not an agent's:** read his Intellect contract (non-solicit,
+  confidentiality, IP assignment) before any outreach or code reuse.
+- The design-partner kit is retired (founder, same day).
+- Not done, founder's call: pausing the autonomous engine's crons, which spend credits every minute
+  on a product with no users.

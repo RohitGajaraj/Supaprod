@@ -1,5 +1,13 @@
 # The design-partner kit — 25 targets, evidence-first outreach, weekly ritual
 
+> **RETIRED 2026-09-23 by the founder. Do not send from this kit, and do not revive it as the plan.**
+> His words: *"Whatever you have, the outreach part, like the design partner kit, you can eliminate
+> that or omit that and document this. We'll go with a new approach, whatever works."* The record of
+> what it held stays below, unchanged. **0 of 25 were ever contacted**, so no conversation was lost.
+> It targeted product managers for a product-lifecycle tool, which the
+> [strategy reset](../strategy/strategy-reset-2026-09.md) found no evidence of a buyer who will pay for. The
+> validation plan that replaces it is §7 of that file.
+
 > _Created: 2026-07-10 (Lane D, PC-13). Status: **target list ready, outreach kit ready — NOTHING sends without the founder's explicit approval per message.** Source cohort verified live via the founder's logged-in browser session (old.reddit.com), 2026-07-10. Citation rule (research §12.4, binding): every name below is a real Reddit handle from one public thread — no cross-referencing to LinkedIn/other sites to build profiles, no inferred personal data beyond what the person posted in this thread themselves._
 
 ## Where this cohort comes from (the evidence)

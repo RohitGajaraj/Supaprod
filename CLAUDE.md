@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-> _Created: 2026-09-01 · Last updated: 2026-09-01_
+> _Created: 2026-09-01 · Last updated: 2026-09-23_
 
 **This file is loaded into every session, so it holds only what is load-bearing and true nowhere
 else.** As of 2026-09-01 the long instruction set is deliberately not here; it is archived at
@@ -10,6 +10,12 @@ them. **They are still true. They are not withdrawn.**
 
 ## Where to start
 
+- **The strategy reset (2026-09-23) comes before any product work.**
+  [`docs/strategy/strategy-reset-2026-09.md`](./docs/strategy/strategy-reset-2026-09.md) recommends
+  stopping Supaprod and testing a pivot for two weeks with no product code. It awaits the founder's
+  ruling; his words were *"Stop everything and build something new."* The research behind it is
+  indexed in [`docs/research/README.md`](./docs/research/README.md), so read that before running
+  any market sweep again.
 - **The queue and the report (2026-09-02):** [`the-first-run/A-QUEUE.md`](./the-first-run/A-QUEUE.md)
   is the only queue between lanes A1, A2 and A3; [`the-first-run/A1-REPORT.md`](./the-first-run/A1-REPORT.md)
   holds the audit, positioning, journey and dated plan.

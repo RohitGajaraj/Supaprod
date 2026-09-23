@@ -1,6 +1,6 @@
 # References
 
-> _Created: 2026-08-04 · Last updated: 2026-08-11_
+> _Created: 2026-08-04 · Last updated: 2026-09-23_
 
 **Evidence, kept in original form.** Twenty documents of primary-source research: what the market does, what product managers say, what investors reward. This folder is deliberately raw. The distilled conclusions live in [`../strategy/`](../strategy/README.md); this is what they were drawn from.
 
@@ -12,6 +12,21 @@
 Nothing here is superseded by age. A 2026-06 competitor sweep is still true about 2026-06, and dated evidence is what makes a trend argument rather than an assertion.
 
 ---
+
+## The strategy reset (2026-09-23): should Supaprod exist, and what instead
+
+**Read these before any sweep on the market, the agentic stack, AI governance or pivot options, so it
+is not run a third time.** The verdict they feed is
+[`../strategy/strategy-reset-2026-09.md`](../strategy/strategy-reset-2026-09.md); the founder's
+brief is [`../prompts/strategy-reset.md`](../prompts/strategy-reset.md).
+
+| File | What it holds |
+| --- | --- |
+| [`supaprod-internal-evidence-2026-09.md`](./supaprod-internal-evidence-2026-09.md) | **What the repo itself proves**: users, finished runs, the five positioning framings in ten weeks, the five rejections, and the 2026-08-11 finding that the business was contradicted, six weeks before anyone acted on it. Also the pieces of the build that travel |
+| [`agentic-stack-and-absorption-2026-09.md`](./agentic-stack-and-absorption-2026-09.md) | **The 2026 agentic stack, layer by layer**, with 2025–26 deals and what the labs shipped into each; which categories labs flattened and which survived and why; the current thesis tested (code review, AI PM tools, decision tracking); what agent builders pay to fix; investor theses; B2B vs B2C; top five opportunities and the categories to avoid. Subagent report, verbatim |
+| [`regulated-fs-agent-governance-2026-09.md`](./regulated-fs-agent-governance-2026-09.md) | **AI-agent validation in financial services, briefed to break the idea**: every regulator's position and date (SR 26-2 excludes agents; the RBI's 2026-06 draft covers them), the pain data, the competitors and acquisitions, buyers and sales cycles, India, and the three wedges that survive. Subagent report, verbatim |
+| [`leading-indicators-2026-09.md`](./leading-indicators-2026-09.md) | **The 6–12 month forecast from signals published in advance**: YC's requests across Spring, Summer and Fall 2026, the dated regulatory calendar, where the money went, what labs shipped and did not |
+| [`jev-and-laya-2026-09.md`](./jev-and-laya-2026-09.md) | **The typed decision models** (TypeSafe's Jev, Convai's open Laya three days later): contract, price, benchmarks and their caveats, what they change in the economics, and the assessment made after the verdict |
 
 ## Market and competitors
 

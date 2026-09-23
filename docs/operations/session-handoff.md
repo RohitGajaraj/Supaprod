@@ -4381,3 +4381,23 @@ Validation of the integrated code: 15,860 tests pass, 22 skip, 37 todo, zero fai
 Lovable OAuth succeeded with Codex CLI 0.154.0 after adding the MCP Accept header (application/json, text/event-stream) to the existing server configuration. Without it, metadata discovery reported a missing resource field while the actual well-known resource document was valid. The persistent user-level configuration now carries the header; credentials remain in Codex storage. This running task cached the old failed connection. A fresh, ephemeral Codex CLI worker successfully called Lovable get_project for Supaprod (371dd588-1b70-4629-9bb5-9f003f3af373), reporting latest_commit_sha c95cdbead52734cec96d27f4d45a7e4c28e47721 before the integration push. Project access is verified; the current task's native connection needs a restart to use the updated setting. The native subagent retry still failed with unsupported encrypted_content, even without conversation history, but the fresh CLI worker completed successfully.
 
 The rebuild goal remains active. P-150 is incomplete: the reading guard must use the explicit decision-to-clause linkage, count valid recorded readings rather than declared populations, and carry that evidence to the artifact UI. Schema verification, connector proof, end-to-end first-run acceptance and served UI verification remain outstanding.
+
+## Strategy reset — 2026-09-23 17:54 IST — session "Validating idea"
+
+**What this session did.** On the founder's brief ([`../prompts/strategy-reset.md`](../prompts/strategy-reset.md)),
+it ran an adversarial review of whether Supaprod should exist, with two research subagents and its
+own primary-source checks. It wrote the verdict to
+[`../strategy/strategy-reset-2026-09.md`](../strategy/strategy-reset-2026-09.md), linked from the
+strategy README banner, and five research files, indexed in [`../research/README.md`](../research/README.md).
+Both subagent reports are committed verbatim, extracted from their transcripts by script. It retired
+the design-partner kit on the founder's instruction, and added a pointer at the top of `CLAUDE.md`.
+No product code, no database change, no deploy-affecting change.
+
+**The call.** Stop Supaprod as a product. Test for two weeks, with no product code, a pivot to
+independent validation of AI agents in regulated financial services, starting with AI vendors that
+sell into Indian regulated entities. Kill criteria and five locked predictions are in §11. **This
+awaits the founder's ruling.**
+
+**Open, and all the founder's:** (1) read the Intellect contract before any outreach or code reuse;
+(2) whether to pause the engine crons; (3) whether to message the other lanes to stop product work;
+(4) grade P1–P5 in §11 when they fall due.

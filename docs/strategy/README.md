@@ -1,12 +1,19 @@
 # docs/strategy: which document to pick
 
-> _Created: 2026-06-03 · Last updated: 2026-08-03_
+> _Created: 2026-06-03 · Last updated: 2026-09-23_
 
 **This file is the arbiter.** When two strategy documents disagree, this table decides. One source per question, and exactly one thing is current per question.
 
 If you only need the product's positioning and the current claim, that is in [`../../README.md`](../../README.md) and you do not need this folder. Come here for the reasoning underneath it.
 
 ---
+
+> **2026-09-23 — strategy reset, awaiting the founder's ruling.** The founder asked for an adversarial
+> review of whether Supaprod should exist. [**strategy-reset-2026-09.md**](./strategy-reset-2026-09.md)
+> recommends **stopping the product** and testing, for two weeks and with no product code, a pivot
+> to independent validation of AI agents in regulated financial services. Until he rules, read it
+> before starting any product work: every document below this line argues for a product it
+> recommends stopping. His words the same day: *"Stop everything and build something new."*
 
 ## Three rulings that sit on top of everything below
 
@@ -26,6 +33,7 @@ Any document in this folder that contradicts one of these is wrong, whatever its
 
 | If you need | Pick | Role |
 | --- | --- | --- |
+| **"Should Supaprod exist, and what instead?"** | [**strategy-reset-2026-09.md**](./strategy-reset-2026-09.md) | **The 2026-09-23 reset.** First principles, the adversarial questions, continue/narrow/pivot/stop on evidence, the YC rejection read carefully, five directions with the full field set, a validation plan with kill criteria and locked predictions, and what happens to the codebase. Research behind it: [`../research/README.md`](../research/README.md), "The strategy reset" |
 | **Where we are, what is next** | [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) §0 | The live cursor. **No document in this folder tells you what to build next.** That is the SSOT's job, and mistaking a strategy doc for a queue is what produced the mess described at the bottom of this file. |
 | **"Anthropic published an SDLC playbook — what does it do to us?"** | [**ai-native-sdlc-rewiring-2026-08.md**](./ai-native-sdlc-rewiring-2026-08.md) | **The strategic and tactical rewiring, with the case against.** Five shifts each priced with what they cost, ten tactical changes indexed to their gap numbers, an explicit kill list, and four ways this derails us — the likeliest being that a good framework becomes a reason to re-architect instead of ship. Also the industry-standard check: eight of nine gaps are already owned, and the one new item is A2A. **Read with [`../../the-first-run/SPEC-AI-NATIVE-SDLC.md`](../../the-first-run/SPEC-AI-NATIVE-SDLC.md), which is the register it indexes.** |
 | **"What if Anthropic ships this tomorrow?"** | [**frontier-lab-defense.md**](./frontier-lab-defense.md) | **The single question most likely to end an investor conversation badly.** The old answer ("the labs decline this vertical") is falsified: Anthropic's CPO said on record he wants it. Carries the replacement, led by the fourteen months since he said it in which no product-decision system shipped, plus a dated tracker that expires the argument the day either lab moves. |
