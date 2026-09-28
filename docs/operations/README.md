@@ -67,6 +67,7 @@ For the rules a change must satisfy, read [`../../AGENTS.md`](../archive/agent-o
 | --- | --- |
 | [`credit-engine-go-live.md`](./credit-engine-go-live.md) | The credit engine flip. Founder-owned; metering has been off since it was armed with zero balances and blocked all AI. |
 | [`procurement-inventory.md`](./procurement-inventory.md) | Every paid dependency with cost, source and a when-to-buy. The single shopping list at launch time. |
+| [`spend-shutdown.md`](./spend-shutdown.md) | **The inverse of procurement, and the live checklist since [R-43](../../the-first-run/RULINGS.md) (2026-09-28): every recurring cost on a product with no users, and how to stop each one.** The 38 scheduled jobs and the three queries that prove they stopped; the two GitHub Actions that spend Anthropic tokens per PR; **the GitHub App webhook, which survives every cron being stopped**; the services that bill for uptime rather than use, led by OpenHands on Railway; and the finding that the live site costs no model tokens at all, so it can stay up. Ends with what it could not verify, because it was written from the repo and not from a bill. |
 | [`domain-and-email-setup.md`](./domain-and-email-setup.md) | Domains and email infrastructure. |
 | [`openhands-activation.md`](./openhands-activation.md) | The OpenHands build driver. |
 

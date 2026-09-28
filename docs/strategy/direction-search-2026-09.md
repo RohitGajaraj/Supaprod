@@ -174,11 +174,72 @@ this file and it should be revisited if B fails its test.**
 
 ---
 
-## 4. Why the founder's first framing of B has to change
+## 4. The pain point, and the four corrections the first framing needs
 
-His proposal, verbatim in substance: *a platform where small and medium businesses from any industry
-onboard, we make them AI-transformation-ready and ready for AI bots so their traffic and revenue go
-up, small subscription, two-week free trial.*
+### 4.1 The pain, in the owner's words
+
+Not "I am not AI-ready". This:
+
+> **Someone wanted to give me money and I was not there to take it.**
+
+An enquiry arrived — 8:40pm, or on WhatsApp, or through a form nobody checks — and nobody answered,
+so it went to whoever answered first.
+
+**Why this pain and not Supaprod's [INFERENCE], point by point against what failed:**
+
+| Property | This | Supaprod |
+| --- | --- | --- |
+| Felt how often | **Daily** | Quarterly, which alone made it unbuyable |
+| Countable | **Yes** — missed calls are a log | No. "Did the bet work" has no counter |
+| Already believed by the buyer | **Yes**, no education needed | Required adopting seven stations and a worldview |
+| Already has a price | **Yes.** $29.99–$300/month and $0.07–0.33 a minute, with Newo.ai raising $25M on it | None. Zero evidence anyone would pay, ever |
+
+**And the sentence that makes it a company rather than a utility:**
+
+> **A human who cannot reach you calls back. An agent just books your competitor.**
+
+**[FACT]** Muse was the number one free US iOS app ten days after launch with 2.5M+ downloads in
+thirteen days. **[INFERENCE]** It does not hold, does not leave a message and does not call back; it
+moves to the next business. So "no answer" stops being a delayed sale and becomes an instant,
+invisible, permanent loss. The same gap, revalued by an order of magnitude, on a timer.
+
+### 4.2 Why they cannot answer, which is the actual product insight
+
+**It is not that nobody is at the desk. It is that the answer does not exist anywhere a machine can
+reach it.** The price is in the owner's head. Availability is in a paper diary or one person's
+calendar. The policy is "it depends". Eligibility is a judgment. **That is why website chatbots are
+useless here, and why an AI receptionist that only takes a message is half a product.**
+
+So what gets built, deliberately **not** described as layers:
+
+- **One asset — the answerable core.** What you sell, what it actually costs, when you are genuinely
+  free, what you will not do, who you cannot serve.
+- **One surface.** Whoever asks gets a real answer and can commit: phone, WhatsApp, web, and later an
+  agent over MCP/UCP. **Same core, no second build.**
+- **One number.** Enquiries recovered, named and timestamped. *Nine arrived outside your hours, four
+  are now appointments.*
+
+The engine underneath is hard where it matters: generating the core with no human of ours, keeping
+availability truthful, never asserting a price it cannot support, escalating cleanly, and telling a
+delegated agent apart from fraud traffic.
+
+**Three things this is not, and each one is a way to lose:**
+
+1. **It is B2B.** The business pays; the consumer benefits and never pays. "B2B and B2C and everyone"
+   conflates one user in two contexts (Wispr) with two buyers (this), and saying it in a pitch costs
+   the pitch.
+2. **It is not also direction A.** Choosing this drops the prosumer surface layer. Different buyer,
+   different distribution, different company.
+3. **It must not be another AI receptionist.** That category is crowded and the price war is on voice
+   quality. The sentence that has to stay true: **an AI receptionist answers your phone; this makes
+   your business answerable.** The phone is a channel. The core is the asset. If the product cannot
+   hold that distinction, do not start.
+
+### 4.3 The four corrections
+
+The founder's proposal, verbatim in substance: *a platform where small and medium businesses from any
+industry onboard, we make them AI-transformation-ready and ready for AI bots so their traffic and
+revenue go up, small subscription, two-week free trial.*
 
 The wave is right. Four things in the framing are wrong, and each has a named fix.
 
@@ -192,6 +253,31 @@ The wave is right. Four things in the framing are wrong, and each has a named fi
 **And one rule that decides whether this is a company or an agency:** onboarding must be automated.
 If generating the core needs a human of ours per business, it is a services business, which
 constraint 3 forbids and which the founder explicitly declined.
+
+### 4.4 The build sequence, if the test passes
+
+**[INFERENCE]** Sequencing matters more than the plan, because the failure mode here is building.
+
+1. **v1 is one category, one city, one channel, ten customers** — the after-hours phone call and
+   WhatsApp message for one kind of appointment business. Highest intent, trivially measurable, already
+   priced, and it forces the core into existence because you cannot answer "how much" without a price
+   or "when" without availability.
+2. **Build those first ten cores by hand.** You cannot automate generating a thing whose shape you
+   have not learned. This is the one place manual work is correct rather than a warning sign.
+3. **The gate that turns this from an agency into a company:** a core generated in **under 30 minutes
+   with no human of ours**. That is the milestone to raise on, not the first ten customers.
+4. **Explicitly not in v1:** the agent endpoint, the visibility scan, multiple channels, multiple
+   industries, a dashboard. The scan becomes the free front door for acquisition, later.
+
+**Choosing the category is the founder's call, on five criteria:** high value per booking (one
+recovered job pays for a year), appointment-based (availability is the constraint), owner-operated
+(one call, no procurement), dense enough to reach twenty in a day, and — the real constraint — **he
+can actually reach the owners**. Candidates: dental, physiotherapy, veterinary, driving schools,
+aesthetics, home services, tutoring centres.
+
+**Geography:** test where twenty owners can be reached this week, which is India, and price for the
+US. **[FACT]** Indian ARPU is roughly an order of magnitude lower. **Do not let the test location
+become the market decision.**
 
 ---
 

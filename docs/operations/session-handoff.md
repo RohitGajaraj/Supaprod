@@ -2,6 +2,27 @@
 
 > _Created: 2026-07-28 · Last updated: 2026-09-28_
 
+## ⚠️ THE FULL SPEND CHECKLIST IS NOW ONE DOCUMENT: [`spend-shutdown.md`](./spend-shutdown.md)
+
+**Added 2026-09-28 after the founder asked whether anything ELSE is still spending.** The answer is
+yes, in three places nobody had listed, and the crons were only the loudest of them:
+
+1. **The GitHub App webhook** (`src/routes/api/public/hooks/github-webhook.ts`) is event-driven, not
+   scheduled. **Stopping all 38 cron jobs does not close it.** A push on any repo the App is installed
+   on can still start Build work. **Uninstall the App.**
+2. **Two GitHub Actions spend Anthropic tokens on activity:** `claude.yml` on any `@claude` mention and
+   `claude-code-review.yml` on **every** PR open and every push to a PR. Neither is scheduled; both
+   should be disabled from the Actions tab. `ci.yml` costs only Actions minutes and is worth keeping.
+3. **Services that bill for uptime, not use** — led by **OpenHands on Railway**
+   (`openhands-production-909d.up.railway.app`), which bills while the container is up with zero
+   traffic. Then Deno Deploy (recorded at its 10-app cap), Supabase Pro, Lovable Pro.
+
+**Good news, verified in code:** the live site invokes **no models** from any public request.
+`/p/teardown` is a retired redirect (founder, 2026-08-22), `/demo` and `/t/$slug` are read-only,
+signup has been closed since 2026-08-07, `wrangler.jsonc` has no cron triggers, there is no Worker
+`scheduled()` handler, and there are no Supabase Edge Functions. **Leaving supaprod.ai up is a
+presentation decision, not a spend decision.**
+
 ## ⚠️ ONE THING IS OPEN ON THE FOUNDER AND IT COSTS MONEY EVERY MINUTE UNTIL HE DOES IT
 
 **The stop migration is written and committed. It is NOT applied.** Lovable is the only deploy path
@@ -36,9 +57,27 @@ plus `reap-stuck-job-runs` and `health-warm-tick`. **Four fire every minute or t
 that can reach the model chokepoint. On the other side of that spend: 4 real identities and no human
 sign-in since 2026-07-19.
 
-**Not verified by this session.** No Lovable MCP was available, so `cron.job` was never read live and
-no spend figure was measured. The fleet is described from the migrations, not from production. If the
-paste returns 0 rows before he runs it, the jobs were already gone and nothing was lost.
+**Not verified by this session, and the reason is worth recording.** No Lovable MCP was available, and
+there is no usable database credential in the repo: **`.env` carries `SUPABASE_ACCESS_TOKEN` as the
+literal placeholder `${SUPABASE_ACCESS_TOKEN}`**, there is no `SUPABASE_SERVICE_ROLE_KEY`, and the
+Supabase Management API returned 401 (`JWT could not be decoded`) against project ref
+`ysszyrczxanuzhiohygx`. So `cron.job` was never read live and no spend figure was measured. **The
+fleet is described from the migrations, not from production.** If the paste returns 0 rows before he
+runs it, the jobs were already gone and nothing was lost.
+
+**The three queries that settle it**, and what a correct answer looks like — full version in
+[`spend-shutdown.md`](./spend-shutdown.md) §1:
+
+```sql
+SELECT count(*) AS still_scheduled FROM cron.job;                 -- MUST be 0
+SELECT version FROM supabase_migrations.schema_migrations
+ WHERE version = '20260928120000';                                -- MUST return one row
+SELECT max(start_time), count(*) FILTER (WHERE start_time > now() - interval '1 hour')
+  FROM cron.job_run_details;                                      -- newest should predate the stop
+```
+
+If query 1 returns 0 but query 2 returns nothing, the paste ran and **the migration is still
+pending** — publish it, or a replay reschedules all 36 ticks.
 
 ## The direction search is answered, and nothing is being built
 
