@@ -21,7 +21,7 @@ settle it and they need the founder.
 
 | # | What | Bills for | Action |
 | --- | --- | --- | --- |
-| 1 | **38 pg_cron jobs** | model calls, every minute in four cases | **Migration written. Apply it.** §1 |
+| 1 | **38 pg_cron jobs** | model calls, every minute in four cases | **DONE 2026-09-28.** All 38 unscheduled, `cron.job` verified empty. §1 |
 | 2 | **GitHub Actions: `claude.yml`, `claude-code-review.yml`** | Anthropic tokens per PR or `@claude` mention | **Disable.** §2 |
 | 3 | **GitHub Actions: `ci.yml`** | Actions minutes on every push to main | Optional; cheap. §2 |
 | 4 | **The GitHub App webhook** | can start agent work with no cron involved | **Uninstall the App.** §3 |
@@ -38,6 +38,14 @@ applied on 2026-09-28 was a security fix, not the cron stop.**
 ---
 
 ## 1. The scheduled fleet — 38 jobs, and four of them fire every minute
+
+**Status, verified 2026-09-28: stopped.** The audit above was written without database access, and the
+`20260928120000` stop migration had not been applied. Reading `cron.job` directly found all 38 jobs
+still live, three of them on `* * * * *`. All 38 were unscheduled that day by looping `cron.unschedule`
+over `cron.job`, and `select count(*) from cron.job` returned `0`. The site and sign-in were confirmed
+serving 200 afterwards. **The stop is reversible by re-running the two migrations below in order.**
+Anyone who finds `cron.job` non-empty is looking at a restored or newly scheduled fleet, not at this
+file being out of date.
 
 **What is scheduled** (read from the migrations, not from `cron.job`): the 36 HTTP ticks defined in
 [`20260909050000`](../../supabase/migrations/20260909050000_the_cron_jobs_are_defined_where_a_replay_would_find_them.sql),
