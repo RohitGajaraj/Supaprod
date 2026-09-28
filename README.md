@@ -1,8 +1,15 @@
 > _Created: 2026-06-03 · Last updated: 2026-09-23_
 
-> **Supaprod product work stopped on 2026-09-23 by founder ruling ([R-42](./the-first-run/RULINGS.md)).**
-> This file describes the product as it was. Why it stopped, and what the next direction must meet:
-> [`docs/strategy/strategy-reset-2026-09.md`](./docs/strategy/strategy-reset-2026-09.md) §14.
+> **🛑 Supaprod product work stopped on 2026-09-23 ([R-42](./the-first-run/RULINGS.md)), and the 38
+> scheduled jobs were stopped on 2026-09-28 ([R-43](./the-first-run/RULINGS.md)).**
+> **If you are an agent, read [`AGENTS.md`](./AGENTS.md) before anything else** — it is a stop sign and
+> it lists what may not be done here, starting with scheduling anything.
+> This file describes the product as it was. Why it stopped:
+> [`docs/strategy/strategy-reset-2026-09.md`](./docs/strategy/strategy-reset-2026-09.md) §14. What
+> comes next, and it is not this product:
+> [`docs/strategy/direction-search-2026-09.md`](./docs/strategy/direction-search-2026-09.md). Every
+> recurring cost and how to stop it:
+> [`docs/operations/spend-shutdown.md`](./docs/operations/spend-shutdown.md).
 
 <p align="center">
   <img src="./docs/growth/branding/social/x-header-dark-1500x500@2x.png" alt="Supaprod. Agents that own outcomes. Not just output." width="100%">

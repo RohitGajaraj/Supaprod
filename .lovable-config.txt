@@ -1,4 +1,69 @@
 ================================================================================
+!! STOP — READ THIS BLOCK AND IGNORE EVERYTHING BELOW IT !!
+Added 2026-09-28. Everything after this block is SUPERSEDED and is kept only as
+a historical record of how this project used to be built.
+================================================================================
+
+THIS PROJECT IS STOPPED. DO NOT BUILD, PLAN, SCHEDULE OR DEPLOY ANYTHING.
+
+  - Product work stopped 2026-09-23 by founder ruling R-42.
+  - The 38 scheduled pg_cron jobs were ordered stopped 2026-09-28 by R-43,
+    because four of them fired every minute and spent model credits on a
+    product with zero users.
+  - The codebase is FROZEN, not deleted. The public site may stay up.
+  - The next direction is NOT this product and will NOT be built in this repo.
+
+WHAT YOU MUST NOT DO, with no exception short of a new dated founder ruling in
+the-first-run/RULINGS.md:
+
+  1. DO NOT SCHEDULE ANYTHING. No cron.schedule, no pg_cron job, no Cloudflare
+     cron trigger, no scheduled() handler, no background poller, no retry loop
+     that outlives a request. If it can run while nobody is watching, do not
+     add it.
+  2. DO NOT RE-RUN the two migrations that define the fleet:
+       supabase/migrations/20260909050000_the_cron_jobs_are_defined_where_a_replay_would_find_them.sql
+       supabase/migrations/20260909070000_a_ping_every_four_minutes_keeps_the_isolate_warm.sql
+     Either one reschedules all 38 jobs and restarts the spend.
+  3. DO NOT "FIX" THE STOP. An EMPTY cron.job table is the CORRECT state. The
+     migration 20260928120000_the_engine_stops_because_nobody_is_using_it.sql
+     empties it deliberately. That is not a bug or a missing migration.
+  4. DO NOT BUILD PRODUCT SURFACES, redesign screens, extend the Meridian
+     design system, or act on any open item in the-first-run/. Every queue in
+     this repo is frozen. An item marked READY is not permission; it predates
+     the stop.
+  5. DO NOT ADD DEPENDENCIES OR A SECOND WAY TO DO SOMETHING THAT EXISTS. There
+     are already 634 SQL migrations in supabase/migrations/. A second migration
+     system means two systems can disagree about the database and nobody is
+     here to notice.
+  6. DO NOT PUSH COMMITS OR OPEN PULL REQUESTS THAT WERE NOT ASKED FOR. Two
+     GitHub Actions in this repo call a model on PR and comment events, so an
+     unasked-for PR spends money twice. A commit message of "Changes" or "Work
+     in progress" on a stopped project cannot be told apart from an accident.
+  7. DO NOT write marketing, launch, naming, pitch or funding-application
+     content. Applications are stopped until a real customer has paid.
+
+WHAT YOU MAY DO: read anything; answer a question the founder actually asked;
+reduce recurring spend and record it in docs/operations/spend-shutdown.md; fix a
+genuinely live security exposure AND say plainly what you changed and why, in
+the commit message and in docs/operations/session-handoff.md.
+
+IF YOU THINK THIS IS WRONG, SAY SO IN WORDS. Do not settle it by committing.
+This project is recovering from three months of building with no outside input;
+an agent acting on its own reading of what is needed repeats that mistake at the
+same cost.
+
+READ THESE, IN THIS ORDER, INSTEAD OF SECTION 2 BELOW:
+  AGENTS.md                                              (the stop, in full)
+  docs/strategy/direction-search-2026-09.md              (why, and what next)
+  docs/operations/spend-shutdown.md                      (every recurring cost)
+  the-first-run/RULINGS.md                               (R-42 and R-43)
+  docs/operations/session-handoff.md                     (what is still open)
+
+================================================================================
+SUPERSEDED BELOW THIS LINE — historical record only, 2026-06-11
+It still calls the product "Cadence", a name retired on 2026-07-17, and it still
+instructs you to start every session by pulling and building. Both are wrong now.
+================================================================================
 LOVABLE KNOWLEDGE FIELD — Complete Co-Development Instructions
 Copy/Paste ENTIRE CONTENT into Lovable.dev Settings -> Knowledge field -> Save
 Last updated: 2026-06-11

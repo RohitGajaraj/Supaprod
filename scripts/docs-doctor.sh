@@ -65,7 +65,20 @@ echo "-- [1] stray files at repo root (docs, images, data, anything loose) --"
 # config below it, and it has to be at root: its "folders" paths are resolved
 # relative to the workspace file itself, so "." and "../cadence-lane-0" only mean
 # the repo and its sibling lanes from here.
-ROOT_ALLOWED=" AGENTS.md CLAUDE.md GEMINI.md README.md package.json package-lock.json bun.lock bunfig.toml tsconfig.json vite.config.ts eslint.config.js playwright.config.ts components.json wrangler.jsonc requirements.txt skills-lock.json cadence-parallel.code-workspace .env.example .gitattributes .gitignore .graphifyignore .lovable-config.txt .mcp.json .prettierignore .prettierrc "
+ROOT_ALLOWED=" AGENTS.md CLAUDE.md GEMINI.md README.md package.json package-lock.json bun.lock bunfig.toml tsconfig.json vite.config.ts eslint.config.js playwright.config.ts components.json wrangler.jsonc drizzle.config.ts requirements.txt skills-lock.json cadence-parallel.code-workspace .env.example .gitattributes .gitignore .graphifyignore .lovable-config.txt .mcp.json .prettierignore .prettierrc "
+# `drizzle.config.ts` WAS NOT OURS AND IS ALLOWED RATHER THAN DELETED (2026-09-28).
+# It arrived in `072d52c4b`, one of three commits `gpt-engineer-app[bot]` (Lovable)
+# pushed to main on 2026-09-28 -- five days after R-42 stopped product work -- along
+# with `drizzle/`, `drizzle-kit`, `drizzle-orm` and `postgres`. It is a build config
+# in the same class as `vite.config.ts` and it has to sit at root, so the gate should
+# not fail on it. It is allowed instead of removed because deleting it might break
+# Lovable's own migration pipeline, which now points at `LOVABLE_DB_MIGRATION_URL`.
+# THE REAL FINDING IS NOT THE FILE: this repo now has TWO migration systems, 634
+# files under `supabase/migrations/` and a new `drizzle/migrations/`, and if Lovable
+# has moved its pipeline to the second one then a file in the first may never be
+# applied -- including `20260928120000_the_engine_stops_because_nobody_is_using_it.sql`.
+# Recorded in `docs/operations/spend-shutdown.md` §7. Do not treat this allowlist
+# entry as approval of the second system.
 # THE DOTFILES ABOVE WERE INVISIBLE TO `for f in *` (P-117): bash's bare `*`
 # glob does not match dotfiles without `shopt -s dotglob`, so these eight
 # tracked root config files were never candidates under the old raw walk --

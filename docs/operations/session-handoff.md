@@ -2,6 +2,31 @@
 
 > _Created: 2026-07-28 · Last updated: 2026-09-28_
 
+## ⚠️ LOVABLE'S BOT IS STILL COMMITTING, AND THE MIGRATION IT APPLIED WAS NOT THE CRON STOP
+
+**[FACT] `gpt-engineer-app[bot]` pushed three commits to `main` on 2026-09-28, 08:13–08:16 UTC** —
+five days after R-42 stopped product work. `73c396c73` *Work in progress*, `cd5c4a393` *Changes*, and
+`072d52c4b` *Changes*, the last of which **introduced Drizzle** as a second migration system
+(`drizzle.config.ts`, `drizzle/migrations/0000_reserved_slugs_signed_in_only.sql`, plus `drizzle-kit`,
+`drizzle-orm`, `postgres`).
+
+**Why it matters more than the commits themselves.** That new migration is a **security fix** — it
+revokes `anon` SELECT on `reserved_workspace_slugs`. **It is not the cron stop.** So "the latest
+migration is applied" can be completely true while all 38 jobs are still running. **Only
+`SELECT count(*) FROM cron.job` settles it.**
+
+**And the open risk [INFERENCE]:** there are now two migration systems here — 634 files in
+`supabase/migrations/` and a new `drizzle/migrations/` applied by `drizzle-kit` against
+`LOVABLE_DB_MIGRATION_URL`. If Lovable has moved its pipeline to Drizzle, **a file in
+`supabase/migrations/` may never be applied**, including the stop. Worth one question to Lovable
+before assuming either way. Full detail: [`spend-shutdown.md`](./spend-shutdown.md) §7.
+
+**Stopping it needs console actions, not repo files:** disconnect the Lovable ↔ GitHub sync (or
+archive the project), and paste the new STOP block at the top of `.lovable-config.txt` into **Lovable →
+Settings → Knowledge field** — the repo file does nothing until it is pasted there. The in-repo half is
+[`../../AGENTS.md`](../../AGENTS.md), added the same day, and `README.md` and `CLAUDE.md` now point at
+it from their first lines.
+
 ## ⚠️ THE FULL SPEND CHECKLIST IS NOW ONE DOCUMENT: [`spend-shutdown.md`](./spend-shutdown.md)
 
 **Added 2026-09-28 after the founder asked whether anything ELSE is still spending.** The answer is

@@ -28,9 +28,12 @@ settle it and they need the founder.
 | 5 | **Hosted services billing for uptime** — OpenHands on Railway, Deno Deploy, Supabase, Lovable | monthly, whether used or not | **Check and cancel.** §4 |
 | 6 | **Pay-per-use API keys** (Cohere, E2B, ElevenLabs, Firecrawl, ZeroEntropy, Gemini, Qwen) | only when called | Goes quiet once §1 lands. Rotate anyway. §5 |
 | 7 | **The live site** | Worker requests only | **No model spend.** Safe to leave up. §6 |
+| 8 | **Lovable's own agent**, which pushed three unasked-for commits on 2026-09-28 | Lovable credits, plus the CI it triggers | **Disconnect the GitHub sync, and paste the STOP block into the Knowledge field.** §7 |
 
-**The two that matter most and are least obvious: #4 and #5.** Stopping the crons does not stop a
-webhook, and it does not stop a container that bills for being switched on.
+**The three that matter most and are least obvious: #4, #5 and #8.** Stopping the crons does not stop
+a webhook, it does not stop a container that bills for being switched on, and it does not stop
+Lovable's own agent from committing. **#8 also changes how #1 should be read: the migration Lovable
+applied on 2026-09-28 was a security fix, not the cron stop.**
 
 ---
 
@@ -205,7 +208,50 @@ a presentation decision, not a spend decision.
 
 ---
 
-## 7. What this audit could not verify, stated plainly
+## 7. Lovable's own agent is still committing, and that is both a spend and a risk
+
+**[FACT] On 2026-09-28 between 08:13 and 08:16 UTC, `gpt-engineer-app[bot]` — Lovable's bot — pushed
+three commits to `main`**, five days after R-42 stopped product work:
+
+| Commit | Message | What it did |
+| --- | --- | --- |
+| `73c396c73` | *Work in progress* | `package.json`, `src/integrations/supabase/previewAuthStorage.ts` |
+| `cd5c4a393` | *Changes* | `bun.lock` |
+| `072d52c4b` | *Changes* | **Introduced Drizzle** — `drizzle.config.ts`, `drizzle/schema.ts`, `drizzle/migrations/0000_reserved_slugs_signed_in_only.sql`, plus `drizzle-kit`, `drizzle-orm` and `postgres` as devDependencies, and bumped `@lovable.dev/vite-tanstack-config` from 2.13.1 to 2.23.1 |
+
+**Three things follow, and the second one is the important one.**
+
+1. **It is a spend.** Lovable agent runs consume plan credits, and unasked-for commits to `main` also
+   trigger `ci.yml`. Neither was requested by anyone.
+2. **The migration it applied is not the migration you think.** `0000_reserved_slugs_signed_in_only.sql`
+   is a security fix — it revokes `anon` SELECT on `reserved_workspace_slugs`. **It is not the cron
+   stop.** So "the latest migration is applied" can be entirely true and the 38 jobs can still be
+   running. **§1's query 1 is the only thing that settles it.**
+3. **There are now two migration systems in this repository.** 634 files in `supabase/migrations/`
+   applied by Lovable's existing path, and a new `drizzle/migrations/` applied by `drizzle-kit`
+   against `LOVABLE_DB_MIGRATION_URL`. **[INFERENCE] If Lovable has moved its migration pipeline to
+   Drizzle, a file in `supabase/migrations/` may no longer be applied at all** — which would mean the
+   stop migration never runs, however many times the project is published. Unverified, and worth one
+   question to Lovable support before assuming either way.
+
+### Stopping it, and none of this can be done from the repo
+
+A file cannot stop a hosted agent. These are console actions:
+
+- **Lovable → the project → disconnect the GitHub sync**, or archive/pause the project. That is the
+  single action that stops the bot pushing.
+- **Lovable → Settings → Knowledge field:** paste the current contents of
+  [`../../.lovable-config.txt`](../../.lovable-config.txt). Its top block is now a STOP notice, added
+  2026-09-28. **The repo file does nothing on its own — Lovable reads the Knowledge field from its own
+  settings, so it has to be pasted in.** Everything below that block is superseded and still calls the
+  product "Cadence", a name retired on 2026-07-17.
+- **Check the Lovable plan.** ~$25/mo (`procurement-inventory.md`), and it is the only thing keeping
+  the site deployable. Cancelling it is a decision about whether supaprod.ai stays up, not about
+  spend control.
+- **[`../../AGENTS.md`](../../AGENTS.md)** is the in-repo half of the same instruction, for any agent
+  that does read the tree. It was added the same day and it says, first: do not schedule anything.
+
+## 8. What this audit could not verify, stated plainly
 
 Nothing below is a claim that something is safe. It is a list of things only the founder can read:
 

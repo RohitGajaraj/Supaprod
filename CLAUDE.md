@@ -10,12 +10,22 @@ them. **They are still true. They are not withdrawn.**
 
 ## Where to start
 
-- **Supaprod product work is stopped (founder ruling R-42, 2026-09-23).** Do not claim packets,
-  run lanes or build product surfaces. The reasoning, the declined finance pivot, and the
-  constraints for choosing what comes next are in
+- **🛑 READ [`AGENTS.md`](./AGENTS.md) FIRST. It is a stop sign, not a manual.** Added 2026-09-28
+  because work kept happening on a stopped product: Lovable's bot pushed three unasked-for commits on
+  2026-09-28, one of them introducing a second migration system. `AGENTS.md` lists what no agent may
+  do here without a new dated ruling — **above all, schedule anything, or re-run the two migrations
+  that reschedule the 38-job fleet.** It does not revive the archived operating manual.
+- **Supaprod product work is stopped (founder ruling R-42, 2026-09-23), and the scheduled fleet was
+  stopped by R-43 on 2026-09-28.** Do not claim packets, run lanes or build product surfaces. **An
+  empty `cron.job` is the correct state and is not a bug.** The reasoning, the declined finance pivot,
+  and the constraints for choosing what came next are in
   [`docs/strategy/strategy-reset-2026-09.md`](./docs/strategy/strategy-reset-2026-09.md) §14. The
   research behind it is indexed in [`docs/research/README.md`](./docs/research/README.md), so read
   that before running any market sweep again.
+- **What comes next, and it is not this product:**
+  [`docs/strategy/direction-search-2026-09.md`](./docs/strategy/direction-search-2026-09.md). Chosen
+  and not validated; no code until its §5 test passes. Every recurring cost and how to stop it:
+  [`docs/operations/spend-shutdown.md`](./docs/operations/spend-shutdown.md).
 - **The queue and the report (2026-09-02):** [`the-first-run/A-QUEUE.md`](./the-first-run/A-QUEUE.md)
   is the only queue between lanes A1, A2 and A3; [`the-first-run/A1-REPORT.md`](./the-first-run/A1-REPORT.md)
   holds the audit, positioning, journey and dated plan.
@@ -99,7 +109,9 @@ bun run docs:check     # doc anti-rot; run before committing doc changes
   not hold a direct Supabase credential; do not ask him to authorize one.
 - **Lovable is the only deploy path**, and it deploys from GitHub. Unpushed work is unshipped.
 - **Never commit a screenshot.** `docs/screenshots/` is gitignored.
-- **Root holds `README.md` and `CLAUDE.md` only.** For anything else, [`docs/README.md`](./docs/README.md)
+- **Root holds `README.md`, `CLAUDE.md` and `AGENTS.md` only.** `AGENTS.md` returned on 2026-09-28 as
+  a stop notice for every agent, which is a different file from the operating manual archived on
+  2026-09-01. For anything else, [`docs/README.md`](./docs/README.md)
   has a routing table with a row for every case; link a new doc from its folder index in the same
   commit. `docs-doctor` runs pre-commit and fails on a misplaced or unlinked file.
 - **Commit with `git commit -F <file>`, not `-m`.** zsh evaluates backticks in `-m` and silently
