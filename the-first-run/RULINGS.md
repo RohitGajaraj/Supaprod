@@ -1211,3 +1211,39 @@ tied to his former employer's domain as the next direction.
 
 **Still the founder's call:** pausing the autonomous engine's scheduled jobs, which spend model
 credits on a product with no users.
+
+---
+## R-43 · The scheduled fleet stops. The next direction is the supply side of the agent wave, unvalidated. (2026-09-28)
+**What R-42 left open, closed.** Its last line read *"Still the founder's call: pausing the
+autonomous engine's scheduled jobs, which spend model credits on a product with no users."* He made
+that call on 2026-09-28: *"you can go ahead and stop it and make sure it's not running on this repo
+or on this project for now."*
+**Ruled, on the engine.**
+- **Every scheduled job is unscheduled.** 36 HTTP tick jobs defined in
+  [`20260909050000`](../supabase/migrations/20260909050000_the_cron_jobs_are_defined_where_a_replay_would_find_them.sql),
+  plus `reap-stuck-job-runs` and `health-warm-tick` — four of them firing every minute or two,
+  each POSTing a hook that can reach the model chokepoint. Migration:
+  `supabase/migrations/20260928120000_the_engine_stops_because_nobody_is_using_it.sql`.
+- **Nothing is dropped and the reversal is in the migration header.** The hooks, handlers, secret
+  function and every scheduling migration stay in the tree; re-running the two defining migrations
+  restores the fleet, because both are idempotent.
+- **It is not applied by committing it.** Lovable is the only deploy path and migrations are applied
+  through it. **Until the founder applies it, the fleet is still running.** The one-paste equivalent
+  is in the session handoff.
+**Ruled, on the direction.** The founder's steer, same day: *"we should be going horizontal in
+surface, never horizontal in function, so I'm good with that"*, and on the supply side: *"most of
+the AI, say, Muse and so on, puts the shopping and booking agents in millions of consumer hands, but
+the supply side is not ready for it. From that perspective, I am thinking about this."*
+- **The direction is CHOSEN AND NOT VALIDATED:** make service businesses answerable and bookable by
+  whoever asks — a human, a WhatsApp message, a phone call, or an agent. Reasoning, market evidence,
+  monetisation and the four corrections his first framing needs:
+  [`../docs/strategy/direction-search-2026-09.md`](../docs/strategy/direction-search-2026-09.md).
+- **No product code until §5 of that file passes**: ten days, a service run by hand for five
+  businesses, two of them paying cash. Kill criteria and five locked predictions are in §5, and P3
+  (will an owner connect a line at all) is existential.
+- **No further accelerator or investor applications until a stranger has paid.** 571 programmes
+  tracked, 9 filed, 6 noes, 0 interviews reached. Applications were never the constraint.
+**What it forbids.** Resuming any scheduled job without a new ruling; building product for the new
+direction before the ten-day test; selling "AI readiness" or a visibility score as the product;
+onboarding that needs a human of ours per business, which would make it the services company R-42
+already declined.

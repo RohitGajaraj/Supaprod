@@ -1,3 +1,72 @@
+# SESSION CLOSE — 2026-09-28 — THE ENGINE IS ORDERED STOPPED, AND THE DIRECTION SEARCH IS ANSWERED
+
+> _Created: 2026-07-28 · Last updated: 2026-09-28_
+
+## ⚠️ ONE THING IS OPEN ON THE FOUNDER AND IT COSTS MONEY EVERY MINUTE UNTIL HE DOES IT
+
+**The stop migration is written and committed. It is NOT applied.** Lovable is the only deploy path
+and migrations go through it, so **the scheduled fleet is still running until he applies it**:
+`supabase/migrations/20260928120000_the_engine_stops_because_nobody_is_using_it.sql`.
+
+**The one-paste equivalent**, if he wants it stopped this minute without waiting for a deploy — run in
+the Lovable SQL surface or the Supabase SQL editor:
+
+```sql
+-- stops every scheduled job. reversible: re-run 20260909050000 and 20260909070000.
+DO $$
+DECLARE j record;
+BEGIN
+  FOR j IN SELECT jobid, jobname FROM cron.job LOOP
+    PERFORM cron.unschedule(j.jobid);
+  END LOOP;
+END $$;
+
+-- verify: must return 0
+SELECT count(*) AS still_scheduled FROM cron.job;
+```
+
+**Applying the migration as well still matters**, even if he runs the paste: without it, any replay or
+re-apply of `20260909050000` reschedules all 36 ticks.
+
+**What was running:** 36 HTTP tick jobs from
+[`20260909050000`](../../supabase/migrations/20260909050000_the_cron_jobs_are_defined_where_a_replay_would_find_them.sql)
+plus `reap-stuck-job-runs` and `health-warm-tick`. **Four fire every minute or two** —
+`approvals-tick`, `event-reactor-tick`, `resume-runs` at `* * * * *`, `ci-poll-tick` and
+`fanout-reconcile-tick` at `*/2`, `health-warm-tick` at `*/4` — each POSTing a hook on supaprod.ai
+that can reach the model chokepoint. On the other side of that spend: 4 real identities and no human
+sign-in since 2026-07-19.
+
+**Not verified by this session.** No Lovable MCP was available, so `cron.job` was never read live and
+no spend figure was measured. The fleet is described from the migrations, not from production. If the
+paste returns 0 rows before he runs it, the jobs were already gone and nothing was lost.
+
+## The direction search is answered, and nothing is being built
+
+[R-43](../../the-first-run/RULINGS.md). The direction is the **supply side of the consumer-agent
+wave**: make service businesses answerable and bookable by whoever asks — a human, a WhatsApp
+message, a phone call, or an agent. **Chosen and not validated.**
+
+- The verdict, the three directions, why the accelerators said no, monetisation, and the ten-day test
+  with five locked predictions: [`../strategy/direction-search-2026-09.md`](../strategy/direction-search-2026-09.md).
+- The fresh evidence with every source and date, including Meta Muse and Wispr Flow verified:
+  [`../research/consumer-surface-and-agent-supply-side-2026-09.md`](../research/consumer-surface-and-agent-supply-side-2026-09.md).
+- **The rule that governs the next fortnight:** no product code until a stranger has paid for work
+  done by hand, and no further accelerator applications until then either.
+- **The next dated door:** YC W27 closes 2026-11-02 8pm PT, decisions by 2026-12-11.
+
+## Two corrections to earlier records, both mine to make
+
+- **`docs/AUDIT.md` (2026-08-27) is stale and should not be trusted.** It claims the single blocker is
+  a missing service-role key and that track `d1168015` proves the machinery. A1-REPORT §1.1 later
+  showed that run's Ship *declined*, its changeset abandoned, and its forecast about Supaprod's own
+  paperwork.
+- **The reset's B2C argument leaned on a category average that hides a 10x spread.** High-retention AI
+  apps keep 13.9% of paid subscriptions at twelve months against 1.4% at the bottom, across 3,500+
+  apps. The case against consumer for this founder is **distribution**, not retention. Corrected in
+  the research file, §2.
+
+---
+
 # SESSION CLOSE — 2026-09-14 — THE PROBE WORKSPACE RENAMED, AND WHAT IT EXPOSED
 
 > _Created: 2026-07-28 · Last updated: 2026-09-14_

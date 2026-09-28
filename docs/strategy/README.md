@@ -8,6 +8,13 @@ If you only need the product's positioning and the current claim, that is in [`.
 
 ---
 
+> **2026-09-28 — the search is answered ([R-43](../../the-first-run/RULINGS.md)).** The direction is the
+> **supply side of the consumer-agent wave**: make service businesses answerable and bookable by
+> whoever asks. **Chosen and not validated — no product code until the ten-day test passes.** Read
+> [**direction-search-2026-09.md**](./direction-search-2026-09.md) before anything else in this
+> folder; it is the only document here that describes what comes next rather than what stopped. The
+> scheduled fleet was ordered stopped the same day.
+>
 > **2026-09-23 — RULED ([R-42](../../the-first-run/RULINGS.md)): Supaprod product work stops; the finance-validation pivot is declined; a new direction is being searched.** Earlier the same day: The founder asked for an adversarial
 > review of whether Supaprod should exist. [**strategy-reset-2026-09.md**](./strategy-reset-2026-09.md)
 > recommends **stopping the product** and testing, for two weeks and with no product code, a pivot
@@ -33,6 +40,7 @@ Any document in this folder that contradicts one of these is wrong, whatever its
 
 | If you need | Pick | Role |
 | --- | --- | --- |
+| **"Supaprod stopped — so what do we build?"** | [**direction-search-2026-09.md**](./direction-search-2026-09.md) | **The second half of R-42, and the only current answer to "what next".** The one durable rule the research produced (**horizontal in surface, never horizontal in function**), why the accelerators said no stated as six facts about what was filed, the three directions that survived the reset's §14 constraints, the four corrections the founder's first framing of the chosen one needs, a ten-day test with kill criteria and five locked predictions, and what is kept from the codebase. **Chosen and not validated: nothing is built until §5 passes.** Evidence: [`../research/consumer-surface-and-agent-supply-side-2026-09.md`](../research/consumer-surface-and-agent-supply-side-2026-09.md) |
 | **"Should Supaprod exist, and what instead?"** | [**strategy-reset-2026-09.md**](./strategy-reset-2026-09.md) | **The 2026-09-23 reset.** First principles, the adversarial questions, continue/narrow/pivot/stop on evidence, the YC rejection read carefully, five directions with the full field set, a validation plan with kill criteria and locked predictions, and what happens to the codebase. Research behind it: [`../research/README.md`](../research/README.md), "The strategy reset" |
 | **Where we are, what is next** | [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) §0 | The live cursor. **No document in this folder tells you what to build next.** That is the SSOT's job, and mistaking a strategy doc for a queue is what produced the mess described at the bottom of this file. |
 | **"Anthropic published an SDLC playbook — what does it do to us?"** | [**ai-native-sdlc-rewiring-2026-08.md**](./ai-native-sdlc-rewiring-2026-08.md) | **The strategic and tactical rewiring, with the case against.** Five shifts each priced with what they cost, ten tactical changes indexed to their gap numbers, an explicit kill list, and four ways this derails us — the likeliest being that a good framework becomes a reason to re-architect instead of ship. Also the industry-standard check: eight of nine gaps are already owned, and the one new item is A2A. **Read with [`../../the-first-run/SPEC-AI-NATIVE-SDLC.md`](../../the-first-run/SPEC-AI-NATIVE-SDLC.md), which is the register it indexes.** |

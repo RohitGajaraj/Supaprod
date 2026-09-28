@@ -30,6 +30,12 @@ stands; §14 of the verdict lists the constraints for the next search.
 | [`leading-indicators-2026-09.md`](./leading-indicators-2026-09.md) | **The 6–12 month forecast from signals published in advance**: YC's requests across Spring, Summer and Fall 2026, the dated regulatory calendar, where the money went, what labs shipped and did not |
 | [`jev-and-laya-2026-09.md`](./jev-and-laya-2026-09.md) | **The typed decision models** (TypeSafe's Jev, Convai's open Laya three days later): contract, price, benchmarks and their caveats, what they change in the economics, and the assessment made after the verdict |
 
+## The direction search (2026-09-28): the three gaps the reset named in itself
+
+| File | What it holds |
+| --- | --- |
+| [`consumer-surface-and-agent-supply-side-2026-09.md`](./consumer-surface-and-agent-supply-side-2026-09.md) | **The evidence the reset corpus was missing, and said so.** Written because [`customer-voice.md`](./customer-voice.md) never studied a consumer or single-purpose AI product, nothing here examined horizontal AI-for-function defensibility, and [`leading-indicators-2026-09.md`](./leading-indicators-2026-09.md) self-expires 2026-12-31. Holds **Meta Muse verified** (launched 2026-09-08, #1 free US iOS app by 09-18, 2.5M+ downloads in 13 days, $20–100/mo) — the demand side arriving five days before the search; **Wispr Flow verified** ($280M at $2B on 2026-08-17, 150%+ quarterly growth, a 700ms latency budget, and why the labs' own voice is deliberately less accurate); the **10x retention spread** across 3,500+ AI apps that corrects the reset's use of a category average; the **supply-side hole** (UCP, ACP and AP2 all assume a SKU and a cart, so the service half has no owner) with who is already on the adjacent ground; and the **horizontal-in-function graveyard** (Jasper $120M→$55M, the legal plugin's effect on Thomson Reuters and LegalZoom). §6 lists what it does not answer, starting with the fact that agent traffic to service businesses is measured nowhere. Feeds [`../strategy/direction-search-2026-09.md`](../strategy/direction-search-2026-09.md) |
+
 ## Market and competitors
 
 | File | What it holds |
